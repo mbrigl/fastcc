@@ -3,12 +3,21 @@
 
 package org.javacc.parser;
 
-import static org.javacc.parser.JavaCCGlobals.*;
+import static org.javacc.parser.JavaCCGlobals.addUnicodeEscapes;
+import static org.javacc.parser.JavaCCGlobals.cu_name;
 
 import org.javacc.utils.OutputFileGenerator;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class CodeGenerator {
   protected StringBuffer mainBuffer = new StringBuffer();
@@ -53,25 +62,24 @@ public class CodeGenerator {
     if (!isJavaLanguage()) {
       String incfilePath = fileName.replace(".cc", ".h");
       String incfileName = new File(incfilePath).getName();
-      includeBuffer.insert(0, "#define " + incfileName.replace('.', '_').toUpperCase() + "\n");
-      includeBuffer.insert(0, "#ifndef " + incfileName.replace('.', '_').toUpperCase() + "\n");
+      includeBuffer.insert(0, "#define JAVACC_" + incfileName.replace('.', '_').toUpperCase() + "\n");
+      includeBuffer.insert(0, "#ifndef JAVACC_" + incfileName.replace('.', '_').toUpperCase() + "\n");
 
       // dump the statics into the main file with the code.
       mainBuffer.insert(0, staticsBuffer);
 
       // Finally enclose the whole thing in the namespace, if specified.
       if (Options.stringValue(Options.USEROPTION__CPP_NAMESPACE).length() > 0) {
-        mainBuffer.insert(0, "namespace " + Options.stringValue("NAMESPACE_OPEN") + "\n");
         mainBuffer.append(Options.stringValue("NAMESPACE_CLOSE") + "\n");
         includeBuffer.append(Options.stringValue("NAMESPACE_CLOSE") + "\n");
       }
 
-      if (jjtreeGenerated) {
-    	  mainBuffer.insert(0, "#include \"SimpleNode.h\"\n");
-      }
+//      if (jjtreeGenerated) {
+//    	  mainBuffer.insert(0, "#include \"Node.h\"\n");
+//      }
       if(Options.getTokenManagerUsesParser())
         mainBuffer.insert(0, "#include \"" + cu_name + ".h\"\n");
-      mainBuffer.insert(0, "#include \"TokenMgrError.h\"\n");
+      mainBuffer.insert(0, "#include \"TokenManagerError.h\"\n");
       mainBuffer.insert(0, "#include \"" + incfileName + "\"\n");
       includeBuffer.append("#endif\n");
       saveOutput(incfilePath, includeBuffer);

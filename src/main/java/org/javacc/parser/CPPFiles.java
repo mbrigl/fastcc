@@ -4,14 +4,14 @@
 
 package org.javacc.parser;
 
+import org.javacc.Version;
+import org.javacc.utils.OutputFileGenerator;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import org.javacc.Version;
-import org.javacc.utils.OutputFileGenerator;
 
 /**
  * Generate CharStream, TokenManager and Exceptions.
@@ -158,19 +158,24 @@ public class CPPFiles extends JavaCCGlobals implements JavaCCParserConstants
   public static void gen_CharStream() {
     String[] parameters = new String[] {Options.USEROPTION__STATIC, Options.USEROPTION__SUPPORT_CLASS_VISIBILITY_PUBLIC};
     genFile("CharStream.h", charStreamVersion, parameters);
-    genFile("CharStream.cc", charStreamVersion, parameters);
+    genFile("DefaultCharStream.h", charStreamVersion, parameters);
+    genFile("DefaultCharStream.cc", charStreamVersion, parameters);
   }
 
   public static void gen_ParseException() {
     String[] parameters = new String[] {Options.USEROPTION__STATIC, Options.USEROPTION__SUPPORT_CLASS_VISIBILITY_PUBLIC};
     genFile("ParseException.h", parseExceptionVersion, parameters);
     genFile("ParseException.cc", parseExceptionVersion, parameters);
+    genFile("ParserErrorHandler.h", parseExceptionVersion, parameters);
+    genFile("DefaultParserErrorHandler.h", parseExceptionVersion, parameters);
+    genFile("DefaultParserErrorHandler.cc", parseExceptionVersion, parameters);
   }
 
   public static void gen_TokenMgrError() {
     String[] parameters = new String[] {Options.USEROPTION__STATIC, Options.USEROPTION__SUPPORT_CLASS_VISIBILITY_PUBLIC};
-    genFile("TokenMgrError.h", tokenMgrErrorVersion, parameters);
-    genFile("TokenMgrError.cc", tokenMgrErrorVersion, parameters);
+    genFile("TokenManagerError.h", tokenMgrErrorVersion, parameters);
+    genFile("TokenManagerError.cc", tokenMgrErrorVersion, parameters);
+    genFile("TokenManagerErrorHandler.h", tokenMgrErrorVersion, parameters);
   }
 
   public static void gen_Token() {
@@ -191,7 +196,8 @@ public class CPPFiles extends JavaCCGlobals implements JavaCCParserConstants
 
   public static void gen_ErrorHandler() {
     String[] parameters = new String[] {Options.USEROPTION__STATIC, Options.USEROPTION__SUPPORT_CLASS_VISIBILITY_PUBLIC, Options.USEROPTION__BUILD_PARSER, Options.USEROPTION__BUILD_TOKEN_MANAGER};
-    genFile("ErrorHandler.h", parseExceptionVersion, parameters);
+    genFile("DefaultTokenManagerErrorHandler.h", tokenMgrErrorVersion, parameters);
+    genFile("DefaultTokenManagerErrorHandler.cc", tokenMgrErrorVersion, parameters);
   }
 
   public static void reInit()

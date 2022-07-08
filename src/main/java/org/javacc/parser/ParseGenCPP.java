@@ -36,6 +36,10 @@ public void start() throws MetaParseException {
     tn.add(toolName);
     switchToStaticsFile();
 
+    genCodeLine("#include \"" + cu_name + "Tree.h\"");
+    genCodeLine("");
+    genCodeLine("");
+
     switchToIncludeFile();
 
     //standard includes
@@ -63,7 +67,7 @@ public void start() throws MetaParseException {
       genCodeLine("#include \"JJT" + cu_name + "State.h\"");
     }
 
-    genCodeLine("#include \"ErrorHandler.h\"");
+    genCodeLine("#include \"DefaultParserErrorHandler.h\"");
 
     if (jjtreeGenerated) {
       genCodeLine("#include \"" + cu_name + "Tree.h\"");
@@ -109,36 +113,44 @@ public void start() throws MetaParseException {
     switchToIncludeFile();
     genCodeLine("");
     genCodeLine("public: ");
-    genCodeLine("  void setErrorHandler(ErrorHandler *eh) {");
-    genCodeLine("    if (errorHandler) delete errorHandler;");
+    genCodeLine("  void setErrorHandler(ParserErrorHandler* eh) {");
+    genCodeLine("    if (delete_eh) delete errorHandler;");
     genCodeLine("    errorHandler = eh;");
+    genCodeLine("    delete_eh = false;");
+    genCodeLine("  }");
+    genCodeLine("  const ParserErrorHandler* getErrorHandler() {");
+    genCodeLine("    return errorHandler;");
+    genCodeLine("  }");
+    genCodeLine("  static const JJChar* getTokenImage(int kind) {");
+    genCodeLine("    return kind >= 0 ? tokenImages[kind] : tokenImages[0];");
+    genCodeLine("  }");
+    genCodeLine("  static const JJChar* getTokenLabel(int kind) {");
+    genCodeLine("    return kind >= 0 ? tokenLabels[kind] : tokenLabels[0];");
     genCodeLine("  }");
     genCodeLine("");
-    genCodeLine("  TokenManager *token_source = nullptr;");
-    genCodeLine("  CharStream   *jj_input_stream = nullptr;");
-    genCodeLine("  /** Current token. */");
-    genCodeLine("  Token        *token = nullptr;");
-    genCodeLine("  /** Next token. */");
-    genCodeLine("  Token        *jj_nt = nullptr;");
+    genCodeLine("  TokenManager*          token_source = nullptr;");
+    genCodeLine("  CharStream*            jj_input_stream = nullptr;");
+    genCodeLine("  Token*                 token = nullptr;  // Current token.");
+    genCodeLine("  Token*                 jj_nt = nullptr;  // Next token.");
     genCodeLine("");
     genCodeLine("private: ");
-    genCodeLine("  int           jj_ntk;");
-
-    genCodeLine("  JJCalls       jj_2_rtns[" + (jj2index + 1) + "];");
-    genCodeLine("  bool          jj_rescan;");
-    genCodeLine("  int           jj_gc;");
-    genCodeLine("  Token        *jj_scanpos, *jj_lastpos;");
-    genCodeLine("  int           jj_la;");
-    genCodeLine("  /** Whether we are looking ahead. */");
-    genCodeLine("  bool          jj_lookingAhead;");
-    genCodeLine("  bool          jj_semLA;");
-
-    genCodeLine("  int           jj_gen;");
-    genCodeLine("  int           jj_la1[" + (maskindex + 1) + "];");
-    genCodeLine("  ErrorHandler *errorHandler = nullptr;");
+    genCodeLine("  int                    jj_ntk;");
+    genCodeLine("  JJCalls                jj_2_rtns[" + (jj2index + 1) + "];");
+    genCodeLine("  bool                   jj_rescan;");
+    genCodeLine("  int                    jj_gc;");
+    genCodeLine("  Token*                 jj_scanpos;");
+    genCodeLine("  Token*                 jj_lastpos;");
+    genCodeLine("  int                    jj_la;");
+    genCodeLine("  bool                   jj_lookingAhead;  // Whether we are looking ahead.");
+    genCodeLine("  bool                   jj_semLA;");
+    genCodeLine("  int                    jj_gen;");
+    genCodeLine("  int                    jj_la1[" + (maskindex + 1) + "];");
+    genCodeLine("  ParserErrorHandler*    errorHandler = nullptr;");
     genCodeLine("");
     genCodeLine("protected: ");
-    genCodeLine("  bool          hasError;");
+    genCodeLine("  bool                   delete_eh = false;");
+    genCodeLine("  bool                   delete_tokens = true;");
+    genCodeLine("  bool                   hasError;");
     genCodeLine("");
     int tokenMaskSize = (tokenCount-1)/32 + 1;
 
@@ -146,7 +158,7 @@ public void start() throws MetaParseException {
       switchToStaticsFile();
       for (int i = 0; i < tokenMaskSize; i++) {
         if (maskVals.size() > 0) {
-          genCodeLine("  unsigned int jj_la1_" + i + "[] = {");
+          genCodeLine("static unsigned int jj_la1_" + i + "[] = {");
           for (Iterator<?> it = maskVals.iterator(); it.hasNext();) {
             int[] tokenMask = (int[])(it.next());
             genCode("0x" + Integer.toHexString(tokenMask[i]) + ",");
@@ -173,8 +185,13 @@ public void start() throws MetaParseException {
     }
 
     genCodeLine("");
-
     genCodeLine("  /** Constructor with user supplied TokenManager. */");
+    genCodeLine("");
+    
+    // Finally enclose the whole thing in the namespace, if specified.
+    if (Options.stringValue(Options.USEROPTION__CPP_NAMESPACE).length() > 0) {
+      genCodeLine("namespace " + Options.stringValue("NAMESPACE_OPEN"));
+    }
 
     switchToIncludeFile(); // TEMP
     genCodeLine("  Token *head; ");
@@ -201,12 +218,11 @@ public void start() throws MetaParseException {
     generateMethodDefHeader("void", cu_name, "ReInit(TokenManager* tokenManager)");
     genCodeLine("{");
     genCodeLine("    clear();");
-    genCodeLine("    errorHandler = new ErrorHandler();");
+    genCodeLine("    errorHandler = new DefaultParserErrorHandler();");
+    genCodeLine("    delete_eh = true;");
     genCodeLine("    hasError = false;");
     genCodeLine("    token_source = tokenManager;");
-    genCodeLine("    head = token = new Token();");
-    genCodeLine("    token->kind = 0;");
-    genCodeLine("    token->next = nullptr;");
+    genCodeLine("    head = token = new Token;");
     genCodeLine("    jj_lookingAhead = false;");
     genCodeLine("    jj_rescan = false;");
     genCodeLine("    jj_done = false;");
@@ -221,7 +237,7 @@ public void start() throws MetaParseException {
     }
 
     if (Options.getCacheTokens()) {
-      genCodeLine("    token->next = jj_nt = token_source->getNextToken();");
+      genCodeLine("    token->next() = jj_nt = token_source->getNextToken();");
     } else {
       genCodeLine("    jj_ntk = -1;");
     }
@@ -246,16 +262,18 @@ public void start() throws MetaParseException {
     genCodeLine("  //Since token manager was generate from outside,");
     genCodeLine("  //parser should not take care of deleting");
     genCodeLine("  //if (token_source) delete token_source;");
-    genCodeLine("  if (head) {");
-    genCodeLine("    Token *next, *t = head;");
+    genCodeLine("  if (delete_tokens && head) {");
+    genCodeLine("    Token* next;");
+    genCodeLine("    Token* t = head;");
     genCodeLine("    while (t) {");
-    genCodeLine("      next = t->next;");
+    genCodeLine("      next = t->next();");
     genCodeLine("      delete t;");
     genCodeLine("      t = next;");
     genCodeLine("    }");
     genCodeLine("  }");
-    genCodeLine("  if (errorHandler) {");
+    genCodeLine("  if (delete_eh) {");
     genCodeLine("    delete errorHandler, errorHandler = nullptr;");
+    genCodeLine("    delete_eh = false;");
     genCodeLine("  }");
     if (Options.getDepthLimit() > 0) {
       genCodeLine("  assert(jj_depth==0);");
@@ -301,15 +319,15 @@ public void start() throws MetaParseException {
     }
     if (Options.getCacheTokens()) {
       genCodeLine("    Token *oldToken = token;");
-      genCodeLine("    if ((token = jj_nt)->next != nullptr) jj_nt = jj_nt->next;");
-      genCodeLine("    else jj_nt = jj_nt->next = token_source->getNextToken();");
+      genCodeLine("    if ((token = jj_nt)->next() != nullptr) jj_nt = jj_nt->next();");
+      genCodeLine("    else jj_nt = jj_nt->next() = token_source->getNextToken();");
     } else {
       genCodeLine("    Token *oldToken;");
-      genCodeLine("    if ((oldToken = token)->next != nullptr) token = token->next;");
-      genCodeLine("    else token = token->next = token_source->getNextToken();");
+      genCodeLine("    if ((oldToken = token)->next() != nullptr) token = token->next();");
+      genCodeLine("    else token = token->next() = token_source->getNextToken();");
       genCodeLine("    jj_ntk = -1;");
     }
-    genCodeLine("    if (token->kind == kind) {");
+    genCodeLine("    if (token->kind() == kind) {");
     if (Options.getErrorReporting()) {
       genCodeLine("      jj_gen++;");
       if (jj2index != 0) {
@@ -341,8 +359,13 @@ public void start() throws MetaParseException {
     if (!Options.getStackLimit().equals("")) {
       genCodeLine("    if (!jj_stack_error) {");
     }
-    genCodeLine("    JJString image = kind >= 0 ? tokenImage[kind] : tokenImage[0];");
-    genCodeLine("    errorHandler->handleUnexpectedToken(kind, image.substr(1, image.size() - 2), getToken(1), this);");
+
+    genCodeLine("    const JJString expectedImage = getTokenImage(kind);");
+    genCodeLine("    const JJString expectedLabel = getTokenLabel(kind);");
+    genCodeLine("    const Token*   actualToken   = getToken(1);");
+    genCodeLine("    const JJString actualImage   = getTokenImage(actualToken->kind());");
+    genCodeLine("    const JJString actualLabel   = getTokenLabel(actualToken->kind());");
+    genCodeLine("    errorHandler->unexpectedToken(expectedImage, expectedLabel, actualImage, actualLabel, actualToken);");
     if (!Options.getStackLimit().equals("")) {
       genCodeLine("    }");
     }
@@ -366,18 +389,18 @@ public void start() throws MetaParseException {
       }
       genCodeLine("    if (jj_scanpos == jj_lastpos) {");
       genCodeLine("      jj_la--;");
-      genCodeLine("      if (jj_scanpos->next == nullptr) {");
-      genCodeLine("        jj_lastpos = jj_scanpos = jj_scanpos->next = token_source->getNextToken();");
+      genCodeLine("      if (jj_scanpos->next() == nullptr) {");
+      genCodeLine("        jj_lastpos = jj_scanpos = jj_scanpos->next() = token_source->getNextToken();");
       genCodeLine("      } else {");
-      genCodeLine("        jj_lastpos = jj_scanpos = jj_scanpos->next;");
+      genCodeLine("        jj_lastpos = jj_scanpos = jj_scanpos->next();");
       genCodeLine("      }");
       genCodeLine("    } else {");
-      genCodeLine("      jj_scanpos = jj_scanpos->next;");
+      genCodeLine("      jj_scanpos = jj_scanpos->next();");
       genCodeLine("    }");
       if (Options.getErrorReporting()) {
         genCodeLine("    if (jj_rescan) {");
         genCodeLine("      int i = 0; Token *tok = token;");
-        genCodeLine("      while (tok != nullptr && tok != jj_scanpos) { i++; tok = tok->next; }");
+        genCodeLine("      while (tok != nullptr && tok != jj_scanpos) { i++; tok = tok->next(); }");
         genCodeLine("      if (tok != nullptr) jj_add_error_token(kind, i);");
         if (Options.getDebugLookahead()) {
           genCodeLine("    } else {");
@@ -387,7 +410,7 @@ public void start() throws MetaParseException {
       } else if (Options.getDebugLookahead()) {
         genCodeLine("    trace_scan(jj_scanpos, kind);");
       }
-      genCodeLine("    if (jj_scanpos->kind != kind) return true;");
+      genCodeLine("    if (jj_scanpos->kind() != kind) return true;");
       //genCodeLine("    if (jj_la == 0 && jj_scanpos == jj_lastpos) throw jj_ls;");
       genCodeLine("    if (jj_la == 0 && jj_scanpos == jj_lastpos) { return jj_done = true; }");
       genCodeLine("    return false;");
@@ -399,11 +422,11 @@ public void start() throws MetaParseException {
     generateMethodDefHeader("Token *", cu_name, "getNextToken()");
     genCodeLine("{");
     if (Options.getCacheTokens()) {
-      genCodeLine("    if ((token = jj_nt)->next != nullptr) jj_nt = jj_nt->next;");
-      genCodeLine("    else jj_nt = jj_nt->next = token_source->getNextToken();");
+      genCodeLine("    if ((token = jj_nt)->next() != nullptr) jj_nt = jj_nt->next();");
+      genCodeLine("    else jj_nt = jj_nt->next() = token_source->getNextToken();");
     } else {
-      genCodeLine("    if (token->next != nullptr) token = token->next;");
-      genCodeLine("    else token = token->next = token_source->getNextToken();");
+      genCodeLine("    if (token->next() != nullptr) token = token->next();");
+      genCodeLine("    else token = token->next() = token_source->getNextToken();");
       genCodeLine("    jj_ntk = -1;");
     }
     if (Options.getErrorReporting()) {
@@ -424,8 +447,8 @@ public void start() throws MetaParseException {
       genCodeLine("    Token *t = token;");
     }
     genCodeLine("    for (int i = 0; i < index; i++) {");
-    genCodeLine("      if (t->next != nullptr) t = t->next;");
-    genCodeLine("      else t = t->next = token_source->getNextToken();");
+    genCodeLine("      if (t->next() != nullptr) t = t->next();");
+    genCodeLine("      else t = t->next() = token_source->getNextToken();");
     genCodeLine("    }");
     genCodeLine("    return t;");
     genCodeLine("  }");
@@ -450,37 +473,10 @@ public void start() throws MetaParseException {
       genCodeLine("  int *jj_expentry;");
       if (jj2index != 0) {
         switchToStaticsFile();
-        // For now we don't support ERROR_REPORTING in the C++ version.
-        //genCodeLine("  static int *jj_lasttokens = new int[100];");
-        //genCodeLine("  static int jj_endpos;");
         genCodeLine("");
 
         generateMethodDefHeader("  void",  cu_name, "jj_add_error_token(int kind, int pos)");
         genCodeLine("  {");
-        // For now we don't support ERROR_REPORTING in the C++ version.
-
-        //genCodeLine("    if (pos >= 100) return;");
-        //genCodeLine("    if (pos == jj_endpos + 1) {");
-        //genCodeLine("      jj_lasttokens[jj_endpos++] = kind;");
-        //genCodeLine("    } else if (jj_endpos != 0) {");
-        //genCodeLine("      jj_expentry = new int[jj_endpos];");
-        //genCodeLine("      for (int i = 0; i < jj_endpos; i++) {");
-        //genCodeLine("        jj_expentry[i] = jj_lasttokens[i];");
-        //genCodeLine("      }");
-        //genCodeLine("      jj_entries_loop: for (java.util.Iterator it = jj_expentries.iterator(); it.hasNext();) {");
-        //genCodeLine("        int[] oldentry = (int[])(it->next());");
-        //genCodeLine("        if (oldentry.length == jj_expentry.length) {");
-        //genCodeLine("          for (int i = 0; i < jj_expentry.length; i++) {");
-        //genCodeLine("            if (oldentry[i] != jj_expentry[i]) {");
-        //genCodeLine("              continue jj_entries_loop;");
-        //genCodeLine("            }");
-        //genCodeLine("          }");
-        //genCodeLine("          jj_expentries.add(jj_expentry);");
-        //genCodeLine("          break jj_entries_loop;");
-        //genCodeLine("        }");
-        //genCodeLine("      }");
-        //genCodeLine("      if (pos != 0) jj_lasttokens[(jj_endpos = pos) - 1] = kind;");
-        //genCodeLine("    }");
         genCodeLine("  }");
       }
       genCodeLine("");
@@ -491,88 +487,35 @@ public void start() throws MetaParseException {
       generateMethodDefHeader("  virtual void ",  cu_name, "parseError()");
       genCodeLine("   {");
       if (Options.getErrorReporting()) {
-        genCodeLine("      fprintf(stderr, \"Parse error at: %d:%d, after token: %s encountered: %s\\n\", token->beginLine, token->beginColumn, addUnicodeEscapes(token->image).c_str(), addUnicodeEscapes(getToken(1)->image).c_str());");
+        genCodeLine("      JJERR << JJWIDE(Parse error at : ) << token->beginLine() << JJWIDE(:) << token->beginColumn() << JJWIDE( after token: ) << addUnicodeEscapes(token->image()) << JJWIDE( encountered: ) << addUnicodeEscapes(getToken(1)->image()) << std::endl;");
       }
       genCodeLine("   }");
-      /*generateMethodDefHeader("ParseException",  cu_name, "generateParseException()");
-      genCodeLine("   {");
-      //genCodeLine("    jj_expentries.clear();");
-      //genCodeLine("    bool[] la1tokens = new boolean[" + tokenCount + "];");
-      //genCodeLine("    if (jj_kind >= 0) {");
-      //genCodeLine("      la1tokens[jj_kind] = true;");
-      //genCodeLine("      jj_kind = -1;");
-      //genCodeLine("    }");
-      //genCodeLine("    for (int i = 0; i < " + maskindex + "; i++) {");
-      //genCodeLine("      if (jj_la1[i] == jj_gen) {");
-      //genCodeLine("        for (int j = 0; j < 32; j++) {");
-      //for (int i = 0; i < (tokenCount-1)/32 + 1; i++) {
-        //genCodeLine("          if ((jj_la1_" + i + "[i] & (1<<j)) != 0) {");
-        //genCode("            la1tokens[");
-        //if (i != 0) {
-          //genCode((32*i) + "+");
-        //}
-        //genCodeLine("j] = true;");
-        //genCodeLine("          }");
-      //}
-      //genCodeLine("        }");
-      //genCodeLine("      }");
-      //genCodeLine("    }");
-      //genCodeLine("    for (int i = 0; i < " + tokenCount + "; i++) {");
-      //genCodeLine("      if (la1tokens[i]) {");
-      //genCodeLine("        jj_expentry = new int[1];");
-      //genCodeLine("        jj_expentry[0] = i;");
-      //genCodeLine("        jj_expentries.add(jj_expentry);");
-      //genCodeLine("      }");
-      //genCodeLine("    }");
-      //if (jj2index != 0) {
-        //genCodeLine("    jj_endpos = 0;");
-        //genCodeLine("    jj_rescan_token();");
-        //genCodeLine("    jj_add_error_token(0, 0);");
-      //}
-      //genCodeLine("    int exptokseq[][1] = new int[1];");
-      //genCodeLine("    for (int i = 0; i < jj_expentries.size(); i++) {");
-      //if (!Options.getGenerateGenerics())
-         //genCodeLine("      exptokseq[i] = (int[])jj_expentries.get(i);");
-      //else
-         //genCodeLine("      exptokseq[i] = jj_expentries.get(i);");
-      //genCodeLine("    }");
-      genCodeLine("    return new _ParseException();");//token, nullptr, tokenImage);");
-      genCodeLine("  }"); */
     } else {
       genCodeLine("protected:");
       genCodeLine("  /** Generate ParseException. */");
       generateMethodDefHeader("virtual void ",  cu_name, "parseError()");
       genCodeLine("   {");
       if (Options.getErrorReporting()) {
-        genCodeLine("      fprintf(stderr, \"Parse error at: %d:%d, after token: %s encountered: %s\\n\", token->beginLine, token->beginColumn, addUnicodeEscapes(token->image).c_str(), addUnicodeEscapes(getToken(1)->image).c_str());");
+        genCodeLine("      JJERR << JJWIDE(Parse error at : ) << token->beginLine() << JJWIDE(:) << token->beginColumn() << JJWIDE( after token: ) << addUnicodeEscapes(token->image()) << JJWIDE( encountered: ) << addUnicodeEscapes(getToken(1)->image()) << std::endl;");
       }
       genCodeLine("   }");
-      /*generateMethodDefHeader("ParseException",  cu_name, "generateParseException()");
-      genCodeLine("   {");
-      genCodeLine("    Token *errortok = token->next;");
-      if (Options.getKeepLineColumn())
-         genCodeLine("    int line = errortok.beginLine, column = errortok.beginColumn;");
-      genCodeLine("    JJString mess = (errortok->kind == 0) ? tokenImage[0] : errortok->image;");
-      if (Options.getKeepLineColumn())
-         genCodeLine("    return new _ParseException();");// +
-             //"\"Parse error at line \" + line + \", column \" + column + \".  " +
-             //"Encountered: \" + mess);");
-      else
-         genCodeLine("    return new _ParseException();");//\"Parse error at <unknown location>.  " +
-                 //"Encountered: \" + mess);");
-      genCodeLine("  }");*/
     }
     genCodeLine("");
 
     switchToIncludeFile();
     genCodeLine("private:");
-    genCodeLine("  int  indent;	// trace indentation");
-    genCodeLine("  bool trace = " + Options.getDebugParser() + "; // trace enabled if true");
+    genCodeLine("  int  indent; // trace indentation");
+    genCodeLine("  bool trace = " + Options.getDebugParser() + ";");
+    genCodeLine("  bool trace_la = " + Options.getDebugParser() + ";");
     genCodeLine("");
     genCodeLine("public:");
     generateMethodDefHeader("  bool",  cu_name, "trace_enabled()");
     genCodeLine("  {");
     genCodeLine("    return trace;");
+    genCodeLine("  }");
+    generateMethodDefHeader("  bool",  cu_name, "trace_la_enabled()");
+    genCodeLine("  {");
+    genCodeLine("    return trace_la;");
     genCodeLine("  }");
     genCodeLine("");
    if (Options.getDebugParser()) {
@@ -646,6 +589,14 @@ public void start() throws MetaParseException {
       genCodeLine("  }");
       switchToIncludeFile();
       generateMethodDefHeader("  void",  cu_name, "disable_tracing()");
+      genCodeLine("  {");
+      genCodeLine("  }");
+      switchToIncludeFile();
+      generateMethodDefHeader("  void",  cu_name, "enable_la_tracing()");
+      genCodeLine("  {");
+      genCodeLine("  }");
+      switchToIncludeFile();
+      generateMethodDefHeader("  void",  cu_name, "disable_la_tracing()");
       genCodeLine("  {");
       genCodeLine("  }");
       genCodeLine("");
