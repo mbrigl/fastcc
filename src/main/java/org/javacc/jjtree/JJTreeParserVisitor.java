@@ -3,7 +3,7 @@ package org.javacc.jjtree;
 
 public interface JJTreeParserVisitor
 {
-  Object visit(SimpleNode node, Object data);
+  Object visit(Node node, Object data);
   Object visit(ASTGrammar node, Object data);
   Object visit(ASTCompilationUnit node, Object data);
   Object visit(ASTProductions node, Object data);

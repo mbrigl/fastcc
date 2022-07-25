@@ -3,11 +3,11 @@ package org.javacc.jjtree;
 
 public class DefaultJJTreeVisitor implements JJTreeParserVisitor
 {
-  public Object defaultVisit(SimpleNode node, Object data){
+  public Object defaultVisit(Node node, Object data){
     return node.childrenAccept(this, data);
   }
   @Override
-  public Object visit(SimpleNode node, Object data){
+  public Object visit(Node node, Object data){
     return defaultVisit(node, data);
   }
   @Override

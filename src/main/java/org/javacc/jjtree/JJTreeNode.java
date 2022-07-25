@@ -27,7 +27,7 @@
  */
 package org.javacc.jjtree;
 
-public class JJTreeNode extends SimpleNode {
+public class JJTreeNode extends Node {
 
   private int myOrdinal;
 

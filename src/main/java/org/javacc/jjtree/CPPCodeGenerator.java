@@ -12,7 +12,7 @@ import java.util.Hashtable;
 
 public class CPPCodeGenerator extends DefaultJJTreeVisitor {
   @Override
-  public Object defaultVisit(SimpleNode node, Object data) {
+  public Object defaultVisit(Node node, Object data) {
     visit((JJTreeNode)node, data);
     return null;
   }
