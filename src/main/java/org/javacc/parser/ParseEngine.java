@@ -337,7 +337,7 @@ public class ParseEngine {
             retval += "\n" + "switch (";
             if (Options.getCacheTokens()) {
               if(Options.isOutputLanguageCpp()) {
-                retval += "jj_nt->kind";
+                retval += "jj_nt->kind()";
               } else {
                 retval += "jj_nt.kind";
               }
@@ -415,7 +415,14 @@ public class ParseEngine {
         la.getLaExpansion().internal_name = "_" + jj2index;
         la.getLaExpansion().internal_index = jj2index;
         phase2list.add(la);
-        retval += "jj_2" + la.getLaExpansion().internal_name + "(" + la.getAmount() + ")";
+        
+
+        String amount = Integer.toString(la.getAmount());
+        if (Options.isOutputLanguageCpp() && la.getAmount() == Integer.MAX_VALUE) {
+            amount = "INT_MAX";
+        }
+        
+        retval += "jj_2" + la.getLaExpansion().internal_name + "(" + amount + ")";
         if (la.getActionTokens().size() != 0) {
           // In addition, there is also a semantic lookahead.  So concatenate
           // the semantic check with the syntactic one.
@@ -621,7 +628,7 @@ public class ParseEngine {
         codeGenerator.genCodeLine("if(jj_depth > " + Options.getDepthLimit() + ") {");
         codeGenerator.genCodeLine("  jj_depth_error = true;");
         codeGenerator.genCodeLine("  jj_consume_token(-1);");
-        codeGenerator.genCodeLine("  errorHandler->handleParseError(token, getToken(1), __FUNCTION__, this), hasError = true;");
+        codeGenerator.genCodeLine("  errorHandler->parseError(token, getToken(1), __FUNCTION__), hasError = true;");
         if (!voidReturn) {
           codeGenerator.genCodeLine("  return __ERROR_RET__;");  // Non-recoverable error
         } else {
@@ -840,7 +847,7 @@ public class ParseEngine {
       actions = new String[e_nrw.getChoices().size() + 1];
       actions[e_nrw.getChoices().size()] = "\n" + "jj_consume_token(-1);\n" +
                 (isJavaDialect ? "throw new ParseException();"
-		                        : ("errorHandler->handleParseError(token, getToken(1), __FUNCTION__, this), hasError = true;" +
+		                        : ("errorHandler->parseError(token, getToken(1), __FUNCTION__), hasError = true;" +
 		         (Options.booleanValue(Options.USEROPTION__CPP_STOP_ON_FIRST_ERROR) ? "return __ERROR_RET__;\n" : "")));
 
       // In previous line, the "throw" never throws an exception since the
@@ -1096,7 +1103,8 @@ public class ParseEngine {
 
       if (seq instanceof RegularExpression)
       {
-        e.internal_name = "jj_scan_token(" + ((RegularExpression)seq).ordinal + ")";
+        RegularExpression re = (RegularExpression)seq;
+        e.internal_name = "jj_scan_token(" + (re.label == null || re.label.isEmpty() ? "" + re.ordinal: re.label) + ")";
         return;
       }
 
@@ -1165,7 +1173,7 @@ public class ParseEngine {
   }
 
   private String getTypeForToken() {
-    return isJavaDialect ? "Token" : "Token *";
+    return isJavaDialect ? "Token" : "Token*";
   }
 
   private String genjj_3Call(Expansion e)

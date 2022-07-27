@@ -31,7 +31,24 @@
 
 package org.javacc.parser;
 
-import java.io.*;
+import static org.javacc.parser.JavaCCGlobals.actForEof;
+import static org.javacc.parser.JavaCCGlobals.cu_name;
+import static org.javacc.parser.JavaCCGlobals.cu_to_insertion_point_1;
+import static org.javacc.parser.JavaCCGlobals.getFileExtension;
+import static org.javacc.parser.JavaCCGlobals.getIdString;
+import static org.javacc.parser.JavaCCGlobals.lexstate_I2S;
+import static org.javacc.parser.JavaCCGlobals.nextStateForEof;
+import static org.javacc.parser.JavaCCGlobals.rexprlist;
+import static org.javacc.parser.JavaCCGlobals.token_mgr_decls;
+import static org.javacc.parser.JavaCCGlobals.toolName;
+import static org.javacc.parser.JavaCCGlobals.toolNames;
+
+import org.javacc.utils.OutputFileGenerator;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -40,16 +57,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.javacc.utils.OutputFileGenerator;
-import static org.javacc.parser.JavaCCGlobals.*;
-
 /**
  * Generate lexer.
  */
 public class LexGen extends CodeGenerator implements JavaCCParserConstants
 {
   private static final String DUMP_STATIC_VAR_DECLARATIONS_TEMPLATE_RESOURCE_URL = "/templates/DumpStaticVarDeclarations.template";
-  private static final String DUMP_DEBUG_METHODS_TEMPLATE_RESOURCE_URL = "/templates/DumpDebugMethods.template";
   private static final String BOILERPLATER_METHOD_RESOURCE_URL = "/templates/TokenManagerBoilerPlateMethods.template";
 
   public static String staticString;
@@ -260,11 +273,6 @@ public class LexGen extends CodeGenerator implements JavaCCParserConstants
     gen.generate(new PrintWriter(sw));
     sw.close();
     genCode(sw.toString());
-  }
-
-  void DumpDebugMethods() throws IOException
-  {
-    writeTemplate(DUMP_DEBUG_METHODS_TEMPLATE_RESOURCE_URL);
   }
 
   static void BuildLexStatesTable()
@@ -617,7 +625,6 @@ public class LexGen extends CodeGenerator implements JavaCCParserConstants
     if (Options.getDebugTokenManager())
     {
       NfaState.DumpStatesForKind(this);
-      DumpDebugMethods();
     }
 
     if (hasLoop)

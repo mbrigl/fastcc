@@ -1,4 +1,3 @@
-  JAVACC_CHARSTREAM*        input_stream;
   int                       jjrounds[${stateSetSize}];
   int                       jjstateSet[2 * ${stateSetSize}];
   JJString                  jjimage;
@@ -8,9 +7,6 @@
   JJChar                    curChar;
   TokenManagerErrorHandler* errorHandler = nullptr;
 
-public: 
-  void setErrorHandler(TokenManagerErrorHandler *eh) {
-      if (errorHandler) delete errorHandler, errorHandler = nullptr;
-      errorHandler = eh;
-    }
-    
+public:
+  void	 lexicalError();
+  const  TokenManagerErrorHandler*	 getErrorHandler() const;

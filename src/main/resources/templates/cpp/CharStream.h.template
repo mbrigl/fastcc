@@ -1,11 +1,10 @@
-\#ifndef JAVACC_CHARSTREAM_H_
-\#define JAVACC_CHARSTREAM_H_
+\#ifndef JAVACC_CHAR_STREAM_H
+\#define JAVACC_CHAR_STREAM_H
 
+#if LIBRARY
+\#include "ImportExport.h"
+#fi
 \#include "JavaCC.h"
-
-\#ifndef INITIAL_BUFFER_SIZE
-\#define INITIAL_BUFFER_SIZE 4096
-\#endif
 
 #if NAMESPACE
 namespace ${NAMESPACE_OPEN}
@@ -25,48 +24,27 @@ namespace ${NAMESPACE_OPEN}
  * by the lexer. Hence their implementation won't affect the generated lexer's
  * operation.
  */
-
-
-class CharStream {
-public:
-   void setTabSize(int i) { tabSize = i; }
-   int  getTabSize(int i) { return tabSize; }
-
-#if KEEP_LINE_COLUMN
-private:
-  int getBufcolumn(int pos) {
-    if (trackLineColumn && pos>=0) {
-      return bufcolumn[pos];
-    } else {
-      return -1;
-    }
-  }
-  int getBufline(int pos) {
-    if (trackLineColumn && pos>=0) {
-      return bufline[pos];
-    } else {
-      return -1;
-    }
-  }
-
-public:
-  virtual int getColumn()        { return getBufcolumn(bufpos); }
-  virtual int getLine()          { return getBufline(bufpos); }
-  virtual int getEndColumn()     { return getBufcolumn(bufpos); }
-  virtual int getEndLine()       { return getBufline(bufpos); }
-  virtual int getBeginColumn()   { return getBufcolumn(tokenBegin); }
-  virtual int getBeginLine()     { return getBufline(tokenBegin); }
+ 
+#if LIBRARY
+class ${PARSER_NAME_UPPER_CASE}_API CharStream {
 #else
-  virtual int  getColumn()       { return -1; }
-  virtual int  getLine()         { return -1; }
-  virtual int  getEndColumn()    { return -1; }
-  virtual int  getEndLine()      { return -1; }
-  virtual int  getBeginColumn()  { return -1; }
-  virtual int  getBeginLine()    { return -1; }
+class CharStream {
 #fi
+public:
+  virtual ~CharStream() {}
+	
+  virtual void setTabSize(int i) = 0;
+  virtual int  getTabSize() = 0;
 
-  virtual bool getTrackLineColumn()         { return trackLineColumn; }
-  virtual void setTrackLineColumn(bool val) { trackLineColumn = val; }
+  virtual int getColumn() = 0;
+  virtual int getLine() = 0;
+  virtual int getEndColumn() = 0;
+  virtual int getEndLine() = 0;
+  virtual int getBeginColumn() = 0;
+  virtual int getBeginLine() = 0;
+
+  virtual bool getTrackLineColumn() = 0;
+  virtual void setTrackLineColumn(bool val) = 0;
 
 /**
  * Backs up the input stream by amount steps. Lexer calls this method if it
@@ -74,25 +52,14 @@ public:
  * (longer) token. So, they will be used again as the prefix of the next
  * token and it is the implementation's responsibility to do this right.
  */
-  virtual inline void backup(int amount) {
-    inBuf += amount;
-    bufpos -= amount;
-    if (bufpos < 0) {
-      bufpos += bufsize;
-    }
-  }
+  virtual void backup(int amount) = 0;
 
 /**
  * Returns the next character that marks the beginning of the next token.
  * All characters must remain in the buffer between two successive calls
  * to this method to implement backup correctly.
  */
-  virtual inline JJChar BeginToken() {
-    tokenBegin = -1;
-    JJChar c = readChar();
-    tokenBegin = bufpos;
-    return c;
-  }
+  virtual  JJChar beginToken() = 0;
 
 
 /**
@@ -100,35 +67,10 @@ public:
  * of selecting the input is the responsibility of the class
  * implementing this class.
  */
-  virtual inline JJChar readChar() {
-    if (inBuf > 0) {
-      --inBuf;
-      ++bufpos;
-      if (bufpos == bufsize) {
-        bufpos = 0;
-      }
-      return buffer[bufpos];
-    }
+  virtual inline JJChar readChar() = 0;
 
-    ++bufpos;
-    if (bufpos >= maxNextCharInd) {
-      FillBuff();
-    }
-
-    JJChar c = buffer[bufpos];
-
-#if KEEP_LINE_COLUMN
-    if (trackLineColumn) {
-      UpdateLineColumn(c);
-    }
-#fi
-
-    return c;
-  }
-
-
-  virtual void ExpandBuff(bool wrapAround);
-  virtual void FillBuff();
+  virtual void expandBuff(bool wrapAround) = 0;
+  virtual void fillBuff() = 0;
 
   /**
    * Returns a string made up of characters from the marked token beginning
@@ -136,12 +78,7 @@ public:
    * anything that they want to. For example, for efficiency, one might decide
    * to just return NULL, which is a valid implementation.
    */
-  virtual JJString GetImage() {
-    if (bufpos >= tokenBegin)
-      return JJString(buffer + tokenBegin, bufpos - tokenBegin + 1);
-    else
-      return JJString(buffer + tokenBegin, bufsize - tokenBegin).append(buffer, bufpos + 1);
-  }
+  virtual JJString getImage() = 0;
 
   /**
    * Returns an array of characters that make up the suffix of length 'len' for
@@ -149,133 +86,33 @@ public:
    * for use in actions in the case of MORE. A simple and inefficient
    * implementation of this is as follows :
    */
-  virtual JJString GetSuffix(int len) {
-    if ((bufpos + 1) >= len) {
-      return JJString(buffer + bufpos - len + 1, len);
-    }
-    return JJString(buffer + bufsize - (len - bufpos - 1), len - bufpos - 1).append(buffer, bufpos + 1);
-  }
+  virtual JJString getSuffix(int len) = 0;
 
   /**
    * The lexer calls this function to indicate that it is done with the stream
    * and hence implementations can free any resources held by this class.
    */
-  virtual void DeleteBuffers();
+  virtual void deleteBuffers() = 0;
 
-  virtual ~CharStream() {
-    if (deleteStream) {
-     delete inputStream;
-    }
-    DeleteBuffers();
-  }
+  virtual bool endOfInput() = 0;
 
-  bool endOfInput() {
-    return inBuf == 0 && bufpos + 1 >= maxNextCharInd && inputStream->endOfInput();
-  }
+  virtual void ReInit(ReaderStream *input_stream) = 0;
+  virtual void ReInit(ReaderStream *input_stream, int startline, int startcolumn) = 0;
+  virtual void ReInit(ReaderStream *input_stream, int startline, int startcolumn, int buffersize) = 0;
 
-  CharStream(const JJChar *buf, int sz, int startline,
-                      int startcolumn, int buffersize) :
-    bufline(nullptr), bufcolumn(nullptr), buffer(nullptr), bufpos(0), bufsize(0), 
-    tokenBegin(0), column(0), line(0), prevCharIsCR(false), prevCharIsLF(false),
-    available(0), maxNextCharInd(0), inBuf(0), tabSize(1), trackLineColumn(true),
-    inputStream(nullptr), deleteStream(false) {
-    ReInit(JJString(buf, sz), startline, startcolumn, buffersize);
-  }
+  virtual void ReInit(const JJString& str, int startline, int startcolumn) = 0;
+  virtual void ReInit(const JJString& str, int startline, int startcolumn, int buffersize) = 0;
 
-  CharStream(const JJChar *buf, int sz, int startline, int startcolumn) :
-    bufline(nullptr), bufcolumn(nullptr), buffer(nullptr), bufpos(0), bufsize(0), 
-    tokenBegin(0), column(0), line(0), prevCharIsCR(false), prevCharIsLF(false),
-    available(0), maxNextCharInd(0), inBuf(0), tabSize(1), trackLineColumn(true),
-    inputStream(nullptr), deleteStream(false) {
-    ReInit(JJString(buf, sz), startline, startcolumn, INITIAL_BUFFER_SIZE);
-  }
-
-  CharStream(const JJString& str, int startline,
-                      int startcolumn, int buffersize) :
-    bufline(nullptr), bufcolumn(nullptr), buffer(nullptr), bufpos(0), bufsize(0), 
-    tokenBegin(0), column(0), line(0), prevCharIsCR(false), prevCharIsLF(false),
-    available(0), maxNextCharInd(0), inBuf(0), tabSize(1), trackLineColumn(true),
-    inputStream(nullptr), deleteStream(false) {
-    ReInit(str, startline, startcolumn, buffersize);
-  }
-
-  CharStream(const JJString& str, int startline, int startcolumn) :
-    bufline(nullptr), bufcolumn(nullptr), buffer(nullptr), bufpos(0), bufsize(0), 
-    tokenBegin(0), column(0), line(0), prevCharIsCR(false), prevCharIsLF(false),
-    available(0), maxNextCharInd(0), inBuf(0), tabSize(1), trackLineColumn(true),
-    inputStream(nullptr), deleteStream(false) {
-    ReInit(str, startline, startcolumn, INITIAL_BUFFER_SIZE);
-  }
-
-  CharStream(ReaderStream *input_stream, int startline,
-             int startcolumn, int buffersize) :
-    bufline(nullptr), bufcolumn(nullptr), buffer(nullptr), bufpos(0), bufsize(0), 
-    tokenBegin(0), column(0), line(0), prevCharIsCR(false), prevCharIsLF(false),
-    available(0), maxNextCharInd(0), inBuf(0), tabSize(1), trackLineColumn(true),
-    inputStream(nullptr), deleteStream(false) {
-    ReInit(input_stream, startline, startcolumn, buffersize);
-  }
-
-  CharStream(ReaderStream *input_stream, int startline, int startcolumn) :
-    bufline(nullptr), bufcolumn(nullptr), buffer(nullptr), bufpos(0), bufsize(0), 
-    tokenBegin(0), column(0), line(0), prevCharIsCR(false), prevCharIsLF(false),
-    available(0), maxNextCharInd(0), inBuf(0), tabSize(1), trackLineColumn(true),
-    inputStream(nullptr), deleteStream(false) {
-    ReInit(input_stream, startline, startcolumn, INITIAL_BUFFER_SIZE);
-  }
-
-  CharStream(ReaderStream *input_stream) :
-    bufline(nullptr), bufcolumn(nullptr), buffer(nullptr), bufpos(0), bufsize(0), 
-    tokenBegin(0), column(0), line(0), prevCharIsCR(false), prevCharIsLF(false),
-    available(0), maxNextCharInd(0), inBuf(0), tabSize(1), trackLineColumn(true),
-    inputStream(nullptr), deleteStream(false) {
-    ReInit(input_stream, 1, 1, INITIAL_BUFFER_SIZE);
-  }
-
-  virtual void ReInit(ReaderStream *input_stream, int startline, int startcolumn, int buffersize);
-
-  virtual void ReInit(ReaderStream *input_stream, int startline, int startcolumn) {
-    ReInit(input_stream, startline, startcolumn, INITIAL_BUFFER_SIZE);
-  }
-
-  virtual void ReInit(ReaderStream *input_stream) {
-    ReInit(input_stream, 1, 1, INITIAL_BUFFER_SIZE);
-  }
-
-  virtual void ReInit(const JJString& str, int startline,
-                      int startcolumn, int buffersize);
-
-  virtual void ReInit(const JJString& str, int startline,
-                      int startcolumn) {
-    ReInit(str, startline, startcolumn, INITIAL_BUFFER_SIZE);
-  }
-
-  virtual void adjustBeginLineColumn(int newLine, int newCol);
+  virtual void adjustBeginLineColumn(int newLine, int newCol) = 0;
 
 protected:
-  virtual void UpdateLineColumn(JJChar c);
+  virtual void updateLineColumn(JJChar c) = 0;
 
-  int*               bufline;
-  int*               bufcolumn;
-  JJChar*  	         buffer;
-  int                bufpos;
-  int                bufsize;
-  int                tokenBegin;
-  int                column;
-  int                line;
-  bool               prevCharIsCR;
-  bool               prevCharIsLF;
-  int                available;
-  int                maxNextCharInd;
-  int                inBuf;
-  int                tabSize;
-  bool               trackLineColumn;
-  ReaderStream*      inputStream;
-  bool               deleteStream;
 };
 
 #if NAMESPACE
 ${NAMESPACE_CLOSE}
 #fi
+
 
 \#endif

@@ -1,4 +1,4 @@
-\#include "CharStream.h"
+\#include "DefaultCharStream.h"
 
 namespace {
 template <class T>
@@ -32,21 +32,119 @@ class StringReaderStream : public ReaderStream {
 #if NAMESPACE
 namespace ${NAMESPACE_OPEN}
 #fi
-void CharStream::ReInit(const JJString& str, int startline,
-                        int startcolumn, int buffersize) {
+void DefaultCharStream::init() {
+  bufline        	= nullptr;
+  bufcolumn      	= nullptr;
+  buffer         	= nullptr;
+  bufpos			= 0;
+  bufsize			= 0;
+  tokenBegin		= 0;
+  column			= 0;
+  line				= 0;
+  prevCharIsCR		= false;
+  prevCharIsLF		= false;
+  available			= 0;
+  maxNextCharInd	= 0;
+  inBuf				= 0;
+  tabSize			= 8;
+  trackLineColumn	= true;
+  inputStream    	= nullptr;
+  deleteStream		= false;
+}
+DefaultCharStream::DefaultCharStream(const JJChar *buf, int sz, int startline, int startcolumn, int buffersize)
+{
+  init();
+  ReInit(JJString(buf, sz), startline, startcolumn, buffersize);
+}
+
+DefaultCharStream::DefaultCharStream(const JJChar *buf, int sz, int startline, int startcolumn)
+{
+  init();
+  ReInit(JJString(buf, sz), startline, startcolumn, InitialBufferSize);
+}
+
+DefaultCharStream::DefaultCharStream(const JJString& str, int startline, int startcolumn, int buffersize)
+{
+  init();
+  ReInit(str, startline, startcolumn, buffersize);
+}
+
+DefaultCharStream::DefaultCharStream(const JJString& str, int startline, int startcolumn)
+{
+  init();
+  ReInit(str, startline, startcolumn, InitialBufferSize);
+}
+
+DefaultCharStream::DefaultCharStream(ReaderStream *input_stream, int startline, int startcolumn, int buffersize)
+{
+  init();
+  ReInit(input_stream, startline, startcolumn, buffersize);
+}
+
+DefaultCharStream::DefaultCharStream(ReaderStream *input_stream, int startline, int startcolumn)
+{
+  init();
+  ReInit(input_stream, startline, startcolumn, InitialBufferSize);
+}
+
+DefaultCharStream::DefaultCharStream(ReaderStream *input_stream)
+{
+  init();
+  ReInit(input_stream, 1, 1, InitialBufferSize);
+}
+
+void DefaultCharStream::ReInit(const JJString& str, int startline, int startcolumn) {
+  init();
+  ReInit(str, startline, startcolumn, InitialBufferSize);
+}
+
+DefaultCharStream::~DefaultCharStream() {
+  if (deleteStream) {
+   delete inputStream;
+  }
+  deleteBuffers();
+}
+
+
+void DefaultCharStream::ReInit(ReaderStream *input_stream, int startline, int startcolumn) {
+  ReInit(input_stream, startline, startcolumn, InitialBufferSize);
+}
+ 
+void DefaultCharStream::ReInit(ReaderStream *input_stream) {
+  ReInit(input_stream, 1, 1, InitialBufferSize);
+} 
+
+#if KEEP_LINE_COLUMN
+int DefaultCharStream::getBufcolumn(int pos) {
+  if (trackLineColumn && pos>=0) {
+    return bufcolumn[pos];
+  } else {
+    return -1;
+  }
+}
+
+int DefaultCharStream::getBufline(int pos) {
+  if (trackLineColumn && pos>=0) {
+    return bufline[pos];
+  } else {
+    return -1;
+  }
+}
+#fi
+
+void DefaultCharStream::ReInit(const JJString& str, int startline, int startcolumn, int buffersize) {
   StringReaderStream *stream = new StringReaderStream(str);
   ReInit(stream, startline, startcolumn, buffersize);
   deleteStream = true;
 }
 
-void CharStream::ReInit(ReaderStream *input_stream, int startline,
-                        int startcolumn, int buffersize) {
+void DefaultCharStream::ReInit(ReaderStream *input_stream, int startline, int startcolumn, int buffersize) {
   if (deleteStream) {
    delete inputStream;
   }
 
   if (buffer) {
-    DeleteBuffers();
+    deleteBuffers();
   }
 
   available = bufsize = buffersize;
@@ -63,13 +161,69 @@ void CharStream::ReInit(ReaderStream *input_stream, int startline,
   deleteStream = false;
 }
 
-void CharStream::DeleteBuffers() {
+void DefaultCharStream::backup(int amount) {
+  inBuf += amount; bufpos -= amount;
+  if (bufpos < 0) {
+    bufpos += bufsize;
+  }
+}
+
+JJChar DefaultCharStream::beginToken() {
+  tokenBegin = -1;
+  JJChar c = readChar();
+  tokenBegin = bufpos;
+  return c;
+}
+
+JJChar DefaultCharStream::readChar() {
+  if (inBuf > 0) {
+    --inBuf; ++bufpos;
+    if (bufpos == bufsize) {
+      bufpos = 0;
+    }
+    return buffer[bufpos];
+  }
+
+  ++bufpos;
+  if (bufpos >= maxNextCharInd) {
+    fillBuff();
+  }
+
+  JJChar c = buffer[bufpos];
+
+#if KEEP_LINE_COLUMN
+  if (trackLineColumn) {
+    updateLineColumn(c);
+  }
+#fi
+  return c;
+}
+
+JJString DefaultCharStream::getImage() {
+  if (bufpos >= tokenBegin)
+    return JJString(buffer + tokenBegin, bufpos - tokenBegin + 1);
+  else
+    return JJString(buffer + tokenBegin, bufsize - tokenBegin).append(buffer, bufpos + 1);
+}
+
+JJString DefaultCharStream::getSuffix(int len) {
+  if ((bufpos + 1) >= len) {
+    return JJString(buffer + bufpos - len + 1, len);
+  }
+  return JJString(buffer + bufsize - (len - bufpos - 1), len - bufpos - 1).append(buffer, bufpos + 1);
+}
+
+bool DefaultCharStream::endOfInput() {
+  return inBuf == 0 && bufpos + 1 >= maxNextCharInd && inputStream->endOfInput();
+}
+
+void DefaultCharStream::deleteBuffers() {
   delete[] buffer;
   delete[] bufline;
   delete[] bufcolumn;
 }
 
-void CharStream::adjustBeginLineColumn(int newLine, int newCol) {
+void DefaultCharStream::adjustBeginLineColumn(int newLine, int newCol) {
   int start = tokenBegin;
   int len;
 
@@ -109,7 +263,7 @@ void CharStream::adjustBeginLineColumn(int newLine, int newCol) {
   column = bufcolumn[j];
 }
 
-void CharStream::ExpandBuff(bool wrapAround) {
+void DefaultCharStream::expandBuff(bool wrapAround) {
   JJChar *newbuffer = new JJChar[bufsize + 2048];
   int *newbufline = new int[bufsize + 2048];
   int *newbufcolumn = new int[bufsize + 2048];
@@ -130,7 +284,7 @@ void CharStream::ExpandBuff(bool wrapAround) {
   }
 
   maxNextCharInd = bufpos;
-  DeleteBuffers();
+  deleteBuffers();
   buffer = newbuffer;
   bufline = newbufline;
   bufcolumn = newbufcolumn;
@@ -139,7 +293,7 @@ void CharStream::ExpandBuff(bool wrapAround) {
   tokenBegin = 0;
 }
 
-void CharStream::FillBuff() {
+void DefaultCharStream::fillBuff() {
   if (maxNextCharInd == available) {
     if (available == bufsize) {
       if (tokenBegin > 2048) {
@@ -148,12 +302,12 @@ void CharStream::FillBuff() {
       } else if (tokenBegin < 0) {
         bufpos = maxNextCharInd = 0;
       } else {
-        ExpandBuff(false);
+        expandBuff(false);
       }
     } else if (available > tokenBegin) {
       available = bufsize;
     } else if ((tokenBegin - available) < 2048) {
-      ExpandBuff(true);
+      expandBuff(true);
     } else {
       available = tokenBegin;
     }
@@ -171,7 +325,7 @@ void CharStream::FillBuff() {
   }
 }
 
-void CharStream::UpdateLineColumn(JJChar c) {
+void DefaultCharStream::updateLineColumn(JJChar c) {
   column++;
   if (prevCharIsLF) {
     prevCharIsLF = false;
