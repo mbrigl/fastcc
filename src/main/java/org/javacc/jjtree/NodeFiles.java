@@ -60,11 +60,11 @@ final class NodeFiles {
   {
     File file = new File(JJTreeOptions.getJJTreeOutputDirectory(), nodeType + ".java");
 
-    if (nodeType.equals("Node")) {
-    } else if (nodeType.equals("SimpleNode")) {
-      ensure(io, "Node");
+    if (nodeType.equals("Tree")) {
+    } else if (nodeType.equals("Node")) {
+      ensure(io, "Tree");
     } else {
-      ensure(io, "SimpleNode");
+      ensure(io, "Node");
     }
 
     /* Only build the node file if we're dealing with Node.java, or
@@ -88,10 +88,10 @@ final class NodeFiles {
         return;
       }
 
-      if (nodeType.equals("Node")) {
+      if (nodeType.equals("Tree")) {
+        generateTree_java(outputFile);
+      } else if (nodeType.equals("Node")) {
         generateNode_java(outputFile);
-      } else if (nodeType.equals("SimpleNode")) {
-        generateSimpleNode_java(outputFile);
       } else {
         generateMULTINode_java(outputFile, nodeType);
       }
@@ -199,7 +199,7 @@ final class NodeFiles {
         argumentType = JJTreeOptions.getVisitorDataType();
       }
 
-      ostr.println("  public " + JJTreeOptions.getVisitorReturnType() + " visit(SimpleNode node, " + argumentType + " data)" +
+      ostr.println("  public " + JJTreeOptions.getVisitorReturnType() + " visit(Node node, " + argumentType + " data)" +
           ve + ";");
       if (JJTreeOptions.getMulti()) {
         for (int i = 0; i < nodeNames.size(); ++i) {
@@ -266,7 +266,7 @@ final class NodeFiles {
       final String returnType = JJTreeOptions.getVisitorReturnType().trim();
       final boolean isVoidReturnType = "void".equals(returnType);
       
-      ostr.println("  public " + returnType + " defaultVisit(SimpleNode node, " + argumentType + " data)" +
+      ostr.println("  public " + returnType + " defaultVisit(Node node, " + argumentType + " data)" +
           ve + "{");
       ostr.println("    node.childrenAccept(this, data);");
       ostr.print("    return");
@@ -295,7 +295,7 @@ final class NodeFiles {
       ostr.println(";");
       ostr.println("  }");
 
-      ostr.println("  public " + returnType + " visit(SimpleNode node, " + argumentType + " data)" +
+      ostr.println("  public " + returnType + " visit(Node node, " + argumentType + " data)" +
           ve + "{");
       ostr.println("    " + (isVoidReturnType ? "" : "return ") + "defaultVisit(node, data);");
       ostr.println("  }");
@@ -332,6 +332,24 @@ final class NodeFiles {
   }
 
 
+  private static void generateTree_java(OutputFile outputFile) throws IOException
+  {
+    PrintWriter ostr = outputFile.getPrintWriter();
+
+    generatePrologue(ostr);
+
+    Map<String,Object> options = new HashMap<>(Options.getOptions());
+    options.put(Options.NONUSER_OPTION__PARSER_NAME, JJTreeGlobals.parserName);
+
+    OutputFileGenerator generator = new OutputFileGenerator(
+        "/templates/Tree.template", options);
+
+    generator.generate(ostr);
+
+    ostr.close();
+  }
+
+
   private static void generateNode_java(OutputFile outputFile) throws IOException
   {
     PrintWriter ostr = outputFile.getPrintWriter();
@@ -343,25 +361,6 @@ final class NodeFiles {
 
     OutputFileGenerator generator = new OutputFileGenerator(
         "/templates/Node.template", options);
-
-    generator.generate(ostr);
-
-    ostr.close();
-  }
-
-
-  private static void generateSimpleNode_java(OutputFile outputFile) throws IOException
-  {
-    PrintWriter ostr = outputFile.getPrintWriter();
-
-    generatePrologue(ostr);
-
-    Map<String,Object> options = new HashMap<>(Options.getOptions());
-    options.put(Options.NONUSER_OPTION__PARSER_NAME, JJTreeGlobals.parserName);
-    options.put("VISITOR_RETURN_TYPE_VOID", Boolean.valueOf(JJTreeOptions.getVisitorReturnType().equals("void")));
-
-    OutputFileGenerator generator = new OutputFileGenerator(
-        "/templates/SimpleNode.template", options);
 
     generator.generate(ostr);
 

@@ -119,9 +119,7 @@ public class ParseException extends Exception {
       tok = tok.next;
     }
 #if KEEP_LINE_COLUMN
-    if (currentToken.next != null) {
-      retval += "\" at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn;
-    }
+    retval += "\" at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn;
 #fi
     retval += "." + EOL;
     
