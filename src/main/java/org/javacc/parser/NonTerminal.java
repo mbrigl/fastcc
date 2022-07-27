@@ -42,7 +42,7 @@ public class NonTerminal extends Expansion {
    * is assigned.  In case there is no LHS, then the vector
    * remains empty.
    */
-  private List<Token> lhsTokens = new ArrayList<Token>();
+  private List<Token> lhsTokens = new ArrayList<>();
 
   /**
    * The name of the non-terminal.
@@ -52,15 +52,16 @@ public class NonTerminal extends Expansion {
   /**
    * The list of all tokens in the argument list.
    */
-  private List<Token> argument_tokens = new ArrayList<Token>();
+  private List<Token> argument_tokens = new ArrayList<>();
 
-  private List<Token> parametrized_type__tokens = new ArrayList<Token>();
+  private List<Token> parametrized_type__tokens = new ArrayList<>();
   /**
    * The production this non-terminal corresponds to.
    */
   private NormalProduction prod;
 
-  public StringBuffer dump(int indent, Set alreadyDumped) {
+  @Override
+  public StringBuffer dump(int indent, Set<? super Expansion> alreadyDumped) {
     StringBuffer value = super.dump(indent, alreadyDumped).append(' ').append(name);
     return value;
   }

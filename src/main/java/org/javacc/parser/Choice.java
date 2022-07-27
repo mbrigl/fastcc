@@ -44,7 +44,7 @@ public class Choice extends Expansion {
    * The list of choices of this expansion unit.  Each
    * List component will narrow to ExpansionUnit.
    */
-  private List<? super Object> choices = new ArrayList<Object>();
+  private List<? super Object> choices = new ArrayList<>();
 
   public Choice() {}
 
@@ -73,6 +73,7 @@ public class Choice extends Expansion {
     return choices;
   }
 
+  @Override
   public StringBuffer dump(int indent, Set<? super Expansion> alreadyDumped) {
     StringBuffer sb = super.dump(indent, alreadyDumped);
     if (alreadyDumped.contains(this))

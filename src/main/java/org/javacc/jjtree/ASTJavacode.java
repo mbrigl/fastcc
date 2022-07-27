@@ -36,6 +36,7 @@ public class ASTJavacode extends ASTProduction {
   Token stmBeginLoc;
 
   /** Accept the visitor. **/
+  @Override
   public Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
     return visitor.visit(this, data);
   }

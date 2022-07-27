@@ -66,7 +66,7 @@ public class ParseGen extends CodeGenerator implements JavaCCParserConstants {
 		}
 
 		if (Options.getBuildParser()) {
-			final List<String> tn = new ArrayList<String>(toolNames);
+			final List<String> tn = new ArrayList<>(toolNames);
 			tn.add(toolName);
 
 			// This is the first line generated -- the the comment line at the top of the generated parser

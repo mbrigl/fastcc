@@ -28,8 +28,8 @@
 
 package org.javacc.parser;
 
-import java.util.List;
 import java.util.Hashtable;
+import java.util.List;
 
 /**
  * Utilities.
@@ -40,7 +40,7 @@ public abstract class JavaCCParserInternals extends JavaCCGlobals {
     Integer i = Integer.valueOf(0);
     lexstate_S2I.put("DEFAULT", i);
     lexstate_I2S.put(i, "DEFAULT");
-    simple_tokens_table.put("DEFAULT", new Hashtable());
+    simple_tokens_table.put("DEFAULT", new Hashtable<String, Hashtable<String, RegularExpression>>());
   }
 
   static protected void addcuname(String id) {
@@ -124,12 +124,12 @@ public abstract class JavaCCParserInternals extends JavaCCGlobals {
         ii = Integer.valueOf(nextFreeLexState++);
         lexstate_S2I.put(p.lexStates[i], ii);
         lexstate_I2S.put(ii, p.lexStates[i]);
-        simple_tokens_table.put(p.lexStates[i], new Hashtable());
+        simple_tokens_table.put(p.lexStates[i], new Hashtable<String, Hashtable<String, RegularExpression>>());
       }
     }
   }
 
-  static protected void add_token_manager_decls(Token t, List decls) {
+  static protected void add_token_manager_decls(Token t, List<Token> decls) {
     if (token_mgr_decls != null) {
       JavaCCErrors.parse_error(t, "Multiple occurrence of \"TOKEN_MGR_DECLS\".");
     } else {
@@ -285,10 +285,10 @@ public abstract class JavaCCParserInternals extends JavaCCGlobals {
     Token tryLoc,
     Container result,
     Container nestedExp,
-    List types,
-    List ids,
-    List catchblks,
-    List finallyblk
+    List<List<Token>> types,
+    List<Token> ids,
+    List<List<Token>> catchblks,
+    List<Token> finallyblk
   )
   {
     if (catchblks.size() == 0 && finallyblk == null) {

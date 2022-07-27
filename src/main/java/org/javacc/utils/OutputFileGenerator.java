@@ -25,11 +25,20 @@
 
 package org.javacc.utils;
 
-import java.io.*;
+import org.javacc.parser.Options;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.javacc.parser.Options;
 
 /**
  * Generates boiler-plate files from templates. Only very basic
@@ -47,13 +56,13 @@ public class OutputFileGenerator {
    * @param options the processing options in force, such
    *        as "STATIC=yes"
    */
-  public OutputFileGenerator(String templateName, Map options) {
+  public OutputFileGenerator(String templateName, Map<String, Object> options) {
     this.templateName = templateName;
     this.options = options;
   }
 
   private final String templateName;
-  private final Map options;
+  private final Map<String, Object> options;
 
   private String currentLine;
 
@@ -274,7 +283,7 @@ public class OutputFileGenerator {
 
   public static void main(String[] args) throws Exception
   {
-    Map map = new HashMap();
+    Map<String, Object> map = new HashMap<>();
     map.put("falseArg", Boolean.FALSE);
     map.put("trueArg", Boolean.TRUE);
     map.put("stringValue", "someString");

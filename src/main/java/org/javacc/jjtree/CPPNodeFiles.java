@@ -31,6 +31,12 @@
 
 package org.javacc.jjtree;
 
+import org.javacc.Version;
+import org.javacc.parser.Options;
+import org.javacc.parser.OtherFilesGenCPP;
+import org.javacc.parser.OutputFile;
+import org.javacc.utils.OutputFileGenerator;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -42,23 +48,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.javacc.Version;
-import org.javacc.parser.Options;
-import org.javacc.parser.OtherFilesGenCPP;
-import org.javacc.parser.OutputFile;
-import org.javacc.utils.OutputFileGenerator;
-
 final class CPPNodeFiles {
   private CPPNodeFiles() {}
 
-  private static List<String> headersForJJTreeH = new ArrayList<String>();
+  private static List<String> headersForJJTreeH = new ArrayList<>();
   /**
    * ID of the latest version (of JJTree) in which one of the Node classes
    * was modified.
    */
   static final String nodeVersion = Version.majorDotMinor;
 
-  static Set<String> nodesToGenerate = new HashSet<String>();
+  static Set<String> nodesToGenerate = new HashSet<>();
 
   static void addType(String type) {
     if (!type.equals("Node") && !type.equals("SimpleNode")) {
@@ -67,12 +67,12 @@ final class CPPNodeFiles {
   }
 
   public static String nodeIncludeFile() {
-	    return new File(JJTreeOptions.getJJTreeOutputDirectory(), "Node.h").getAbsolutePath();
-	  }
+      return new File(JJTreeOptions.getJJTreeOutputDirectory(), "Node.h").getAbsolutePath();
+    }
 
   public static String simpleNodeIncludeFile() {
 	    return new File(JJTreeOptions.getJJTreeOutputDirectory(), "SimpleNode.h").getAbsolutePath();
-	  }
+    }
 
   public static String simpleNodeCodeFile() {
 	    return new File(JJTreeOptions.getJJTreeOutputDirectory(), "SimpleNode.cc").getAbsolutePath();
@@ -131,7 +131,7 @@ final class CPPNodeFiles {
         return;
       }
 
-      Map<String, Object> optionMap = new HashMap<String, Object>(Options.getOptions());
+      Map<String, Object> optionMap = new HashMap<>(Options.getOptions());
       optionMap.put(Options.NONUSER_OPTION__PARSER_NAME, JJTreeGlobals.parserName);
       optionMap.put("VISITOR_RETURN_TYPE", getVisitorReturnType());
       optionMap.put("VISITOR_DATA_TYPE", getVisitorArgumentType());
@@ -158,7 +158,7 @@ final class CPPNodeFiles {
         return;
       }
 
-      Map<String, Object> optionMap = new HashMap<String, Object>(Options.getOptions());
+      Map<String, Object> optionMap = new HashMap<>(Options.getOptions());
       optionMap.put(Options.NONUSER_OPTION__PARSER_NAME, JJTreeGlobals.parserName);
       optionMap.put("VISITOR_RETURN_TYPE", getVisitorReturnType());
       optionMap.put("VISITOR_DATA_TYPE", getVisitorArgumentType());
@@ -185,7 +185,7 @@ final class CPPNodeFiles {
         return;
       }
 
-      Map<String, Object> optionMap = new HashMap<String, Object>(Options.getOptions());
+      Map<String, Object> optionMap = new HashMap<>(Options.getOptions());
       optionMap.put(Options.NONUSER_OPTION__PARSER_NAME, JJTreeGlobals.parserName);
       optionMap.put("VISITOR_RETURN_TYPE", getVisitorReturnType());
       optionMap.put("VISITOR_DATA_TYPE", getVisitorArgumentType());
@@ -205,7 +205,7 @@ final class CPPNodeFiles {
 
     try {
         for (Iterator<String> i = nodesToGenerate.iterator(); i.hasNext(); ) {
-          String node = (String)i.next();
+          String node = i.next();
           File file = new File(jjtreeIncludeFile(node));
 	      String[] options = new String[] {"MULTI", "NODE_USES_PARSER", "VISITOR", "TRACK_TOKENS", "NODE_PREFIX", "NODE_EXTENDS", "NODE_FACTORY", Options.USEROPTION__SUPPORT_CLASS_VISIBILITY_PUBLIC};
 	      outputFile = new OutputFile(file, nodeVersion, options);
@@ -215,7 +215,7 @@ final class CPPNodeFiles {
 	        return;
 	      }
 
-	      Map<String, Object> optionMap = new HashMap<String, Object>(Options.getOptions());
+	      Map<String, Object> optionMap = new HashMap<>(Options.getOptions());
 	      optionMap.put(Options.NONUSER_OPTION__PARSER_NAME, JJTreeGlobals.parserName);
 	      optionMap.put("VISITOR_RETURN_TYPE", getVisitorReturnType());
 	      optionMap.put("VISITOR_DATA_TYPE", getVisitorArgumentType());
@@ -240,7 +240,7 @@ final class CPPNodeFiles {
 
     try {
         for (Iterator<String> i = nodesToGenerate.iterator(); i.hasNext(); ) {
-          String node = (String)i.next();
+          String node = i.next();
           File file = new File(jjtreeImplFile(node));
 	      String[] options = new String[] {"MULTI", "NODE_USES_PARSER", "VISITOR", "TRACK_TOKENS", "NODE_PREFIX", "NODE_EXTENDS", "NODE_FACTORY", Options.USEROPTION__SUPPORT_CLASS_VISIBILITY_PUBLIC};
 	      outputFile = new OutputFile(file, nodeVersion, options);
@@ -250,7 +250,7 @@ final class CPPNodeFiles {
 	        return;
 	      }
 
-	      Map<String, Object> optionMap = new HashMap<String, Object>(Options.getOptions());
+	      Map<String, Object> optionMap = new HashMap<>(Options.getOptions());
 	      optionMap.put(Options.NONUSER_OPTION__PARSER_NAME, JJTreeGlobals.parserName);
 	      optionMap.put("VISITOR_RETURN_TYPE", getVisitorReturnType());
 	      optionMap.put("VISITOR_DATA_TYPE", getVisitorArgumentType());
@@ -284,7 +284,7 @@ final class CPPNodeFiles {
         return;
       }
 
-      Map<String, Object> optionMap = new HashMap<String, Object>(Options.getOptions());
+      Map<String, Object> optionMap = new HashMap<>(Options.getOptions());
       optionMap.put(Options.NONUSER_OPTION__PARSER_NAME, JJTreeGlobals.parserName);
       optionMap.put("VISITOR_RETURN_TYPE", getVisitorReturnType());
       optionMap.put("VISITOR_DATA_TYPE", getVisitorArgumentType());
@@ -296,7 +296,7 @@ final class CPPNodeFiles {
       ostr.println("#define " + includeName);
       ostr.println("#include \"SimpleNode.h\"");
       for (Iterator<String> i = nodesToGenerate.iterator(); i.hasNext(); ) {
-          String s = (String)i.next();
+          String s = i.next();
           ostr.println("#include \"" + s + ".h\"");
       }
       ostr.println("#endif");
@@ -322,7 +322,7 @@ final class CPPNodeFiles {
         return;
       }
 
-      Map<String, Object> optionMap = new HashMap<String, Object>(Options.getOptions());
+      Map<String, Object> optionMap = new HashMap<>(Options.getOptions());
       optionMap.put(Options.NONUSER_OPTION__PARSER_NAME, JJTreeGlobals.parserName);
       optionMap.put("VISITOR_RETURN_TYPE", getVisitorReturnType());
       optionMap.put("VISITOR_DATA_TYPE", getVisitorArgumentType());
@@ -335,7 +335,7 @@ final class CPPNodeFiles {
       }
 
       for (Iterator<String> i = nodesToGenerate.iterator(); i.hasNext(); ) {
-        String s = (String)i.next();
+        String s = i.next();
         optionMap.put("NODE_TYPE", s);
         generateFile(outputFile, "/templates/cpp/MultiNodeImpl.template", optionMap, false);
       }
@@ -386,7 +386,7 @@ final class CPPNodeFiles {
       }
       ostr.println("enum {");
       for (int i = 0; i < nodeIds.size(); ++i) {
-        String n = (String)nodeIds.get(i);
+        String n = nodeIds.get(i);
         ostr.println("  " + n + " = " + i + ",");
       }
 
@@ -395,7 +395,7 @@ final class CPPNodeFiles {
 
       for (int i = 0; i < nodeNames.size(); ++i) {
         ostr.println("  static JJChar jjtNodeName_arr_" + i + "[] = ");
-        String n = (String)nodeNames.get(i);
+        String n = nodeNames.get(i);
         //ostr.println("    (JJChar*)\"" + n + "\",");
         OtherFilesGenCPP.printCharArray(ostr, n);
         ostr.println(";");
@@ -453,7 +453,7 @@ final class CPPNodeFiles {
     }
 
     try {
-      String name = visitorClass();
+      visitorClass();
       File file = new File(visitorIncludeFile());
       OutputFile outputFile = new OutputFile(file);
       PrintWriter ostr = outputFile.getPrintWriter();
@@ -500,7 +500,7 @@ final class CPPNodeFiles {
     ostr.println("  virtual " + returnType + " visit(const SimpleNode *node, " + argumentType + " data) = 0;");
     if (JJTreeOptions.getMulti()) {
       for (int i = 0; i < nodeNames.size(); ++i) {
-        String n = (String)nodeNames.get(i);
+        String n = nodeNames.get(i);
         if (n.equals("void")) {
           continue;
         }
@@ -539,7 +539,7 @@ final class CPPNodeFiles {
 
     if (JJTreeOptions.getMulti()) {
       for (int i = 0; i < nodeNames.size(); ++i) {
-        String n = (String)nodeNames.get(i);
+        String n = nodeNames.get(i);
         if (n.equals("void")) {
           continue;
         }

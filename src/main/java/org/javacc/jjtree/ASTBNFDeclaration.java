@@ -36,6 +36,7 @@ public class ASTBNFDeclaration extends JJTreeNode {
   NodeScope node_scope;
 
   /** Accept the visitor. **/
+  @Override
   public Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
     return visitor.visit(this, data);
   }

@@ -30,6 +30,9 @@
  */
 package org.javacc.parser;
 
+import org.javacc.utils.OptionInfo;
+import org.javacc.utils.OptionType;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,9 +44,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
-
-import org.javacc.utils.OptionInfo;
-import org.javacc.utils.OptionType;
 
 /**
  * A class with static state that stores all option information.
@@ -113,7 +113,7 @@ public class Options {
 	public static final String USEROPTION__TOKEN_SUPER_CLASS = "TOKEN_SUPER_CLASS";
 	public static final String USEROPTION__PARSER_SUPER_CLASS = "PARSER_SUPER_CLASS";
 	public static final String USEROPTION__TOKEN_MANAGER_SUPER_CLASS = "TOKEN_MANAGER_SUPER_CLASS";
-	
+
 	public static final String USEROPTION__CPP_NAMESPACE = "NAMESPACE";
 	public static final String USEROPTION__CPP_IGNORE_ACTIONS = "IGNORE_ACTIONS";
 	public static final String USEROPTION__CPP_STOP_ON_FIRST_ERROR = "STOP_ON_FIRST_ERROR";
@@ -129,7 +129,7 @@ public class Options {
 	public static final String OUTPUT_LANGUAGE__CPP = "c++";
 	public static final String OUTPUT_LANGUAGE__JAVA = "java";
 
-	public static enum Language {
+	public enum Language {
 		java, cpp;
 	}
 
@@ -154,7 +154,7 @@ public class Options {
 
 
 	static {
-		TreeSet<OptionInfo> temp = new TreeSet<OptionInfo>();
+		TreeSet<OptionInfo> temp = new TreeSet<>();
 
 		temp.add(new OptionInfo(USEROPTION__LOOKAHEAD, OptionType.INTEGER, Integer.valueOf(1)));
 
@@ -204,7 +204,7 @@ public class Options {
 
 		temp.add(new OptionInfo(USEROPTION__JAVA_TEMPLATE_TYPE, OptionType.STRING, JAVA_TEMPLATE_TYPE_CLASSIC));
 		temp.add(new OptionInfo(USEROPTION__CPP_NAMESPACE, OptionType.STRING, ""));
-		
+
 		temp.add(new OptionInfo(USEROPTION__TOKEN_SUPER_CLASS, OptionType.STRING, null));
 		temp.add(new OptionInfo(USEROPTION__PARSER_SUPER_CLASS, OptionType.STRING, null));
 		temp.add(new OptionInfo(USEROPTION__TOKEN_MANAGER_SUPER_CLASS, OptionType.STRING, null));
@@ -234,9 +234,9 @@ public class Options {
 	 * Initialize for JavaCC
 	 */
 	public static void init() {
-		optionValues = new HashMap<String,Object>();
-		cmdLineSetting = new HashSet<String>();
-		inputFileSetting = new HashSet<String>();
+		optionValues = new HashMap<>();
+		cmdLineSetting = new HashSet<>();
+		inputFileSetting = new HashSet<>();
 
 		for (OptionInfo t : userOptions) {
 			optionValues.put(t.getName(), t.getDefault());
@@ -278,7 +278,7 @@ public class Options {
 
 
 	public static Map<String,Object> getOptions() {
-		HashMap<String,Object> ret = new HashMap<String,Object>(optionValues);
+		HashMap<String,Object> ret = new HashMap<>(optionValues);
 		return ret;
 	}
 
@@ -929,13 +929,13 @@ public class Options {
 		}
 	}
 
-	private static final Set<String> supportedJavaTemplateTypes = new HashSet<String>();
+	private static final Set<String> supportedJavaTemplateTypes = new HashSet<>();
 	static {
 		supportedJavaTemplateTypes.add(JAVA_TEMPLATE_TYPE_CLASSIC);
 		supportedJavaTemplateTypes.add(JAVA_TEMPLATE_TYPE_MODERN);
 	}
 
-	private static final Set<String> supportedLanguages = new HashSet<String>();
+	private static final Set<String> supportedLanguages = new HashSet<>();
 	static {
 		supportedLanguages.add(OUTPUT_LANGUAGE__JAVA);
 		supportedLanguages.add(OUTPUT_LANGUAGE__CPP);

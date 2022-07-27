@@ -32,14 +32,14 @@ import java.util.List;
 
 public class LookaheadCalc extends JavaCCGlobals {
 
-  static MatchInfo overlap(List v1, List v2) {
+  static MatchInfo overlap(List<MatchInfo> v1, List<MatchInfo> v2) {
     MatchInfo m1, m2, m3;
     int size;
     boolean diff;
     for (int i = 0; i < v1.size(); i++) {
-      m1 = (MatchInfo)v1.get(i);
+      m1 = v1.get(i);
       for (int j = 0; j < v2.size(); j++) {
-        m2 = (MatchInfo)v2.get(j);
+        m2 = v2.get(j);
         size = m1.firstFreeLoc; m3 = m1;
         if (size > m2.firstFreeLoc) {
           size = m2.firstFreeLoc; m3 = m2;
@@ -59,9 +59,9 @@ public class LookaheadCalc extends JavaCCGlobals {
     return null;
   }
 
-  static boolean javaCodeCheck(List v) {
+  static boolean javaCodeCheck(List<MatchInfo> v) {
     for (int i = 0; i < v.size(); i++) {
-      if (((MatchInfo)v.get(i)).firstFreeLoc == 0) {
+      if ((v.get(i)).firstFreeLoc == 0) {
         return true;
       }
     }
@@ -74,7 +74,7 @@ public class LookaheadCalc extends JavaCCGlobals {
       if (m.match[i] == 0) {
         ret += " <EOF>";
       } else {
-        RegularExpression re = (RegularExpression)rexps_of_tokens.get(Integer.valueOf(m.match[i]));
+        RegularExpression re = rexps_of_tokens.get(Integer.valueOf(m.match[i]));
         if (re instanceof RStringLiteral) {
           ret += " \"" + add_escapes(((RStringLiteral)re).image) + "\"";
         } else if (re.label != null && !re.label.equals("")) {
@@ -96,8 +96,8 @@ public class LookaheadCalc extends JavaCCGlobals {
     // dbl[i] and dbr[i] are lists of size limited matches for choice i
     // of ch.  dbl ignores matches with semantic lookaheads (when force_la_check
     // is false), while dbr ignores semantic lookahead.
-    List[] dbl = new ArrayList[ch.getChoices().size()];
-    List[] dbr = new ArrayList[ch.getChoices().size()];
+    List<MatchInfo>[] dbl = new ArrayList[ch.getChoices().size()];
+    List<MatchInfo>[] dbr = new ArrayList[ch.getChoices().size()];
     int[] minLA = new int[ch.getChoices().size()-1];
     MatchInfo[] overlapInfo = new MatchInfo[ch.getChoices().size()-1];
     int[] other = new int[ch.getChoices().size()-1];
@@ -108,20 +108,20 @@ public class LookaheadCalc extends JavaCCGlobals {
       MatchInfo.laLimit = la;
       LookaheadWalk.considerSemanticLA = !Options.getForceLaCheck();
       for (int i = first; i < ch.getChoices().size()-1; i++) {
-        LookaheadWalk.sizeLimitedMatches = new ArrayList<MatchInfo>();
+        LookaheadWalk.sizeLimitedMatches = new ArrayList<>();
         m = new MatchInfo();
         m.firstFreeLoc = 0;
-        v = new ArrayList<MatchInfo>();
+        v = new ArrayList<>();
         v.add(m);
         LookaheadWalk.genFirstSet(v, (Expansion)ch.getChoices().get(i));
         dbl[i] = LookaheadWalk.sizeLimitedMatches;
       }
       LookaheadWalk.considerSemanticLA = false;
       for (int i = first+1; i < ch.getChoices().size(); i++) {
-        LookaheadWalk.sizeLimitedMatches = new ArrayList<MatchInfo>();
+        LookaheadWalk.sizeLimitedMatches = new ArrayList<>();
         m = new MatchInfo();
         m.firstFreeLoc = 0;
-        v = new ArrayList<MatchInfo>();
+        v = new ArrayList<>();
         v.add(m);
         LookaheadWalk.genFirstSet(v, (Expansion)ch.getChoices().get(i));
         dbr[i] = LookaheadWalk.sizeLimitedMatches;
@@ -225,15 +225,15 @@ public class LookaheadCalc extends JavaCCGlobals {
     int la;
     for (la = 1; la <= Options.getOtherAmbiguityCheck(); la++) {
       MatchInfo.laLimit = la;
-      LookaheadWalk.sizeLimitedMatches = new ArrayList<MatchInfo>();
+      LookaheadWalk.sizeLimitedMatches = new ArrayList<>();
       m = new MatchInfo();
       m.firstFreeLoc = 0;
-      v = new ArrayList<MatchInfo>();
+      v = new ArrayList<>();
       v.add(m);
       LookaheadWalk.considerSemanticLA = !Options.getForceLaCheck();
       LookaheadWalk.genFirstSet(v, nested);
       first = LookaheadWalk.sizeLimitedMatches;
-      LookaheadWalk.sizeLimitedMatches = new ArrayList<MatchInfo>();
+      LookaheadWalk.sizeLimitedMatches = new ArrayList<>();
       LookaheadWalk.considerSemanticLA = false;
       LookaheadWalk.genFollowSet(v, exp, Expansion.nextGenerationIndex++);
       follow = LookaheadWalk.sizeLimitedMatches;

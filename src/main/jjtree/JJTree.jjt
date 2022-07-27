@@ -947,7 +947,6 @@ void node_descriptor_expression() #NodeDescriptorExpression
 }
 
 
-
 /**********************************************
  * THE JAVA GRAMMAR SPECIFICATION STARTS HERE *
  **********************************************/

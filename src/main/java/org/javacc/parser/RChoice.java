@@ -40,22 +40,23 @@ public class RChoice extends RegularExpression {
    * The list of choices of this regular expression.  Each
    * list component will narrow to RegularExpression.
    */
-  private List choices = new ArrayList();
+  private List<? super Object> choices = new ArrayList<>();
 
   /**
    * @param choices the choices to set
    */
-  public void setChoices(List choices) {
+  public void setChoices(List<? super Object> choices) {
     this.choices = choices;
   }
 
   /**
    * @return the choices
    */
-  public List getChoices() {
+  public List<? super Object> getChoices() {
     return choices;
   }
 
+  @Override
   public Nfa GenerateNfa(boolean ignoreCase)
   {
      CompressCharLists();
@@ -104,7 +105,7 @@ public class RChoice extends RegularExpression {
            if (((RCharacterList)curRE).negated_list)
               ((RCharacterList)curRE).RemoveNegation();
 
-           List tmp = ((RCharacterList)curRE).descriptors;
+           List<Object> tmp = ((RCharacterList)curRE).descriptors;
 
            if (curCharList == null)
               getChoices().set(i, curRE = curCharList = new RCharacterList());
@@ -141,14 +142,12 @@ public class RChoice extends RegularExpression {
   public void CheckUnmatchability()
   {
      RegularExpression curRE;
-     int numStrings = 0;
-
      for (int i = 0; i < getChoices().size(); i++)
      {
         if (!(curRE = (RegularExpression)getChoices().get(i)).private_rexp &&
             //curRE instanceof RJustName &&
             curRE.ordinal > 0 && curRE.ordinal < ordinal &&
-            Main.lg.lexStates[curRE.ordinal] == Main.lg.lexStates[ordinal])
+            LexGen.lexStates[curRE.ordinal] == LexGen.lexStates[ordinal])
         {
            if (label != null)
               JavaCCErrors.warning(this, "Regular Expression choice : " +
@@ -159,8 +158,7 @@ public class RChoice extends RegularExpression {
                                                                       ordinal);
         }
 
-        if (!curRE.private_rexp && curRE instanceof RStringLiteral)
-           numStrings++;
+        if (!curRE.private_rexp && curRE instanceof RStringLiteral) {}
      }
   }
 

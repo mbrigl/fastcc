@@ -58,9 +58,9 @@ public class TokenizerData {
   }
 
   // The main nfa.
-  public final Map<Integer, NfaState> nfa = new HashMap<Integer, NfaState>();
+  public final Map<Integer, NfaState> nfa = new HashMap<>();
 
-  public static enum MatchType {
+  public enum MatchType {
     SKIP,
     SPECIAL_TOKEN,
     MORE,
@@ -91,7 +91,7 @@ public class TokenizerData {
   }
 
   // On match info indexed by the match kind.
-  public Map<Integer, MatchInfo> allMatches = new HashMap<Integer, MatchInfo>();
+  public Map<Integer, MatchInfo> allMatches = new HashMap<>();
 
   // Initial nfa states indexed by lexical state.
   public Map<Integer, Integer> initialStates;

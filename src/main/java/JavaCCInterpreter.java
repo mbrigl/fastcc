@@ -1,13 +1,27 @@
 
-import java.io.*;
-import java.util.*;
-import org.javacc.parser.*;
+import org.javacc.parser.JavaCCErrors;
+import org.javacc.parser.JavaCCParser;
+import org.javacc.parser.LexGen;
+import org.javacc.parser.Main;
+import org.javacc.parser.MetaParseException;
+import org.javacc.parser.Options;
+import org.javacc.parser.Semanticize;
+import org.javacc.parser.TokenizerData;
+
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.StringReader;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class JavaCCInterpreter {
   public static void main(String[] args) throws Exception {
     // Initialize all static state
     Main.reInitAll();
-    JavaCCParser parser = null;
     for (int arg = 0; arg < args.length - 2; arg++) {
       if (!Options.isOption(args[arg])) {
         System.out.println("Argument \"" + args[arg] + "\" must be an option setting.");
@@ -21,15 +35,19 @@ public class JavaCCInterpreter {
     try {
       File fp = new File(args[args.length-2]);
       byte[] buf = new byte[(int)fp.length()];
-      new DataInputStream(
+      try(DataInputStream stream = new DataInputStream(
           new BufferedInputStream(
-              new FileInputStream(fp))).readFully(buf);
+              new FileInputStream(fp)))) {
+        stream.readFully(buf);
+      }
       grammar = new String(buf);
       File inputFile = new File(args[args.length - 1]);
       buf = new byte[(int)inputFile.length()];
-      new DataInputStream(
+      try(DataInputStream stream = new DataInputStream(
           new BufferedInputStream(
-              new FileInputStream(inputFile))).readFully(buf);
+              new FileInputStream(inputFile)))) {
+        stream.readFully(buf);
+      }
       input = new String(buf);
     } catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -48,7 +66,7 @@ public class JavaCCInterpreter {
       parser.javacc_input();
       Semanticize.start();
       LexGen lg = new LexGen();
-      lg.generateDataOnly = true;
+      LexGen.generateDataOnly = true;
       lg.start();
       TokenizerData td = LexGen.tokenizerData;
       if (JavaCCErrors.get_error_count() == 0) {
@@ -73,8 +91,8 @@ public class JavaCCInterpreter {
     final int input_size = input.length();
     int curPos = 0;
     int curLexState = td.defaultLexState;
-    Set<Integer> curStates = new HashSet<Integer>();
-    Set<Integer> newStates = new HashSet<Integer>();
+    Set<Integer> curStates = new HashSet<>();
+    Set<Integer> newStates = new HashSet<>();
     while (curPos < input_size) {
       int beg = curPos;
       int matchedPos = beg;

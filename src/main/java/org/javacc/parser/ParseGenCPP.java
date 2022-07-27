@@ -32,7 +32,7 @@ public void start() throws MetaParseException {
 
     if (JavaCCErrors.get_error_count() != 0) throw new MetaParseException();
 
-    List<String> tn = new ArrayList<String>(toolNames);
+    List<String> tn = new ArrayList<>(toolNames);
     tn.add(toolName);
     switchToStaticsFile();
 

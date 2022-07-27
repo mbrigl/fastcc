@@ -95,8 +95,8 @@ class JavaCharStream
   {
     char[] newbuffer = new char[bufsize + 2048];
 #if KEEP_LINE_COLUMN
-    int newbufline[] = new int[bufsize + 2048];
-    int newbufcolumn[] = new int[bufsize + 2048];
+    int[] newbufline = new int[bufsize + 2048];
+    int[] newbufcolumn = new int[bufsize + 2048];
 #fi
 
     try

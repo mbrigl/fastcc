@@ -41,7 +41,6 @@ public class JJDocOptions extends Options {
      * Limit subclassing to derived classes.
      */
     protected JJDocOptions() {
-        super();
     }
 
     /**

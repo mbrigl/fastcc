@@ -22,12 +22,12 @@ public class CPPFiles extends JavaCCGlobals implements JavaCCParserConstants
    * ID of the latest version (of JavaCC) in which one of the CharStream classes
    * or the CharStream interface is modified.
    */
-  static final String charStreamVersion = Version.majorDotMinor;
+  private static final String charStreamVersion = Version.majorDotMinor;
 
   /**
    * ID of the latest version (of JavaCC) in which the TokenManager interface is modified.
    */
-  static final String tokenManagerVersion = Version.majorDotMinor;
+  private static final String tokenManagerVersion = Version.majorDotMinor;
 
   /**
    * ID of the latest version (of JavaCC) in which the Token class is modified.
@@ -38,7 +38,7 @@ public class CPPFiles extends JavaCCGlobals implements JavaCCParserConstants
    * ID of the latest version (of JavaCC) in which the ParseException class is
    * modified.
    */
-  static final String parseExceptionVersion = Version.majorDotMinor;
+  private static final String parseExceptionVersion = Version.majorDotMinor;
 
   /**
    * ID of the latest version (of JavaCC) in which the TokenMgrError class is

@@ -49,7 +49,7 @@ public class Lookahead extends Expansion {
    * that forms the semantic lookahead.  In this case, the following
    * fields "amount" and "la_expansion" are ignored.
    */
-  private List<Token> action_tokens = new ArrayList<Token>();
+  private final List<Token> action_tokens = new ArrayList<>();
 
   /**
    * The lookahead amount.  Its default value essentially gives us
@@ -71,7 +71,8 @@ public class Lookahead extends Expansion {
    */
   private boolean isExplicit;
 
-  public StringBuffer dump(int indent, Set alreadyDumped) {
+  @Override
+  public StringBuffer dump(int indent, Set<? super Expansion> alreadyDumped) {
     StringBuffer sb = super.dump(indent, alreadyDumped).append(isExplicit ? " explicit" : " implicit");
     if (alreadyDumped.contains(this))
       return sb;

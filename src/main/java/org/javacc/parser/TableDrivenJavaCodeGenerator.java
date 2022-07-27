@@ -56,7 +56,7 @@ public class TableDrivenJavaCodeGenerator implements TokenManagerCodeGenerator {
 
   private void dumpDfaTables(
       CodeGenerator codeGenerator, TokenizerData tokenizerData) {
-    Map<Integer, int[]> startAndSize = new HashMap<Integer, int[]>();
+    Map<Integer, int[]> startAndSize = new HashMap<>();
     int i = 0;
 
     codeGenerator.genCodeLine(

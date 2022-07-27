@@ -39,7 +39,7 @@ public class BNFProduction extends NormalProduction {
   /**
    * The declarations of this production.
    */
-  private List<Token> declaration_tokens = new ArrayList<Token>();
+  private final List<Token> declaration_tokens = new ArrayList<>();
 
   /**
    * This flag keeps track of whether or not return and throw

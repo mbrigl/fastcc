@@ -25,6 +25,8 @@
 
 package org.javacc.parser;
 
+import org.javacc.Version;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,8 +39,6 @@ import java.io.PrintWriter;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
-import org.javacc.Version;
 
 /**
  * This class handles the creation and maintenance of the boiler-plate classes,
@@ -265,8 +265,8 @@ public class OutputFile {
   }
 
   /**
-   * Close the OutputFile, writing any necessary trailer information
-   * (such as a checksum).
+   * Close the OutputFile, writing any necessary trailer information (such as a checksum).
+   * 
    * @throws IOException
    */
   public void close() throws IOException {
@@ -286,8 +286,8 @@ public class OutputFile {
     return toHexString(digest);
   }
 
-  private final static char[] HEX_DIGITS = new char[] { '0', '1', '2', '3',
-    '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+  private final static char[] HEX_DIGITS =
+      new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
   private static final String toHexString(byte[] bytes) {
     StringBuffer sb = new StringBuffer(32);
@@ -300,14 +300,14 @@ public class OutputFile {
 
   private static class NullOutputStream extends OutputStream {
 
-    public void write(byte[] arg0, int arg1, int arg2) throws IOException {
-    }
+    @Override
+    public void write(byte[] arg0, int arg1, int arg2) throws IOException {}
 
-    public void write(byte[] arg0) throws IOException {
-    }
+    @Override
+    public void write(byte[] arg0) throws IOException {}
 
-    public void write(int arg0) throws IOException {
-    }
+    @Override
+    public void write(int arg0) throws IOException {}
   }
 
   private class TrapClosePrintWriter extends PrintWriter {
@@ -320,6 +320,7 @@ public class OutputFile {
       super.close();
     }
 
+    @Override
     public void close() {
       try {
         OutputFile.this.close();
@@ -337,8 +338,7 @@ public class OutputFile {
   }
 
   /**
-   * @param toolName
-   *            the toolName to set
+   * @param toolName the toolName to set
    */
   public void setToolName(String toolName) {
     this.toolName = toolName;

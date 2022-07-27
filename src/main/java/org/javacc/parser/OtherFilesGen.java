@@ -30,10 +30,10 @@
  */
 package org.javacc.parser;
 
+import org.javacc.parser.JavaFiles.JavaResourceTemplateLocations;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.javacc.parser.JavaFiles.JavaResourceTemplateLocations;
 
 /**
  * Generates the Constants file.
@@ -97,18 +97,18 @@ public class OtherFilesGen extends JavaCCGlobals implements JavaCCParserConstant
       throw new Error();
     }
 
-    List<String> tn = new ArrayList<String>(toolNames);
+    List<String> tn = new ArrayList<>(toolNames);
     tn.add(toolName);
     ostr.println("/* " + getIdString(tn, cu_name + CONSTANTS_FILENAME_SUFFIX) + " */");
 
     if (cu_to_insertion_point_1.size() != 0 &&
-        ((Token)cu_to_insertion_point_1.get(0)).kind == PACKAGE
+        cu_to_insertion_point_1.get(0).kind == PACKAGE
        ) {
       for (int i = 1; i < cu_to_insertion_point_1.size(); i++) {
-        if (((Token)cu_to_insertion_point_1.get(i)).kind == SEMICOLON) {
-          printTokenSetup((Token)(cu_to_insertion_point_1.get(0)));
+        if (cu_to_insertion_point_1.get(i).kind == SEMICOLON) {
+          printTokenSetup((cu_to_insertion_point_1.get(0)));
           for (int j = 0; j <= i; j++) {
-            t = (Token)(cu_to_insertion_point_1.get(j));
+            t = (cu_to_insertion_point_1.get(j));
             printToken(t, ostr);
           }
           printTrailingComments(t, ostr);
@@ -140,7 +140,7 @@ public class OtherFilesGen extends JavaCCGlobals implements JavaCCParserConstant
     }
     ostr.println("");
     if (!Options.getUserTokenManager() && Options.getBuildTokenManager()) {
-      for (int i = 0; i < Main.lg.lexStateName.length; i++) {
+      for (int i = 0; i < LexGen.lexStateName.length; i++) {
         ostr.println("  /** Lexical state. */");
         ostr.println("  int " + LexGen.lexStateName[i] + " = " + i + ";");
       }
@@ -151,10 +151,10 @@ public class OtherFilesGen extends JavaCCGlobals implements JavaCCParserConstant
     ostr.println("    \"<EOF>\",");
 
     for (java.util.Iterator<TokenProduction> it = rexprlist.iterator(); it.hasNext();) {
-      TokenProduction tp = (TokenProduction)(it.next());
+      TokenProduction tp = (it.next());
       List<RegExprSpec> respecs = tp.respecs;
       for (java.util.Iterator<RegExprSpec> it2 = respecs.iterator(); it2.hasNext();) {
-        RegExprSpec res = (RegExprSpec)(it2.next());
+        RegExprSpec res = (it2.next());
         re = res.rexp;
         ostr.print("    ");
         if (re instanceof RStringLiteral) {

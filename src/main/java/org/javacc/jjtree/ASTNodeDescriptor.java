@@ -51,9 +51,9 @@ public class ASTNodeDescriptor extends JJTreeNode {
   }
 
 
-  static List<String> nodeIds = new ArrayList<String>();
-  static List<String> nodeNames = new ArrayList<String>();
-  static Hashtable<String, String> nodeSeen = new Hashtable<String, String>();
+  static List<String> nodeIds = new ArrayList<>();
+  static List<String> nodeNames = new ArrayList<>();
+  static Hashtable<String, String> nodeSeen = new Hashtable<>();
 
   static List<String> getNodeIds()
   {
@@ -91,6 +91,7 @@ public class ASTNodeDescriptor extends JJTreeNode {
     return name.equals("void");
   }
 
+  @Override
   public String toString()
   {
     if (faked) {
@@ -166,12 +167,14 @@ public class ASTNodeDescriptor extends JJTreeNode {
   }
 
 
+  @Override
   String translateImage(Token t)
   {
     return whiteOut(t);
   }
 
   /** Accept the visitor. **/
+  @Override
   public Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
     return visitor.visit(this, data);
   }

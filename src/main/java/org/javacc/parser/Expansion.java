@@ -51,6 +51,7 @@ public class Expansion {
    * that this method is called only after line and column are set to
    * their actual values.
    */
+  @Override
   public int hashCode() {
     return getLine() + getColumn();
   }
@@ -110,6 +111,7 @@ public class Expansion {
     return name.substring(name.lastIndexOf(".")+1); // strip the package name
   }
 
+  @Override
   public String toString() {
     return "[" + getLine() + "," + getColumn() + " " + System.identityHashCode(this) + " " + getSimpleName() + "]";
   }

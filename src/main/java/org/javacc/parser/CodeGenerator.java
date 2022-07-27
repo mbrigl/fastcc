@@ -70,7 +70,7 @@ public class CodeGenerator {
     	  mainBuffer.insert(0, "#include \"SimpleNode.h\"\n");
       }
       if(Options.getTokenManagerUsesParser())
-    	  mainBuffer.insert(0, "#include \"" + cu_name + ".h\"\n");
+        mainBuffer.insert(0, "#include \"" + cu_name + ".h\"\n");
       mainBuffer.insert(0, "#include \"TokenMgrError.h\"\n");
       mainBuffer.insert(0, "#include \"" + incfileName + "\"\n");
       includeBuffer.append("#endif\n");
@@ -90,7 +90,6 @@ public class CodeGenerator {
   // HACK
   private void fixupLongLiterals(StringBuffer sb) {
     for (int i = 0; i < sb.length() - 1; i++) {
-      int beg = i;
       char c1 = sb.charAt(i);
       char c2 = sb.charAt(i + 1);
       if (Character.isDigit(c1) || (c1 == '0' && c2 == 'x')) {
@@ -144,7 +143,7 @@ public class CodeGenerator {
   protected void printTokenList(List<Token> list) {
     Token t = null;
     for (Iterator<Token> it = list.iterator(); it.hasNext();) {
-      t = (Token)it.next();
+      t = it.next();
       printToken(t);
     }
 

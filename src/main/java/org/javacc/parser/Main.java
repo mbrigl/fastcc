@@ -30,12 +30,11 @@
  */
 package org.javacc.parser;
 
-import java.util.List;
-import java.util.Set;
-
 import org.javacc.Version;
 import org.javacc.utils.OptionInfo;
 import org.javacc.utils.OptionType;
+
+import java.util.Set;
 
 /**
  * Entry point.
@@ -167,7 +166,7 @@ private static void printOptionInfo(OptionType filter, OptionInfo optionInfo, in
     	System.out.println(Version.versionNumber);
         return 0;
     }
-    
+
     // Initialize all static state
     reInitAll();
 

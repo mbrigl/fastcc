@@ -307,7 +307,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 		<copy file="${resources-src}/version.properties" todir="classes" />
 
-		<javac srcdir="${java-src}" destdir="classes" debug="true" classpath="" includeantruntime='false'>
+		<javac srcdir="${java-src}" destdir="classes" debug="true" classpath="" includeantruntime='false' source="8" target="8" >
 			<src path="${java-src}" />
 			<src path="${generated-src}" />
 			<src path="${resources-src}" />

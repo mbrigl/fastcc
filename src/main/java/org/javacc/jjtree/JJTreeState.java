@@ -28,12 +28,11 @@
 
 package org.javacc.jjtree;
 
+import org.javacc.parser.OutputFile;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import org.javacc.parser.Options;
-import org.javacc.parser.OutputFile;
 
 /**
  * Generate the State of a tree.

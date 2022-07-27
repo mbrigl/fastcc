@@ -129,8 +129,8 @@
 	</licenses>
 
 	<properties>
-		<maven.compiler.source>1.7</maven.compiler.source>
-		<maven.compiler.target>1.7</maven.compiler.target>
+		<maven.compiler.source>8</maven.compiler.source>
+		<maven.compiler.target>8</maven.compiler.target>
 
 		<keystore.path>keystore</keystore.path>
 		<keystore.type>PKCS12</keystore.type>

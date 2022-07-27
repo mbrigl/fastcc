@@ -27,9 +27,6 @@
  */
 
 package org.javacc.jjdoc;
-import java.util.Iterator;
-import java.util.List;
-
 import org.javacc.parser.Action;
 import org.javacc.parser.BNFProduction;
 import org.javacc.parser.CharacterRange;
@@ -61,6 +58,9 @@ import org.javacc.parser.TokenProduction;
 import org.javacc.parser.TryBlock;
 import org.javacc.parser.ZeroOrMore;
 import org.javacc.parser.ZeroOrOne;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * The main entry point for JJDoc.
@@ -110,11 +110,11 @@ public class JJDoc extends JJDocGlobals {
   }
   */
 
-  private static void emitTokenProductions(Generator gen, List prods) {
+  private static void emitTokenProductions(Generator gen, List<TokenProduction> prods) {
     gen.tokensStart();
     // FIXME there are many empty productions here
-    for (Iterator it = prods.iterator(); it.hasNext();) {
-      TokenProduction tp = (TokenProduction)it.next();
+    for (Iterator<TokenProduction> it = prods.iterator(); it.hasNext();) {
+      TokenProduction tp = it.next();
       emitTopLevelSpecialTokens(tp.firstToken, gen);
 
 
@@ -150,8 +150,8 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
           token += " [IGNORE_CASE]";
         }
         token += " : {\n";
-        for (Iterator it2 = tp.respecs.iterator(); it2.hasNext();) {
-          RegExprSpec res = (RegExprSpec)it2.next();
+        for (Iterator<RegExprSpec> it2 = tp.respecs.iterator(); it2.hasNext();) {
+          RegExprSpec res = it2.next();
 
           token += emitRE(res.rexp);
 
@@ -169,10 +169,10 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
     return token;
 }
 
-  private static void emitNormalProductions(Generator gen, List prods) {
+  private static void emitNormalProductions(Generator gen, List<NormalProduction> prods) {
     gen.nonterminalsStart();
-    for (Iterator it = prods.iterator(); it.hasNext();) {
-      NormalProduction np = (NormalProduction)it.next();
+    for (Iterator<NormalProduction> it = prods.iterator(); it.hasNext();) {
+      NormalProduction np = it.next();
       emitTopLevelSpecialTokens(np.getFirstToken(), gen);
       if (np instanceof BNFProduction) {
         gen.productionStart(np);
