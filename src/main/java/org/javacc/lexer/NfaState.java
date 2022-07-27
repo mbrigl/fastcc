@@ -40,7 +40,7 @@ import java.util.Vector;
 public class NfaState {
 
   private final static String ALL_BITS =
-      "{\n   0xffffffffffffffffL, " + "0xffffffffffffffffL, " + "0xffffffffffffffffL, " + "0xffffffffffffffffL\n};";
+      "{\n   0xffffffffffffffffL, 0xffffffffffffffffL, 0xffffffffffffffffL, 0xffffffffffffffffL\n};";
 
 
   public static boolean AllBitsSet(String bitVec) {

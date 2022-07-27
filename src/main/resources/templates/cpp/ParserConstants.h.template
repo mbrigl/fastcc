@@ -1,0 +1,47 @@
+/**
+ * Token literal values and constants.
+ */
+#ifndef JAVACC_PARSER_CONSTANTS_H
+#define JAVACC_PARSER_CONSTANTS_H
+
+#include "JavaCC.h"
+
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
+
+// RegularExpressions
+const int _EOF = 0; // End of File
+@foreach orderedTokens
+{{getOrderedToken()}}
+@end
+
+// Lexical states
+@foreach stateCount
+{{getStateName()}}
+@end
+
+// Literal token images
+@foreach tokenCount
+static const JJChar tokenImage_{{getTokenImage()}};
+@end
+static const JJChar* const tokenImages[] = {
+@foreach tokenCount
+    tokenImage_{{$}},
+@end
+};
+
+// Literal token labels
+@foreach tokenCount
+static const JJChar tokenLabel_{{getTokenLabel()}};
+@end
+static const JJChar* const tokenLabels[] = {
+@foreach tokenCount
+    tokenLabel_{{$}},
+@end
+};
+
+@if NAMESPACE
+}
+@fi
+#endif

@@ -53,8 +53,6 @@ PARSER_END(JJTreeParser)
 
 TOKEN :
 {
-//  Options is no longer a reserved word (Issue 126)
-//  < _OPTIONS: "options" >
   < _LOOKAHEAD: "LOOKAHEAD" >
 | < _IGNORE_CASE: "IGNORE_CASE" >
 | < _PARSER_BEGIN: "PARSER_BEGIN" >
@@ -285,9 +283,6 @@ TOKEN :
 | < BIT_OR: "|" >
 | < XOR: "^" >
 | < REM: "%" >
-//	| < LSHIFT: "<<" >
-//	| < RSIGNEDSHIFT: ">>" >
-//	| < RUNSIGNEDSHIFT: ">>>" >
 | < PLUSASSIGN: "+=" >
 | < MINUSASSIGN: "-=" >
 | < STARASSIGN: "*=" >

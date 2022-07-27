@@ -139,7 +139,7 @@ public class CppParserGenerator extends ParserGenerator {
     cpp.setOption("writeProductions", writeProductions);
     cpp.setOption("writeLoakAheads", writeLoakAheads);
     cpp.setOption("writeExpansions", writeExpansions);
-    cpp.writeTemplate("/templates/cpp/ParserH.template");
+    cpp.writeTemplate("/templates/cpp/Parser.h.template");
   }
 
   /**

@@ -1,6 +1,6 @@
 #include "{{PARSER_NAME}}TokenManager.h"
 #include "TokenManagerError.h"
-#include "DefaultTokenManagerErrorHandler.h"
+#include "TokenManagerErrorHandler.h"
 
 
 @foreach lohiBytes
@@ -41,32 +41,32 @@ Token * {{PARSER_NAME}}TokenManager::jjFillToken() {
    {
        curTokenImage = image.c_str();
 @if keepLineCol
-     if (input_stream->getTrackLineColumn()) {
-        beginLine = endLine = input_stream->getEndLine();
-        beginColumn = endColumn = input_stream->getEndColumn();
+     if (reader->getTrackLineColumn()) {
+        beginLine = endLine = reader->getEndLine();
+        beginColumn = endColumn = reader->getEndColumn();
      }
 @fi
    } else {
      JJString im = jjstrLiteralImages[jjmatchedKind];
-     curTokenImage = (im.length() == 0) ? input_stream->getImage() : im;
+     curTokenImage = (im.length() == 0) ? reader->getImage() : im;
 @if keepLineCol
-    if (input_stream->getTrackLineColumn()) {
-        beginLine = input_stream->getBeginLine();
-        beginColumn = input_stream->getBeginColumn();
-        endLine = input_stream->getEndLine();
-        endColumn = input_stream->getEndColumn();
+    if (reader->getTrackLineColumn()) {
+        beginLine = reader->getBeginLine();
+        beginColumn = reader->getBeginColumn();
+        endLine = reader->getEndLine();
+        endColumn = reader->getEndColumn();
     }
 @fi
    }
 @else
    JJString im = jjstrLiteralImages[jjmatchedKind];
-   curTokenImage = (im.length() == 0) ? input_stream->getImage() : im;
+   curTokenImage = (im.length() == 0) ? reader->getImage() : im;
 @if keepLineCol
-   if (input_stream->getTrackLineColumn()) {
-     beginLine = input_stream->getBeginLine();
-     beginColumn = input_stream->getBeginColumn();
-     endLine = input_stream->getEndLine();
-     endColumn = input_stream->getEndColumn();
+   if (reader->getTrackLineColumn()) {
+     beginLine = reader->getBeginLine();
+     beginColumn = reader->getBeginColumn();
+     endLine = reader->getEndLine();
+     endColumn = reader->getEndColumn();
    }
 @fi
 @fi
@@ -95,17 +95,17 @@ Token * {{PARSER_NAME}}TokenManager::jjFillToken() {
 {{DumpTokenActions()}}
 @fi
 /** Reinitialise parser. */
-void {{PARSER_NAME}}TokenManager::ReInit(CharStream* stream, int lexState)
+void {{PARSER_NAME}}TokenManager::ReInit(Reader * stream, int lexState)
 {
     clear();
     jjmatchedPos = jjnewStateCnt = 0;
     defaultLexState = 0;
     curLexState = 0;
-    input_stream = stream;
+    reader = stream;
     ReInitRounds();
     debugStream = stdout; // init
     SwitchTo(lexState);
-    errorHandler = new DefaultTokenManagerErrorHandler();
+    errorHandler = new TokenManagerErrorHandler();
 }
 
   void {{PARSER_NAME}}TokenManager::ReInitRounds() {
@@ -135,9 +135,9 @@ const  TokenManagerErrorHandler* OQLTokenManager::getErrorHandler() const {
 }
 
   /** Constructor. */
-  {{PARSER_NAME}}TokenManager::{{PARSER_NAME}}TokenManager(CharStream* stream, int lexState)
+  {{PARSER_NAME}}TokenManager::{{PARSER_NAME}}TokenManager(Reader * stream, int lexState)
   {
-    input_stream = nullptr;
+    reader = nullptr;
     ReInit(stream, lexState);
   }
 
@@ -148,9 +148,9 @@ const  TokenManagerErrorHandler* OQLTokenManager::getErrorHandler() const {
 
   // clear
   void {{PARSER_NAME}}TokenManager::clear() {
-    //Since input_stream was generated outside of TokenManager
+    //Since reader was generated outside of TokenManager
     //TokenManager should not take care of deleting it
-    //if (input_stream) delete input_stream;
+    //if (reader) delete reader;
     if (errorHandler) delete errorHandler, errorHandler = nullptr;    
   }
 

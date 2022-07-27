@@ -1,13 +1,13 @@
 
 #include "JavaCC.h"
-#include "CharStream.h"
+#include "Reader.h"
 #include "Token.h"
 #include "TokenManager.h"
-#include "DefaultParserErrorHandler.h"
+#include "ParserErrorHandler.h"
 #include "{{PARSER_NAME}}Constants.h"
 @if IS_GENERATED
 #include "{{PARSER_NAME}}Tree.h"
-#include "JJT{{PARSER_NAME}}State.h"
+#include "TreeState.h"
 @fi
 
 @if NAMESPACE
@@ -46,7 +46,6 @@ public:
   }
 
   TokenManager*          token_source = nullptr;
-  CharStream*            jj_input_stream = nullptr;
   Token*                 token = nullptr;  // Current token.
   Token*                 jj_nt = nullptr;  // Next token.
 
@@ -149,7 +148,7 @@ protected:
   virtual void jjtreeCloseNodeScope(Node * node) = 0;
 
 @if IS_GENERATED
-  JJT{{PARSER_NAME}}State jjtree;
+  TreeState jjtree;
 @fi
 private:
   bool jj_done;

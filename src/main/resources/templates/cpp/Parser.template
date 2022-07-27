@@ -29,7 +29,7 @@ namespace {{NAMESPACE}} {
 void {{PARSER_NAME}}::ReInit(TokenManager* tokenManager)
 {
     clear();
-    errorHandler = new DefaultParserErrorHandler();
+    errorHandler = new ParserErrorHandler();
     delete_eh = true;
     hasError = false;
     token_source = tokenManager;

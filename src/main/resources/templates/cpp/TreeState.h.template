@@ -1,5 +1,5 @@
-#ifndef JAVACC_JJTREE_STATE_H
-#define JAVACC_JJTREE_STATE_H
+#ifndef JAVACC_TREE_STATE_H
+#define JAVACC_TREE_STATE_H
 
 #include <set>
 #include <vector>
@@ -11,57 +11,57 @@ using namespace std;
 @if NAMESPACE
 namespace {{NAMESPACE}} {
 @fi
-class JJT{{PARSER_NAME}}State {
+class TreeState {
 private: 
-  vector<Node*>* nodes;
-  vector<int>*   marks;
-  set<Node*>*    open_nodes;
+    vector<Node*>* nodes;
+    vector<int>*   marks;
+    set<Node*>*    open_nodes;
 
-  int            sp;        // number of nodes on stack
-  int            mk;        // current mark
-  bool           node_created;
+    int            sp;        // number of nodes on stack
+    int            mk;        // current mark
+    bool           node_created;
 
 public:
-            JJT{{PARSER_NAME}}State();
-   virtual ~JJT{{PARSER_NAME}}State();
+    TreeState();
+    virtual ~TreeState();
 
   /* Determines whether the current node was actually closed and
      pushed.  This should only be called in the final user action of a
      node scope.  */
-  virtual bool nodeCreated();
+    virtual bool nodeCreated();
 
   /* Call this to reinitialize the node stack.  It is called
      automatically by the parser's ReInit() method. */
-  virtual void reset();
+    virtual void reset();
 
   /* Returns the root node of the AST.  It only makes sense to call
      this after a successful parse. */
-  virtual Node *rootNode();
+    virtual Node *rootNode();
 
   /* Pushes a node on to the stack. */
-  virtual void pushNode(Node *n);
+    virtual void pushNode(Node *n);
 
   /* Returns the node on the top of the stack, and remove it from the stack.  */
-  virtual Node *popNode();
+    virtual Node *popNode();
 
   /* Returns the node currently on the top of the stack. */
-  virtual Node *peekNode();
+    virtual Node *peekNode();
 
   /* Returns the number of children on the stack in the current node scope. */
-  virtual int nodeArity();
+    virtual int nodeArity();
 
 
-  virtual void clearNodeScope(Node *n);
+    virtual void clearNodeScope(Node *n);
 
 
-  virtual void openNodeScope(Node *n);
+    virtual void openNodeScope(Node *n);
 
 
   /* A definite node is constructed from a specified number of
      children.  That number of nodes are popped from the stack and
      made the children of the definite node.  Then the definite node
      is pushed on to the stack. */
-  virtual void closeNodeScope(Node *n, int num);
+    virtual void closeNodeScope(Node *n, int num);
 
 
   /* A conditional node is constructed if its condition is true.  All
@@ -69,9 +69,10 @@ public:
      made children of the conditional node, which is then pushed
      on to the stack.  If the condition is false the node is not
      constructed and they are left on the stack. */
-  virtual void closeNodeScope(Node *n, bool condition);
+    virtual void closeNodeScope(Node *n, bool condition);
   /* Remove nodes */
-  public: void clear();
+public:
+    void clear();
 };
 
 @if NAMESPACE

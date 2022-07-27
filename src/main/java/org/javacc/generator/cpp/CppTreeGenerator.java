@@ -188,20 +188,19 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
   private static void generateTreeState() {
     DigestOptions options = DigestOptions.get();
     options.put(JavaCC.PARSER_NAME, JJTreeGlobals.parserName);
-    String filePrefix =
-        new File(Options.getOutputDirectory(), "JJT" + JJTreeGlobals.parserName + "State").getAbsolutePath();
+    String filePrefix = new File(Options.getOutputDirectory(), "TreeState").getAbsolutePath();
 
 
     File file = new File(filePrefix + ".h");
     try (DigestWriter writer = DigestWriter.create(file, JavaCC.VERSION, options)) {
-      CppTreeGenerator.generateFile(writer, "/templates/cpp/JJTTreeState.h.template", writer.options());
+      CppTreeGenerator.generateFile(writer, "/templates/cpp/TreeState.h.template", writer.options());
     } catch (IOException e) {
       e.printStackTrace();
     }
 
     file = new File(filePrefix + ".cc");
     try (DigestWriter writer = DigestWriter.create(file, JavaCC.VERSION, options)) {
-      CppTreeGenerator.generateFile(writer, "/templates/cpp/JJTTreeState.cc.template", writer.options());
+      CppTreeGenerator.generateFile(writer, "/templates/cpp/TreeState.cc.template", writer.options());
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -373,24 +372,24 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
       ostr.println("enum {");
       for (int i = 0; i < nodeIds.size(); ++i) {
         String n = nodeIds.get(i);
-        ostr.println("  " + n + " = " + i + ",");
+        ostr.println("    " + n + " = " + i + ",");
       }
 
       ostr.println("};");
       ostr.println();
 
       for (int i = 0; i < nodeNames.size(); ++i) {
-        ostr.println("  static JJChar jjtNodeName_arr_" + i + "[] = ");
+        ostr.print("static JJChar jjtNodeName_arr_" + i + "[] = ");
         String n = nodeNames.get(i);
         // ostr.println(" (JJChar*)\"" + n + "\",");
         CppOtherFilesGenerator.printCharArray(ostr, n);
         ostr.println(";");
       }
-      ostr.println("  static JJString jjtNodeName[] = {");
+      ostr.println("static JJString jjtNodeName[] = {");
       for (int i = 0; i < nodeNames.size(); i++) {
-        ostr.println("jjtNodeName_arr_" + i + ", ");
+        ostr.println("    jjtNodeName_arr_" + i + ",");
       }
-      ostr.println("  };");
+      ostr.println("};");
 
       if (hasNamespace) {
         ostr.println("}");

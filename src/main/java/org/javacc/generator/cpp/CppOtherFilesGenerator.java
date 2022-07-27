@@ -42,17 +42,20 @@ import org.javacc.parser.RegExprSpec;
 import org.javacc.parser.RegularExpression;
 import org.javacc.parser.TokenProduction;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Generates the Constants file.
  */
 public class CppOtherFilesGenerator implements OtherFilesGenerator {
+
+  private static final String TEMPLATE = "/templates/cpp/%s.template";
 
   @Override
   public final void start(LexerData data, JavaCCRequest request) throws ParseException {
@@ -60,178 +63,127 @@ public class CppOtherFilesGenerator implements OtherFilesGenerator {
       throw new ParseException();
     }
 
-    CppOtherFilesGenerator.gen_JavaCCDefs();
-    CppOtherFilesGenerator.gen_CharStream();
-    CppOtherFilesGenerator.gen_Token(); // TODO(theov): issued twice??
-    CppOtherFilesGenerator.gen_TokenManager();
-    CppOtherFilesGenerator.gen_TokenMgrError();
-    CppOtherFilesGenerator.gen_ParseException();
-    CppOtherFilesGenerator.gen_ErrorHandler();
+    CppOtherFilesGenerator.generate("JavaCC.h", JavaCC.VERSION);
 
-    try {
-      CppOtherFilesGenerator.ostr = new PrintWriter(new BufferedWriter(
-          new FileWriter(new File(Options.getOutputDirectory(), request.getParserName() + "Constants.h")), 8192));
+    CppOtherFilesGenerator.generate("Reader.h", JavaCC.VERSION);
+    CppOtherFilesGenerator.generate("StringReader.h", JavaCC.VERSION);
+    CppOtherFilesGenerator.generate("StringReader.cc", JavaCC.VERSION);
+
+    CppOtherFilesGenerator.generate("Token.h", JavaCC.VERSION);
+    CppOtherFilesGenerator.generate("Token.cc", JavaCC.VERSION);
+    CppOtherFilesGenerator.generate("TokenManager.h", JavaCC.VERSION);
+    CppOtherFilesGenerator.generate("TokenManagerError.h", JavaCC.VERSION);
+    CppOtherFilesGenerator.generate("TokenManagerError.cc", JavaCC.VERSION);
+    CppOtherFilesGenerator.generate("TokenManagerErrorHandler.h", JavaCC.VERSION);
+    CppOtherFilesGenerator.generate("TokenManagerErrorHandler.cc", JavaCC.VERSION);
+
+    CppOtherFilesGenerator.generate("ParseException.h", JavaCC.VERSION);
+    CppOtherFilesGenerator.generate("ParseException.cc", JavaCC.VERSION);
+    CppOtherFilesGenerator.generate("ParserErrorHandler.h", JavaCC.VERSION);
+    CppOtherFilesGenerator.generate("ParserErrorHandler.cc", JavaCC.VERSION);
+
+    List<RegularExpression> expressions = new ArrayList<RegularExpression>();
+    for (TokenProduction tp : request.getTokenProductions()) {
+      for (RegExprSpec res : tp.respecs) {
+        expressions.add(res.rexp);
+      }
+    }
+
+    DigestOptions options = DigestOptions.get();
+    options.put("stateCount", data.getStateCount());
+    options.put("tokenCount", expressions.size() + 1);
+    options.put("orderedTokens", request.getOrderedsTokens());
+    options.put("regularExpression", expressions);
+
+    options.put("getStateName", new Function<Object, String>() {
+
+      @Override
+      public String apply(Object t) {
+        return String.format("const int %s = %s;", data.getStateName((int) t), t);
+      }
+    });
+    options.put("getOrderedToken", new Function<Object, String>() {
+
+      @Override
+      public String apply(Object t) {
+        RegularExpression re = (RegularExpression) t;
+        return String.format("const int %s = %s;", re.label, re.ordinal);
+      }
+    });
+    options.put("getTokenImage", new Function<Object, String>() {
+
+      @Override
+      public String apply(Object t) {
+        int i = (int) t;
+        StringWriter builder = new StringWriter();
+        try (PrintWriter writer = new PrintWriter(builder)) {
+          writer.print("" + i + "[] = ");
+          if (i == 0) {
+            CppOtherFilesGenerator.printCharArray(writer, "<EOF>");
+          } else if (expressions.get(i - 1) instanceof RStringLiteral) {
+            CppOtherFilesGenerator.printCharArray(writer, ((RStringLiteral) expressions.get(i - 1)).image);
+          } else if (!expressions.get(i - 1).label.equals("")) {
+            CppOtherFilesGenerator.printCharArray(writer, "<" + expressions.get(i - 1).label + ">");
+          } else {
+            if (expressions.get(i - 1).tpContext.kind == TokenProduction.TOKEN) {
+              JavaCCErrors.warning(expressions.get(i - 1),
+                  "Consider giving this non-string token a label for better error reporting.");
+            }
+            CppOtherFilesGenerator.printCharArray(writer, "<token of kind " + expressions.get(i - 1).ordinal + ">");
+          }
+        }
+        return builder.toString();
+      }
+    });
+    options.put("getTokenLabel", new Function<Object, String>() {
+
+      @Override
+      public String apply(Object t) {
+        int i = (int) t;
+        StringWriter builder = new StringWriter();
+        try (PrintWriter writer = new PrintWriter(builder)) {
+          writer.print("" + i + "[] = ");
+          if (i == 0) {
+            CppOtherFilesGenerator.printCharArray(writer, "<EOF>");
+          } else if (expressions.get(i - 1) instanceof RStringLiteral) {
+            CppOtherFilesGenerator.printCharArray(writer, "<" + ((RStringLiteral) expressions.get(i - 1)).label + ">");
+          } else if (!expressions.get(i - 1).label.equals("")) {
+            CppOtherFilesGenerator.printCharArray(writer, "<" + expressions.get(i - 1).label + ">");
+          } else {
+            if (expressions.get(i - 1).tpContext.kind == TokenProduction.TOKEN) {
+              JavaCCErrors.warning(expressions.get(i - 1),
+                  "Consider giving this non-string token a label for better error reporting.");
+            }
+            CppOtherFilesGenerator.printCharArray(writer, "<token of kind " + expressions.get(i - 1).ordinal + ">");
+          }
+        }
+        return builder.toString();
+      }
+    });
+
+    File file = new File(Options.getOutputDirectory(), request.getParserName() + "Constants.h");
+    try (DigestWriter writer = DigestWriter.create(file, JavaCC.VERSION, options)) {
+      Template.of(String.format(TEMPLATE, "ParserConstants.h"), writer.options()).write(writer);
     } catch (IOException e) {
       JavaCCErrors.semantic_error("Could not open file " + request.getParserName() + "Constants.h for writing.");
       throw new Error();
     }
 
-    CppOtherFilesGenerator.ostr.println("");
-    CppOtherFilesGenerator.ostr.println("/**");
-    CppOtherFilesGenerator.ostr.println(" * Token literal values and constants.");
-    CppOtherFilesGenerator.ostr.println(" * Generated by org.javacc.parser.OtherFilesGenCPP#start()");
-    CppOtherFilesGenerator.ostr.println(" */");
-
-    String define = ("JAVACC_" + request.getParserName() + "Constants_h").toUpperCase();
-    CppOtherFilesGenerator.ostr.println("#ifndef " + define);
-    CppOtherFilesGenerator.ostr.println("#define " + define);
-    CppOtherFilesGenerator.ostr.println("");
-    CppOtherFilesGenerator.ostr.println("#include \"JavaCC.h\"");
-    CppOtherFilesGenerator.ostr.println("");
-    if (Options.stringValue(JavaCC.JJPARSER_CPP_NAMESPACE).length() > 0) {
-      CppOtherFilesGenerator.ostr.println("namespace " + Options.stringValue(JavaCC.JJPARSER_CPP_NAMESPACE) + " {");
-    }
-
-    String constPrefix = "const";
-    CppOtherFilesGenerator.ostr.println("  /** End of File. */");
-    CppOtherFilesGenerator.ostr.println(constPrefix + "  int _EOF = 0;");
-    for (RegularExpression re : request.getOrderedsTokens()) {
-      CppOtherFilesGenerator.ostr.println("  /** RegularExpression Id. */");
-      CppOtherFilesGenerator.ostr.println(constPrefix + "  int " + re.label + " = " + re.ordinal + ";");
-    }
-    CppOtherFilesGenerator.ostr.println("");
-
-    for (int i = 0; i < data.getStateCount(); i++) {
-      CppOtherFilesGenerator.ostr.println("  /** Lexical state. */");
-      CppOtherFilesGenerator.ostr.println(constPrefix + "  int " + data.getStateName(i) + " = " + i + ";");
-    }
-    CppOtherFilesGenerator.ostr.println("");
-    CppOtherFilesGenerator.ostr.println("  /** Literal token image. */");
-    int cnt = 0;
-    CppOtherFilesGenerator.ostr.println("  static const JJChar tokenImage_" + cnt + "[] = ");
-    CppOtherFilesGenerator.printCharArray(CppOtherFilesGenerator.ostr, "<EOF>");
-    CppOtherFilesGenerator.ostr.println(";");
-
-    for (TokenProduction tp : request.getTokenProductions()) {
-      List<RegExprSpec> respecs = tp.respecs;
-      for (RegExprSpec res : respecs) {
-        RegularExpression re = res.rexp;
-        CppOtherFilesGenerator.ostr.println("  static const JJChar tokenImage_" + ++cnt + "[] = ");
-        if (re instanceof RStringLiteral) {
-          CppOtherFilesGenerator.printCharArray(CppOtherFilesGenerator.ostr, ((RStringLiteral) re).image);
-        } else if (!re.label.equals("")) {
-          CppOtherFilesGenerator.printCharArray(CppOtherFilesGenerator.ostr, "<" + re.label + ">");
-        } else {
-          if (re.tpContext.kind == TokenProduction.TOKEN) {
-            JavaCCErrors.warning(re, "Consider giving this non-string token a label for better error reporting.");
-          }
-          CppOtherFilesGenerator.printCharArray(CppOtherFilesGenerator.ostr, "<token of kind " + re.ordinal + ">");
-        }
-        CppOtherFilesGenerator.ostr.println(";");
-      }
-    }
-
-    CppOtherFilesGenerator.ostr.println("  static const JJChar* const tokenImages[] = {");
-    for (int i = 0; i <= cnt; i++) {
-      CppOtherFilesGenerator.ostr.println("tokenImage_" + i + ", ");
-    }
-    CppOtherFilesGenerator.ostr.println("  };");
-
-
-    CppOtherFilesGenerator.ostr.println("  /** Literal token label. */");
-    cnt = 0;
-    CppOtherFilesGenerator.ostr.println("  static const JJChar tokenLabel_" + cnt + "[] = ");
-    CppOtherFilesGenerator.printCharArray(CppOtherFilesGenerator.ostr, "<EOF>");
-    CppOtherFilesGenerator.ostr.println(";");
-
-    for (TokenProduction tp : request.getTokenProductions()) {
-      List<RegExprSpec> respecs = tp.respecs;
-      for (RegExprSpec res : respecs) {
-        RegularExpression re = res.rexp;
-        CppOtherFilesGenerator.ostr.println("  static const JJChar tokenLabel_" + ++cnt + "[] = ");
-        if (re instanceof RStringLiteral) {
-          CppOtherFilesGenerator.printCharArray(CppOtherFilesGenerator.ostr, "<" + ((RStringLiteral) re).label + ">");
-        } else if (!re.label.equals("")) {
-          CppOtherFilesGenerator.printCharArray(CppOtherFilesGenerator.ostr, "<" + re.label + ">");
-        } else {
-          if (re.tpContext.kind == TokenProduction.TOKEN) {
-            JavaCCErrors.warning(re, "Consider giving this non-string token a label for better error reporting.");
-          }
-          CppOtherFilesGenerator.printCharArray(CppOtherFilesGenerator.ostr, "<token of kind " + re.ordinal + ">");
-        }
-        CppOtherFilesGenerator.ostr.println(";");
-      }
-    }
-
-    CppOtherFilesGenerator.ostr.println("  static const JJChar* const tokenLabels[] = {");
-    for (int i = 0; i <= cnt; i++) {
-      CppOtherFilesGenerator.ostr.println("tokenLabel_" + i + ", ");
-    }
-    CppOtherFilesGenerator.ostr.println("  };");
-    CppOtherFilesGenerator.ostr.println();
-
-    CppOtherFilesGenerator.ostr.println("");
-    if (Options.stringValue(JavaCC.JJPARSER_CPP_NAMESPACE).length() > 0) {
-      CppOtherFilesGenerator.ostr.println("}");
-    }
-    CppOtherFilesGenerator.ostr.println("#endif");
-    CppOtherFilesGenerator.ostr.close();
-
   }
 
   // Used by the CPP code generatror
-  static void printCharArray(java.io.PrintWriter ostr, String s) {
-    ostr.print("{");
+  static void printCharArray(PrintWriter writer, String s) {
+    writer.print("{");
     for (int i = 0; i < s.length(); i++) {
-      ostr.print("0x" + Integer.toHexString(s.charAt(i)) + ", ");
+      writer.print("0x" + Integer.toHexString(s.charAt(i)) + ", ");
     }
-    ostr.print("0}");
+    writer.print("0}");
   }
 
-  static private java.io.PrintWriter ostr;
-
-  private static void gen_CharStream() {
-    CppOtherFilesGenerator.genFile("CharStream.h", JavaCC.VERSION);
-    CppOtherFilesGenerator.genFile("DefaultCharStream.h", JavaCC.VERSION);
-    CppOtherFilesGenerator.genFile("DefaultCharStream.cc", JavaCC.VERSION);
-  }
-
-  private static void gen_ParseException() {
-    CppOtherFilesGenerator.genFile("ParseException.h", JavaCC.VERSION);
-    CppOtherFilesGenerator.genFile("ParseException.cc", JavaCC.VERSION);
-    CppOtherFilesGenerator.genFile("ParserErrorHandler.h", JavaCC.VERSION);
-    CppOtherFilesGenerator.genFile("DefaultParserErrorHandler.h", JavaCC.VERSION);
-    CppOtherFilesGenerator.genFile("DefaultParserErrorHandler.cc", JavaCC.VERSION);
-  }
-
-  private static void gen_TokenMgrError() {
-    CppOtherFilesGenerator.genFile("TokenManagerError.h", JavaCC.VERSION);
-    CppOtherFilesGenerator.genFile("TokenManagerError.cc", JavaCC.VERSION);
-    CppOtherFilesGenerator.genFile("TokenManagerErrorHandler.h", JavaCC.VERSION);
-  }
-
-  private static void gen_Token() {
-    CppOtherFilesGenerator.genFile("Token.h", JavaCC.VERSION);
-    CppOtherFilesGenerator.genFile("Token.cc", JavaCC.VERSION);
-  }
-
-  private static void gen_TokenManager() {
-    CppOtherFilesGenerator.genFile("TokenManager.h", JavaCC.VERSION);
-  }
-
-  private static void gen_JavaCCDefs() {
-    CppOtherFilesGenerator.genFile("JavaCC.h", JavaCC.VERSION);
-  }
-
-  private static void gen_ErrorHandler() {
-    CppOtherFilesGenerator.genFile("DefaultTokenManagerErrorHandler.h", JavaCC.VERSION);
-    CppOtherFilesGenerator.genFile("DefaultTokenManagerErrorHandler.cc", JavaCC.VERSION);
-  }
-
-  private static void genFile(String name, Version version) {
+  private static void generate(String name, Version version) {
     File file = new File(Options.getOutputDirectory(), name);
     try (DigestWriter writer = DigestWriter.create(file, version, DigestOptions.get())) {
-      Template.of("/templates/cpp/" + name + ".template", writer.options()).write(writer);
+      Template.of(String.format(TEMPLATE, name), writer.options()).write(writer);
     } catch (IOException e) {
       System.err.println("Failed to create file: " + file + e);
       JavaCCErrors.semantic_error("Could not open file: " + file + " for writing.");

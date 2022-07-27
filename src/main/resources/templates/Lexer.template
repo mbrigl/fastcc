@@ -1,7 +1,3 @@
-  /** Debug output. */
-  public java.io.PrintStream debugStream = System.out;
-  /** Set debug output. */
-  public void setDebugStream(java.io.PrintStream ds) { debugStream = ds; }
 @foreach lohiBytes
 static final long[] jjbitVec{{$}} = {{getLohiBytes()}};
 @end

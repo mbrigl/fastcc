@@ -1,6 +1,6 @@
 
 #include "JavaCC.h"
-#include "CharStream.h"
+#include "Reader.h"
 #include "Token.h"
 #include "ParserErrorHandler.h"
 #include "TokenManager.h"
@@ -76,21 +76,23 @@ void TokenLexicalActions(Token *matchedToken);
    jjCheckNAdd(jjnextStates[start + 1]);\
 }
 @fi
-  CharStream*        input_stream;
+  Reader*        reader;
 
 private:
   void ReInitRounds();
 
 public:
-  {{PARSER_NAME}}TokenManager(CharStream* stream, int lexState = {{defaultLexState}});
+  {{PARSER_NAME}}TokenManager(Reader * stream, int lexState = {{defaultLexState}});
   virtual ~{{PARSER_NAME}}TokenManager();
 
 protected:
-  void ReInit(CharStream* stream, int lexState = {{defaultLexState}});
+  void ReInit(Reader * stream, int lexState = {{defaultLexState}});
   void SwitchTo(int lexState);
   void clear();
-  const JJSimpleString jjKindsForBitVector(int i, unsigned long long vec);
-  const JJSimpleString jjKindsForStateVector(int lexState, int vec[], int start, int end);
+@if DEBUG_TOKEN_MANAGER
+  const Latin1 jjKindsForBitVector(int i, unsigned long long vec);
+  const Latin1 jjKindsForStateVector(int lexState, int vec[], int start, int end);
+@fi
 
   int                       jjrounds[{{stateSetSize}}];
   int                       jjstateSet[2 * {{stateSetSize}}];
@@ -98,7 +100,7 @@ protected:
   JJString                  image;
   int                       jjimageLen;
   int                       lengthOfMatch;
-  int                       curChar; // TOL: Support Unicode
+  uint32_t                  curChar; // TOL: Support Unicode
   TokenManagerErrorHandler* errorHandler = nullptr;
 
 public:

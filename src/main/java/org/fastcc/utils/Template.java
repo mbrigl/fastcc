@@ -103,7 +103,7 @@ public class Template {
         list.add(i);
       }
     } else if (value instanceof Iterable) {
-      for (Object v : (Iterable) value) {
+      for (Object v : (Iterable<?>) value) {
         list.add(v);
       }
     }
