@@ -61,6 +61,16 @@ public class SourceWriter extends PrintWriter {
   }
 
   /**
+   * Set an option value.
+   *
+   * @param name
+   * @param value
+   */
+  public final void setOption(String name, Object value) {
+    this.options.put(name, value);
+  }
+
+  /**
    * Write the content using a template.
    *
    * @param path

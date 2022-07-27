@@ -458,7 +458,7 @@ public class Options {
    * @return true if throws errors (legacy), false if use {@link RuntimeException} s (better
    *         approach)
    */
-  public static boolean isLegacy() {
+  static boolean isLegacy() {
     return Options.booleanValue(JavaCC.JJPARSER_LEGACY);
   }
 
@@ -516,20 +516,6 @@ public class Options {
    */
   public static int getDepthLimit() {
     return Options.intValue(JavaCC.JJPARSER_DEPTH_LIMIT);
-  }
-
-  /**
-   * Get defined parser stack usage limit.
-   *
-   * @return The requested stack usage limit.
-   */
-  public static String getStackLimit() {
-    String limit = Options.stringValue(JavaCC.JJPARSER_CPP_STACK_LIMIT);
-    if (limit.equals("0")) {
-      return "";
-    } else {
-      return limit;
-    }
   }
 
   private static class OptionInfo implements Comparable<OptionInfo> {

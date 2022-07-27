@@ -39,7 +39,6 @@
 
 options {
   LEGACY = true;
-  STATIC=false;
 }
 
 PARSER_BEGIN(JavaCCParser)
@@ -513,7 +512,7 @@ void production() :
 
 void javacode_production() :
 	{
-	  JavaCodeProduction p = new JavaCodeProduction();
+	  CodeProduction p = new CodeProduction();
 	  String lhs;
 	  Token t = getToken(1);
 	  p.setFirstToken(t);
@@ -606,11 +605,7 @@ void AccessModifier(NormalProduction p) :
 	}
 {
 	( t = "public" | t = "protected" | t = "private" )?
-	{
-	  if(t != null){
-	    p.setAccessMod(t.image);
-	  }
-	}
+	{}
 }
 
 void regular_expr_production() :
@@ -1862,7 +1857,6 @@ void ResultType(List<Token> tokens) :
 	  Token last = getToken(0);
 	  Token t = first;
 	  while (true) {
-	    String i = t.image;
 	    if (isAllowed(t))  {
 	       tokens.add(t);
 	       if (t == last) break;

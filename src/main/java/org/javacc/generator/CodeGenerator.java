@@ -10,8 +10,6 @@ import org.javacc.parser.JavaCCParserConstants;
 import org.javacc.parser.Options;
 import org.javacc.parser.Token;
 
-import java.util.Locale;
-
 class CodeGenerator {
 
   private final SourceWriter   source;
@@ -30,16 +28,6 @@ class CodeGenerator {
 
   protected SourceWriter getSource() {
     return this.source;
-  }
-
-  /**
-   * Set an option.
-   *
-   * @param name
-   * @param value
-   */
-  protected final void addOption(String name, Object value) {
-    getSource().getOptions().put(name, value);
   }
 
   protected final JavaCCLanguage getLanguage() {
@@ -69,17 +57,6 @@ class CodeGenerator {
     getSource().saveOutput(Options.getOutputDirectory());
   }
 
-  protected final void genCode(Object... code) {
-    for (Object s : code) {
-      getSource().append("" + s);
-    }
-  }
-
-  protected final void genCodeLine(Object... code) {
-    genCode(code);
-    genCode("\n");
-  }
-
   public int cline, ccol;
 
   protected void genTokenSetup(Token t) {
@@ -91,10 +68,6 @@ class CodeGenerator {
 
     this.cline = tt.beginLine;
     this.ccol = tt.beginColumn;
-  }
-
-  protected final void genToken(Token t) {
-    genCode(getStringToPrint(t));
   }
 
   protected final String getStringToPrint(Token t) {
@@ -136,60 +109,6 @@ class CodeGenerator {
         this.ccol = 1;
       }
     }
-
     return retval;
-  }
-
-  /**
-   * Generate a modifier
-   */
-  private void genModifier(String mod) {
-    String origMod = mod.toLowerCase(Locale.ENGLISH);
-    if (isJavaLanguage()) {
-      genCode(mod);
-    } else if (origMod.equals("public") || origMod.equals("private")) {
-      genCode(origMod + ": ");
-    }
-    // we don't care about other mods for now.
-  }
-
-  /**
-   * Generate a class with a given name, an array of superclass and another array of super interfaes
-   */
-  protected final void genClassStart(String mod, String name, String[] superClasses, String[] superInterfaces) {
-    if (isJavaLanguage() && (mod != null)) {
-      genModifier(mod);
-    }
-    genCode("class " + name);
-    if (isJavaLanguage()) {
-      if ((superClasses.length == 1) && (superClasses[0] != null)) {
-        genCode(" extends " + superClasses[0]);
-      }
-      if (superInterfaces.length != 0) {
-        genCode(" implements ");
-      }
-    } else {
-      if ((superClasses.length > 0) || (superInterfaces.length > 0)) {
-        genCode(" : ");
-      }
-
-      genCommaSeperatedString(superClasses);
-    }
-
-    genCommaSeperatedString(superInterfaces);
-    genCodeLine(" {");
-    if (isCppLanguage()) {
-      genCodeLine("public:");
-    }
-  }
-
-  private void genCommaSeperatedString(String[] strings) {
-    for (int i = 0; i < strings.length; i++) {
-      if (i > 0) {
-        genCode(", ");
-      }
-
-      genCode(strings[i]);
-    }
   }
 }

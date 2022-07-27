@@ -30,6 +30,7 @@ import org.javacc.parser.RStringLiteral;
 import org.javacc.parser.RStringLiteral.KindInfo;
 import org.javacc.parser.RegExprSpec;
 import org.javacc.parser.RegularExpression;
+import org.javacc.parser.Token;
 import org.javacc.parser.TokenProduction;
 
 import java.io.IOException;
@@ -47,46 +48,9 @@ import java.util.Vector;
  */
 public abstract class LexerGenerator extends CodeGenerator {
 
-  // Hashtable of vectors
-  private Hashtable<String, List<TokenProduction>> allTpsForState  = new Hashtable<>();
-  private int[]                                    kinds;
-  private String                                   lexStateSuffix;
-  private Hashtable<String, NfaState>              initStates      = new Hashtable<>();
-  private int[]                                    maxLongsReqd;
-  private boolean[]                                hasNfa;
-  private NfaState                                 initialState;
-  private RegularExpression                        curRE;
 
-  protected int                                    maxOrdinal      = 1;
-  protected String[]                               newLexState;
-  protected boolean[]                              ignoreCase;
-  protected Action[]                               actions;
-  protected int                                    stateSetSize;
-  protected int                                    totalNumStates;
-  protected int                                    maxLexStates;
-  protected NfaState[]                             singlesToSkip;
-  protected long[]                                 toSkip;
-  protected long[]                                 toSpecial;
-  protected long[]                                 toMore;
-  protected long[]                                 toToken;
-  protected int                                    defaultLexState;
-  protected RegularExpression[]                    rexprs;
-  protected int[]                                  initMatch;
-  protected int[]                                  canMatchAnyChar;
-  protected boolean                                hasEmptyMatch;
-  protected boolean[]                              canLoop;
-  protected boolean                                hasLoop         = false;
-  protected boolean[]                              canReachOnMore;
-  protected boolean                                hasSkipActions  = false;
-  protected boolean                                hasMoreActions  = false;
-  protected boolean                                hasTokenActions = false;
-  protected boolean                                hasSpecial      = false;
-  protected boolean                                hasSkip         = false;
-  protected boolean                                hasMore         = false;
-  protected boolean                                keepLineCol;
-
-
-  private final LexerData data;
+  private final LexerData  data;
+  private final LexerData2 data2;
 
   /**
    * Constructs an instance of {@link CodeGenerator}.
@@ -94,63 +58,30 @@ public abstract class LexerGenerator extends CodeGenerator {
   protected LexerGenerator(SourceWriter source, JavaCCRequest request, JavaCCContext context) {
     super(source, context.getLanguage());
     this.data = new LexerData(request);
-    this.actions = null;
-    this.allTpsForState = new Hashtable<>();
-    this.canLoop = null;
-    this.canMatchAnyChar = null;
-    this.canReachOnMore = null;
-    this.curRE = null;
-    this.defaultLexState = 0;
-    this.hasEmptyMatch = false;
-    this.hasLoop = false;
-    this.hasMore = false;
-    this.hasMoreActions = false;
-    this.hasNfa = null;
-    this.hasSkip = false;
-    this.hasSkipActions = false;
-    this.hasSpecial = false;
-    this.hasTokenActions = false;
-    this.ignoreCase = null;
-    this.initMatch = null;
-    this.initStates = new Hashtable<>();
-    this.initialState = null;
-    this.keepLineCol = false;
-    this.kinds = null;
-    this.lexStateSuffix = null;
-    this.maxLexStates = 0;
-    this.maxLongsReqd = null;
-    this.maxOrdinal = 1;
-    this.newLexState = null;
-    this.rexprs = null;
-    this.singlesToSkip = null;
-    this.stateSetSize = 0;
-    this.toMore = null;
-    this.toSkip = null;
-    this.toSpecial = null;
-    this.toToken = null;
+    this.data2 = new LexerData2();
   }
 
   protected final void writeTemplate(String name, Map<String, Object> additionalOptions) throws IOException {
-    addOption("maxOrdinal", Integer.valueOf(this.maxOrdinal));
-    addOption("maxLexStates", Integer.valueOf(this.maxLexStates));
-    addOption("hasEmptyMatch", Boolean.valueOf(this.hasEmptyMatch));
-    addOption("hasSkip", Boolean.valueOf(this.hasSkip));
-    addOption("hasMore", Boolean.valueOf(this.hasMore));
-    addOption("hasSpecial", Boolean.valueOf(this.hasSpecial));
-    addOption("hasMoreActions", Boolean.valueOf(this.hasMoreActions));
-    addOption("hasSkipActions", Boolean.valueOf(this.hasSkipActions));
-    addOption("hasTokenActions", Boolean.valueOf(this.hasTokenActions));
-    addOption("stateSetSize", this.stateSetSize);
-    addOption("hasActions", this.hasMoreActions || this.hasSkipActions || this.hasTokenActions);
-    addOption("tokMgrClassName", getTokenManager());
+    getSource().setOption("maxOrdinal", Integer.valueOf(data2().maxOrdinal));
+    getSource().setOption("maxLexStates", Integer.valueOf(data2().maxLexStates));
+    getSource().setOption("hasEmptyMatch", Boolean.valueOf(data2().hasEmptyMatch));
+    getSource().setOption("hasSkip", Boolean.valueOf(data2().hasSkip));
+    getSource().setOption("hasMore", Boolean.valueOf(data2().hasMore));
+    getSource().setOption("hasSpecial", Boolean.valueOf(data2().hasSpecial));
+    getSource().setOption("hasMoreActions", Boolean.valueOf(data2().hasMoreActions));
+    getSource().setOption("hasSkipActions", Boolean.valueOf(data2().hasSkipActions));
+    getSource().setOption("hasTokenActions", Boolean.valueOf(data2().hasTokenActions));
+    getSource().setOption("stateSetSize", data2().stateSetSize);
+    getSource().setOption("hasActions", data2().hasMoreActions || data2().hasSkipActions || data2().hasTokenActions);
+    getSource().setOption("tokMgrClassName", getLexerData().request.getParserName() + "TokenManager");
     int x = 0;
-    for (int l : this.maxLongsReqd) {
+    for (int l : data2().maxLongsReqd) {
       x = Math.max(x, l);
     }
-    addOption("maxLongs", x);
-    addOption("cu_name", getLexerData().request.getParserName());
+    getSource().setOption("maxLongs", x);
+    getSource().setOption("cu_name", getLexerData().request.getParserName());
 
-    additionalOptions.entrySet().forEach(e -> addOption(e.getKey(), e.getValue()));
+    additionalOptions.entrySet().forEach(e -> getSource().setOption(e.getKey(), e.getValue()));
 
     getSource().writeTemplate(name);
   }
@@ -159,13 +90,13 @@ public abstract class LexerGenerator extends CodeGenerator {
     return this.data;
   }
 
-  protected final String getTokenManager() {
-    return getLexerData().request.getParserName() + "TokenManager";
+  protected final LexerData2 data2() {
+    return this.data2;
   }
 
   private void AddCharToSkip(char c, int kind) {
-    this.singlesToSkip[getLexerData().getStateIndex()].AddChar(c);
-    this.singlesToSkip[getLexerData().getStateIndex()].kind = kind;
+    data2().singlesToSkip[getLexerData().getStateIndex()].AddChar(c);
+    data2().singlesToSkip[getLexerData().getStateIndex()].kind = kind;
   }
 
   // --------------------------------------- RString
@@ -218,9 +149,9 @@ public abstract class LexerGenerator extends CodeGenerator {
           kind = NfaState.MoveFromSet(image.charAt(j), oldStates, newStates);
           oldStates.clear();
 
-          if ((j == 0) && (kind != Integer.MAX_VALUE) && (this.canMatchAnyChar[getLexerData().getStateIndex()] != -1)
-              && (kind > this.canMatchAnyChar[getLexerData().getStateIndex()])) {
-            kind = this.canMatchAnyChar[getLexerData().getStateIndex()];
+          if ((j == 0) && (kind != Integer.MAX_VALUE) && (data2().canMatchAnyChar[getLexerData().getStateIndex()] != -1)
+              && (kind > data2().canMatchAnyChar[getLexerData().getStateIndex()])) {
+            kind = data2().canMatchAnyChar[getLexerData().getStateIndex()];
           }
 
           if (GetStrKind(image.substring(0, j + 1)) < kind) {
@@ -294,9 +225,9 @@ public abstract class LexerGenerator extends CodeGenerator {
       List<TokenProduction> tps;
 
       for (i = 0; i < tp.lexStates.length; i++) {
-        if ((tps = this.allTpsForState.get(tp.lexStates[i])) == null) {
-          tmpLexStateName[this.maxLexStates++] = tp.lexStates[i];
-          this.allTpsForState.put(tp.lexStates[i], tps = new ArrayList<>());
+        if ((tps = data2().allTpsForState.get(tp.lexStates[i])) == null) {
+          tmpLexStateName[data2().maxLexStates++] = tp.lexStates[i];
+          data2().allTpsForState.put(tp.lexStates[i], tps = new ArrayList<>());
         }
 
         tps.add(tp);
@@ -308,44 +239,44 @@ public abstract class LexerGenerator extends CodeGenerator {
 
       RegularExpression re;
       for (i = 0; i < respecs.size(); i++) {
-        if (this.maxOrdinal <= (re = respecs.get(i).rexp).ordinal) {
-          this.maxOrdinal = re.ordinal + 1;
+        if (data2().maxOrdinal <= (re = respecs.get(i).rexp).ordinal) {
+          data2().maxOrdinal = re.ordinal + 1;
         }
       }
     }
 
-    this.kinds = new int[this.maxOrdinal];
-    this.toSkip = new long[(this.maxOrdinal / 64) + 1];
-    this.toSpecial = new long[(this.maxOrdinal / 64) + 1];
-    this.toMore = new long[(this.maxOrdinal / 64) + 1];
-    this.toToken = new long[(this.maxOrdinal / 64) + 1];
-    this.toToken[0] = 1L;
-    this.actions = new Action[this.maxOrdinal];
-    this.actions[0] = getLexerData().request.getActionForEof();
-    this.hasTokenActions = getLexerData().request.getActionForEof() != null;
-    this.initStates = new Hashtable<>();
-    this.canMatchAnyChar = new int[this.maxLexStates];
-    this.canLoop = new boolean[this.maxLexStates];
-    getLexerData().lexStateNames = new String[this.maxLexStates];
-    this.singlesToSkip = new NfaState[this.maxLexStates];
-    System.arraycopy(tmpLexStateName, 0, getLexerData().lexStateNames, 0, this.maxLexStates);
+    data2().kinds = new int[data2().maxOrdinal];
+    data2().toSkip = new long[(data2().maxOrdinal / 64) + 1];
+    data2().toSpecial = new long[(data2().maxOrdinal / 64) + 1];
+    data2().toMore = new long[(data2().maxOrdinal / 64) + 1];
+    data2().toToken = new long[(data2().maxOrdinal / 64) + 1];
+    data2().toToken[0] = 1L;
+    data2().actions = new Action[data2().maxOrdinal];
+    data2().actions[0] = getLexerData().request.getActionForEof();
+    data2().hasTokenActions = getLexerData().request.getActionForEof() != null;
+    data2().initStates = new Hashtable<>();
+    data2().canMatchAnyChar = new int[data2().maxLexStates];
+    data2().canLoop = new boolean[data2().maxLexStates];
+    getLexerData().lexStateNames = new String[data2().maxLexStates];
+    data2().singlesToSkip = new NfaState[data2().maxLexStates];
+    System.arraycopy(tmpLexStateName, 0, getLexerData().lexStateNames, 0, data2().maxLexStates);
 
-    for (i = 0; i < this.maxLexStates; i++) {
-      this.canMatchAnyChar[i] = -1;
+    for (i = 0; i < data2().maxLexStates; i++) {
+      data2().canMatchAnyChar[i] = -1;
     }
 
-    this.hasNfa = new boolean[this.maxLexStates];
-    getLexerData().mixed = new boolean[this.maxLexStates];
-    this.maxLongsReqd = new int[this.maxLexStates];
-    this.initMatch = new int[this.maxLexStates];
-    this.newLexState = new String[this.maxOrdinal];
-    this.newLexState[0] = getLexerData().request.getNextStateForEof();
-    this.hasEmptyMatch = false;
-    getLexerData().lexStates = new int[this.maxOrdinal];
-    this.ignoreCase = new boolean[this.maxOrdinal];
-    this.rexprs = new RegularExpression[this.maxOrdinal];
-    getLexerData().allImages = new String[this.maxOrdinal];
-    this.canReachOnMore = new boolean[this.maxLexStates];
+    data2().hasNfa = new boolean[data2().maxLexStates];
+    getLexerData().mixed = new boolean[data2().maxLexStates];
+    data2().maxLongsReqd = new int[data2().maxLexStates];
+    data2().initMatch = new int[data2().maxLexStates];
+    data2().newLexState = new String[data2().maxOrdinal];
+    data2().newLexState[0] = getLexerData().request.getNextStateForEof();
+    data2().hasEmptyMatch = false;
+    getLexerData().lexStates = new int[data2().maxOrdinal];
+    data2().ignoreCase = new boolean[data2().maxOrdinal];
+    data2().rexprs = new RegularExpression[data2().maxOrdinal];
+    getLexerData().allImages = new String[data2().maxOrdinal];
+    data2().canReachOnMore = new boolean[data2().maxLexStates];
   }
 
   public final void start() throws IOException {
@@ -353,7 +284,7 @@ public abstract class LexerGenerator extends CodeGenerator {
       return;
     }
 
-    this.keepLineCol = Options.getKeepLineColumn();
+    data2().keepLineCol = Options.getKeepLineColumn();
     List<RegularExpression> choices = new ArrayList<>();
     TokenProduction tp;
     int i, j;
@@ -361,7 +292,7 @@ public abstract class LexerGenerator extends CodeGenerator {
     BuildLexStatesTable();
     PrintClassHead();
 
-    Enumeration<String> e = this.allTpsForState.keys();
+    Enumeration<String> e = data2().allTpsForState.keys();
 
     boolean ignoring = false;
 
@@ -371,16 +302,16 @@ public abstract class LexerGenerator extends CodeGenerator {
       String key = e.nextElement();
 
       getLexerData().lexStateIndex = getLexerData().getStateIndex(key);
-      this.lexStateSuffix = "_" + getLexerData().getStateIndex();
-      List<TokenProduction> allTps = this.allTpsForState.get(key);
-      this.initStates.put(key, this.initialState = new NfaState(getLexerData()));
+      data2().lexStateSuffix = "_" + getLexerData().getStateIndex();
+      List<TokenProduction> allTps = data2().allTpsForState.get(key);
+      data2().initStates.put(key, data2().initialState = new NfaState(getLexerData()));
       ignoring = false;
 
-      this.singlesToSkip[getLexerData().getStateIndex()] = new NfaState(getLexerData());
-      this.singlesToSkip[getLexerData().getStateIndex()].dummy = true;
+      data2().singlesToSkip[getLexerData().getStateIndex()] = new NfaState(getLexerData());
+      data2().singlesToSkip[getLexerData().getStateIndex()].dummy = true;
 
       if (key.equals("DEFAULT")) {
-        this.defaultLexState = getLexerData().getStateIndex();
+        data2().defaultLexState = getLexerData().getStateIndex();
       }
 
       for (i = 0; i < allTps.size(); i++) {
@@ -395,89 +326,89 @@ public abstract class LexerGenerator extends CodeGenerator {
 
         for (j = 0; j < rexps.size(); j++) {
           RegExprSpec respec = rexps.get(j);
-          this.curRE = respec.rexp;
+          data2().curRE = respec.rexp;
 
-          this.rexprs[getLexerData().curKind = this.curRE.ordinal] = this.curRE;
-          getLexerData().lexStates[this.curRE.ordinal] = getLexerData().getStateIndex();
-          this.ignoreCase[this.curRE.ordinal] = ignore;
+          data2().rexprs[getLexerData().curKind = data2().curRE.ordinal] = data2().curRE;
+          getLexerData().lexStates[data2().curRE.ordinal] = getLexerData().getStateIndex();
+          data2().ignoreCase[data2().curRE.ordinal] = ignore;
 
-          if (this.curRE.private_rexp) {
-            this.kinds[this.curRE.ordinal] = -1;
+          if (data2().curRE.private_rexp) {
+            data2().kinds[data2().curRE.ordinal] = -1;
             continue;
           }
 
-          if (!Options.getNoDfa() && (this.curRE instanceof RStringLiteral)
-              && !((RStringLiteral) this.curRE).image.equals("")) {
-            GenerateDfa(((RStringLiteral) this.curRE), this.curRE.ordinal);
+          if (!Options.getNoDfa() && (data2().curRE instanceof RStringLiteral)
+              && !((RStringLiteral) data2().curRE).image.equals("")) {
+            GenerateDfa(((RStringLiteral) data2().curRE), data2().curRE.ordinal);
             if ((i != 0) && !getLexerData().isMixedState() && (ignoring != ignore)) {
               getLexerData().mixed[getLexerData().getStateIndex()] = true;
             }
-          } else if (this.curRE.CanMatchAnyChar()) {
-            if ((this.canMatchAnyChar[getLexerData().getStateIndex()] == -1)
-                || (this.canMatchAnyChar[getLexerData().getStateIndex()] > this.curRE.ordinal)) {
-              this.canMatchAnyChar[getLexerData().getStateIndex()] = this.curRE.ordinal;
+          } else if (data2().curRE.CanMatchAnyChar()) {
+            if ((data2().canMatchAnyChar[getLexerData().getStateIndex()] == -1)
+                || (data2().canMatchAnyChar[getLexerData().getStateIndex()] > data2().curRE.ordinal)) {
+              data2().canMatchAnyChar[getLexerData().getStateIndex()] = data2().curRE.ordinal;
             }
           } else {
             Nfa temp;
 
-            if (this.curRE instanceof RChoice) {
-              choices.add(this.curRE);
+            if (data2().curRE instanceof RChoice) {
+              choices.add(data2().curRE);
             }
 
-            temp = this.curRE.GenerateNfa(getLexerData(), ignore);
+            temp = data2().curRE.GenerateNfa(getLexerData(), ignore);
             temp.end.isFinal = true;
-            temp.end.kind = this.curRE.ordinal;
-            this.initialState.AddMove(temp.start);
+            temp.end.kind = data2().curRE.ordinal;
+            data2().initialState.AddMove(temp.start);
           }
 
-          if (this.kinds.length < this.curRE.ordinal) {
-            int[] tmp = new int[this.curRE.ordinal + 1];
+          if (data2().kinds.length < data2().curRE.ordinal) {
+            int[] tmp = new int[data2().curRE.ordinal + 1];
 
-            System.arraycopy(this.kinds, 0, tmp, 0, this.kinds.length);
-            this.kinds = tmp;
+            System.arraycopy(data2().kinds, 0, tmp, 0, data2().kinds.length);
+            data2().kinds = tmp;
           }
           // System.out.println(" ordina : " + curRE.ordinal);
 
-          this.kinds[this.curRE.ordinal] = kind;
+          data2().kinds[data2().curRE.ordinal] = kind;
 
           if ((respec.nextState != null)
               && !respec.nextState.equals(getLexerData().getStateName(getLexerData().getStateIndex()))) {
-            this.newLexState[this.curRE.ordinal] = respec.nextState;
+            data2().newLexState[data2().curRE.ordinal] = respec.nextState;
           }
 
           if ((respec.act != null) && (respec.act.getActionTokens() != null)
               && (respec.act.getActionTokens().size() > 0)) {
-            this.actions[this.curRE.ordinal] = respec.act;
+            data2().actions[data2().curRE.ordinal] = respec.act;
           }
 
           switch (kind) {
             case TokenProduction.SPECIAL:
-              this.hasSkipActions |=
-                  (this.actions[this.curRE.ordinal] != null) || (this.newLexState[this.curRE.ordinal] != null);
-              this.hasSpecial = true;
-              this.toSpecial[this.curRE.ordinal / 64] |= 1L << (this.curRE.ordinal % 64);
-              this.toSkip[this.curRE.ordinal / 64] |= 1L << (this.curRE.ordinal % 64);
+              data2().hasSkipActions |= (data2().actions[data2().curRE.ordinal] != null)
+                  || (data2().newLexState[data2().curRE.ordinal] != null);
+              data2().hasSpecial = true;
+              data2().toSpecial[data2().curRE.ordinal / 64] |= 1L << (data2().curRE.ordinal % 64);
+              data2().toSkip[data2().curRE.ordinal / 64] |= 1L << (data2().curRE.ordinal % 64);
               break;
             case TokenProduction.SKIP:
-              this.hasSkipActions |= (this.actions[this.curRE.ordinal] != null);
-              this.hasSkip = true;
-              this.toSkip[this.curRE.ordinal / 64] |= 1L << (this.curRE.ordinal % 64);
+              data2().hasSkipActions |= (data2().actions[data2().curRE.ordinal] != null);
+              data2().hasSkip = true;
+              data2().toSkip[data2().curRE.ordinal / 64] |= 1L << (data2().curRE.ordinal % 64);
               break;
             case TokenProduction.MORE:
-              this.hasMoreActions |= (this.actions[this.curRE.ordinal] != null);
-              this.hasMore = true;
-              this.toMore[this.curRE.ordinal / 64] |= 1L << (this.curRE.ordinal % 64);
+              data2().hasMoreActions |= (data2().actions[data2().curRE.ordinal] != null);
+              data2().hasMore = true;
+              data2().toMore[data2().curRE.ordinal / 64] |= 1L << (data2().curRE.ordinal % 64);
 
-              if (this.newLexState[this.curRE.ordinal] != null) {
-                this.canReachOnMore[getLexerData().getStateIndex(this.newLexState[this.curRE.ordinal])] = true;
+              if (data2().newLexState[data2().curRE.ordinal] != null) {
+                data2().canReachOnMore[getLexerData().getStateIndex(data2().newLexState[data2().curRE.ordinal])] = true;
               } else {
-                this.canReachOnMore[getLexerData().getStateIndex()] = true;
+                data2().canReachOnMore[getLexerData().getStateIndex()] = true;
               }
 
               break;
             case TokenProduction.TOKEN:
-              this.hasTokenActions |= (this.actions[this.curRE.ordinal] != null);
-              this.toToken[this.curRE.ordinal / 64] |= 1L << (this.curRE.ordinal % 64);
+              data2().hasTokenActions |= (data2().actions[data2().curRE.ordinal] != null);
+              data2().toToken[data2().curRE.ordinal / 64] |= 1L << (data2().curRE.ordinal % 64);
               break;
           }
         }
@@ -486,50 +417,50 @@ public abstract class LexerGenerator extends CodeGenerator {
       // Generate a static block for initializing the nfa transitions
       NfaState.ComputeClosures(getLexerData());
 
-      for (i = 0; i < this.initialState.epsilonMoves.size(); i++) {
-        this.initialState.epsilonMoves.elementAt(i).GenerateCode();
+      for (i = 0; i < data2().initialState.epsilonMoves.size(); i++) {
+        data2().initialState.epsilonMoves.elementAt(i).GenerateCode();
       }
 
-      this.hasNfa[getLexerData().getStateIndex()] = (getLexerData().generatedStates() != 0);
-      if (this.hasNfa[getLexerData().getStateIndex()]) {
-        this.initialState.GenerateCode();
-        GenerateInitMoves(this.initialState);
+      data2().hasNfa[getLexerData().getStateIndex()] = (getLexerData().generatedStates() != 0);
+      if (data2().hasNfa[getLexerData().getStateIndex()]) {
+        data2().initialState.GenerateCode();
+        GenerateInitMoves(data2().initialState);
       }
 
-      if ((this.initialState.kind != Integer.MAX_VALUE) && (this.initialState.kind != 0)) {
-        if (((this.toSkip[this.initialState.kind / 64] & (1L << this.initialState.kind)) != 0L)
-            || ((this.toSpecial[this.initialState.kind / 64] & (1L << this.initialState.kind)) != 0L)) {
-          this.hasSkipActions = true;
-        } else if ((this.toMore[this.initialState.kind / 64] & (1L << this.initialState.kind)) != 0L) {
-          this.hasMoreActions = true;
+      if ((data2().initialState.kind != Integer.MAX_VALUE) && (data2().initialState.kind != 0)) {
+        if (((data2().toSkip[data2().initialState.kind / 64] & (1L << data2().initialState.kind)) != 0L)
+            || ((data2().toSpecial[data2().initialState.kind / 64] & (1L << data2().initialState.kind)) != 0L)) {
+          data2().hasSkipActions = true;
+        } else if ((data2().toMore[data2().initialState.kind / 64] & (1L << data2().initialState.kind)) != 0L) {
+          data2().hasMoreActions = true;
         } else {
-          this.hasTokenActions = true;
+          data2().hasTokenActions = true;
         }
 
-        if ((this.initMatch[getLexerData().getStateIndex()] == 0)
-            || (this.initMatch[getLexerData().getStateIndex()] > this.initialState.kind)) {
-          this.initMatch[getLexerData().getStateIndex()] = this.initialState.kind;
-          this.hasEmptyMatch = true;
+        if ((data2().initMatch[getLexerData().getStateIndex()] == 0)
+            || (data2().initMatch[getLexerData().getStateIndex()] > data2().initialState.kind)) {
+          data2().initMatch[getLexerData().getStateIndex()] = data2().initialState.kind;
+          data2().hasEmptyMatch = true;
         }
-      } else if (this.initMatch[getLexerData().getStateIndex()] == 0) {
-        this.initMatch[getLexerData().getStateIndex()] = Integer.MAX_VALUE;
+      } else if (data2().initMatch[getLexerData().getStateIndex()] == 0) {
+        data2().initMatch[getLexerData().getStateIndex()] = Integer.MAX_VALUE;
       }
 
       FillSubString();
 
-      if (this.hasNfa[getLexerData().getStateIndex()] && !getLexerData().isMixedState()) {
-        GenerateNfaStartStates(this.initialState);
+      if (data2().hasNfa[getLexerData().getStateIndex()] && !getLexerData().isMixedState()) {
+        GenerateNfaStartStates(data2().initialState);
       }
 
       DumpDfaCode();
 
-      if (this.hasNfa[getLexerData().getStateIndex()]) {
+      if (data2().hasNfa[getLexerData().getStateIndex()]) {
         DumpMoveNfa();
       }
 
-      this.totalNumStates += getLexerData().generatedStates();
-      if (this.stateSetSize < getLexerData().generatedStates()) {
-        this.stateSetSize = getLexerData().generatedStates();
+      data2().totalNumStates += getLexerData().generatedStates();
+      if (data2().stateSetSize < getLexerData().generatedStates()) {
+        data2().stateSetSize = getLexerData().generatedStates();
       }
     }
 
@@ -562,9 +493,9 @@ public abstract class LexerGenerator extends CodeGenerator {
     // TODO :: CBA -- Require Unification of output language specific processing into a single Enum
     // class
     if (isJavaLanguage()) {
-      genCode("private final int jjStopStringLiteralDfa" + this.lexStateSuffix + "(int pos, " + params);
+      genCode("private final int jjStopStringLiteralDfa" + data2().lexStateSuffix + "(int pos, " + params);
     } else if (isCppLanguage()) {
-      generateMethodDefHeaderCpp(" int", "jjStopStringLiteralDfa" + this.lexStateSuffix + "(int pos, " + params);
+      generateMethodDefHeaderCpp(" int", "jjStopStringLiteralDfa" + data2().lexStateSuffix + "(int pos, " + params);
     } else {
       throw new RuntimeException("Output language type not fully implemented : " + getLanguage());
     }
@@ -629,8 +560,8 @@ public abstract class LexerGenerator extends CodeGenerator {
             if (i == 0) {
               genCodeLine("            jjmatchedKind = " + kindStr + ";");
 
-              if (((this.initMatch[getLexerData().getStateIndex()] != 0)
-                  && (this.initMatch[getLexerData().getStateIndex()] != Integer.MAX_VALUE))) {
+              if (((data2().initMatch[getLexerData().getStateIndex()] != 0)
+                  && (data2().initMatch[getLexerData().getStateIndex()] != Integer.MAX_VALUE))) {
                 genCodeLine("            jjmatchedPos = 0;");
               }
             } else if (i == jjmatchedPos) {
@@ -690,15 +621,15 @@ public abstract class LexerGenerator extends CodeGenerator {
     params.append(getLongType() + " active" + i + ")");
 
     if (isJavaLanguage()) {
-      genCode("private final int jjStartNfa" + this.lexStateSuffix + params);
+      genCode("private final int jjStartNfa" + data2().lexStateSuffix + params);
     } else {
-      generateMethodDefHeaderCpp("int ", "jjStartNfa" + this.lexStateSuffix + params);
+      generateMethodDefHeaderCpp("int ", "jjStartNfa" + data2().lexStateSuffix + params);
     }
     genCodeLine("{");
 
     if (getLexerData().isMixedState()) {
       if (getLexerData().generatedStates() != 0) {
-        genCodeLine("   return jjMoveNfa" + this.lexStateSuffix + "(" + InitStateName() + ", pos + 1);");
+        genCodeLine("   return jjMoveNfa" + data2().lexStateSuffix + "(" + InitStateName() + ", pos + 1);");
       } else {
         genCodeLine("   return pos + 1;");
       }
@@ -707,8 +638,8 @@ public abstract class LexerGenerator extends CodeGenerator {
       return;
     }
 
-    genCode(
-        "   return jjMoveNfa" + this.lexStateSuffix + "(" + "jjStopStringLiteralDfa" + this.lexStateSuffix + "(pos, ");
+    genCode("   return jjMoveNfa" + data2().lexStateSuffix + "(" + "jjStopStringLiteralDfa" + data2().lexStateSuffix
+        + "(pos, ");
     for (i = 0; i < (maxKindsReqd - 1); i++) {
       genCode("active" + i + ", ");
     }
@@ -762,15 +693,15 @@ public abstract class LexerGenerator extends CodeGenerator {
     int maxLongsReqd = (getLexerData().maxStrKind / 64) + 1;
     int i, j, k;
     boolean ifGenerated;
-    this.maxLongsReqd[getLexerData().getStateIndex()] = maxLongsReqd;
+    data2().maxLongsReqd[getLexerData().getStateIndex()] = maxLongsReqd;
 
     if (getLexerData().maxLen == 0) {
       // TODO :: CBA -- Require Unification of output language specific processing into a single
       // Enum class
       if (isJavaLanguage()) {
-        genCodeLine("private int " + "jjMoveStringLiteralDfa0" + this.lexStateSuffix + "()");
+        genCodeLine("private int " + "jjMoveStringLiteralDfa0" + data2().lexStateSuffix + "()");
       } else if (isCppLanguage()) {
-        generateMethodDefHeaderCpp(" int ", "jjMoveStringLiteralDfa0" + this.lexStateSuffix + "()");
+        generateMethodDefHeaderCpp(" int ", "jjMoveStringLiteralDfa0" + data2().lexStateSuffix + "()");
       } else {
         throw new RuntimeException("Output language type not fully implemented : " + getLanguage());
       }
@@ -836,9 +767,9 @@ public abstract class LexerGenerator extends CodeGenerator {
       // TODO :: CBA -- Require Unification of output language specific processing into a single
       // Enum class
       if (isJavaLanguage()) {
-        genCode("private int " + "jjMoveStringLiteralDfa" + i + this.lexStateSuffix + params);
+        genCode("private int " + "jjMoveStringLiteralDfa" + i + data2().lexStateSuffix + params);
       } else if (isCppLanguage()) {
-        generateMethodDefHeaderCpp(" int ", "jjMoveStringLiteralDfa" + i + this.lexStateSuffix + params);
+        generateMethodDefHeaderCpp(" int ", "jjMoveStringLiteralDfa" + i + data2().lexStateSuffix + params);
       } else {
         throw new RuntimeException("Output language type not fully implemented : " + getLanguage());
       }
@@ -870,7 +801,7 @@ public abstract class LexerGenerator extends CodeGenerator {
 
           genCodeLine(") == 0L)");
           if (!getLexerData().isMixedState() && (getLexerData().generatedStates() != 0)) {
-            genCode("      return jjStartNfa" + this.lexStateSuffix + "(" + (i - 2) + ", ");
+            genCode("      return jjStartNfa" + data2().lexStateSuffix + "(" + (i - 2) + ", ");
             for (j = 0; j < (maxLongsReqd - 1); j++) {
               if (i <= (getLexerData().maxLenForActive[j] + 1)) {
                 genCode("old" + j + ", ");
@@ -884,7 +815,8 @@ public abstract class LexerGenerator extends CodeGenerator {
               genCodeLine("0L);");
             }
           } else if (getLexerData().generatedStates() != 0) {
-            genCodeLine("      return jjMoveNfa" + this.lexStateSuffix + "(" + InitStateName() + ", " + (i - 1) + ");");
+            genCodeLine(
+                "      return jjMoveNfa" + data2().lexStateSuffix + "(" + InitStateName() + ", " + (i - 1) + ");");
           } else {
             genCodeLine("      return " + i + ";");
           }
@@ -950,7 +882,7 @@ public abstract class LexerGenerator extends CodeGenerator {
         }
 
         if (!getLexerData().isMixedState() && (getLexerData().generatedStates() != 0)) {
-          genCode("      jjStopStringLiteralDfa" + this.lexStateSuffix + "(" + (i - 1) + ", ");
+          genCode("      jjStopStringLiteralDfa" + data2().lexStateSuffix + "(" + (i - 1) + ", ");
           for (k = 0; k < (maxLongsReqd - 1); k++) {
             if (i <= getLexerData().maxLenForActive[k]) {
               genCode("active" + k + ", ");
@@ -982,7 +914,7 @@ public abstract class LexerGenerator extends CodeGenerator {
 
           genCodeLine("      return " + i + ";");
         } else if (getLexerData().generatedStates() != 0) {
-          genCodeLine("   return jjMoveNfa" + this.lexStateSuffix + "(" + InitStateName() + ", " + (i - 1) + ");");
+          genCodeLine("   return jjMoveNfa" + data2().lexStateSuffix + "(" + InitStateName() + ", " + (i - 1) + ");");
         } else {
           genCodeLine("      return " + i + ";");
         }
@@ -1003,7 +935,7 @@ public abstract class LexerGenerator extends CodeGenerator {
         // Enum class
         if (isJavaLanguage()) {
           genCodeLine("   debugStream.println("
-              + (this.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
+              + (data2().maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
               + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
               + "at line \" + input_stream.getEndLine() + \" column \" + input_stream.getEndColumn());");
         } else if (isCppLanguage()) {
@@ -1041,12 +973,12 @@ public abstract class LexerGenerator extends CodeGenerator {
                   && (getLexerData().intermediateKinds[((j * 64) + k)][i] < ((j * 64) + k))
                   && (getLexerData().intermediateMatchedPos != null)
                   && (getLexerData().intermediateMatchedPos[((j * 64) + k)][i] == i))
-                  || ((this.canMatchAnyChar[getLexerData().getStateIndex()] >= 0)
-                      && (this.canMatchAnyChar[getLexerData().getStateIndex()] < ((j * 64) + k)))) {
+                  || ((data2().canMatchAnyChar[getLexerData().getStateIndex()] >= 0)
+                      && (data2().canMatchAnyChar[getLexerData().getStateIndex()] < ((j * 64) + k)))) {
                 break;
-              } else if (((this.toSkip[kind / 64] & (1L << (kind % 64))) != 0L)
-                  && ((this.toSpecial[kind / 64] & (1L << (kind % 64))) == 0L) && (this.actions[kind] == null)
-                  && (this.newLexState[kind] == null)) {
+              } else if (((data2().toSkip[kind / 64] & (1L << (kind % 64))) != 0L)
+                  && ((data2().toSpecial[kind / 64] & (1L << (kind % 64))) == 0L) && (data2().actions[kind] == null)
+                  && (data2().newLexState[kind] == null)) {
                 AddCharToSkip(c, kind);
 
                 if (getLexerData().ignoreCase()) {
@@ -1114,13 +1046,13 @@ public abstract class LexerGenerator extends CodeGenerator {
                     + ", column " + GetColumn((j * 64) + k) + ". It will be matched as "
                     + GetLabel(getLexerData().intermediateKinds[((j * 64) + k)][i]) + ".");
                 kindToPrint = getLexerData().intermediateKinds[((j * 64) + k)][i];
-              } else if ((i == 0) && (this.canMatchAnyChar[getLexerData().getStateIndex()] >= 0)
-                  && (this.canMatchAnyChar[getLexerData().getStateIndex()] < ((j * 64) + k))) {
+              } else if ((i == 0) && (data2().canMatchAnyChar[getLexerData().getStateIndex()] >= 0)
+                  && (data2().canMatchAnyChar[getLexerData().getStateIndex()] < ((j * 64) + k))) {
                 JavaCCErrors.warning(" \"" + Encoding.escape(getLexerData().getImage((j * 64) + k))
                     + "\" cannot be matched as a string literal token " + "at line " + GetLine((j * 64) + k)
                     + ", column " + GetColumn((j * 64) + k) + ". It will be matched as "
-                    + GetLabel(this.canMatchAnyChar[getLexerData().getStateIndex()]) + ".");
-                kindToPrint = this.canMatchAnyChar[getLexerData().getStateIndex()];
+                    + GetLabel(data2().canMatchAnyChar[getLexerData().getStateIndex()]) + ".");
+                kindToPrint = data2().canMatchAnyChar[getLexerData().getStateIndex()];
               } else {
                 kindToPrint = (j * 64) + k;
               }
@@ -1130,13 +1062,13 @@ public abstract class LexerGenerator extends CodeGenerator {
 
                 if (stateSetName != -1) {
                   createStartNfa = true;
-                  genCodeLine(prefix + "return jjStartNfaWithStates" + this.lexStateSuffix + "(" + i + ", "
+                  genCodeLine(prefix + "return jjStartNfaWithStates" + data2().lexStateSuffix + "(" + i + ", "
                       + kindToPrint + ", " + stateSetName + ");");
                 } else {
                   genCodeLine(prefix + "return jjStopAtPos" + "(" + i + ", " + kindToPrint + ");");
                 }
-              } else if (((this.initMatch[getLexerData().getStateIndex()] != 0)
-                  && (this.initMatch[getLexerData().getStateIndex()] != Integer.MAX_VALUE)) || (i != 0)) {
+              } else if (((data2().initMatch[getLexerData().getStateIndex()] != 0)
+                  && (data2().initMatch[getLexerData().getStateIndex()] != Integer.MAX_VALUE)) || (i != 0)) {
                 genCodeLine("         {");
                 genCodeLine(prefix + "jjmatchedKind = " + kindToPrint + ";");
                 genCodeLine(prefix + "jjmatchedPos = " + i + ";");
@@ -1154,7 +1086,7 @@ public abstract class LexerGenerator extends CodeGenerator {
           if (i == 0) {
             genCode("         return ");
 
-            genCode("jjMoveStringLiteralDfa" + (i + 1) + this.lexStateSuffix + "(");
+            genCode("jjMoveStringLiteralDfa" + (i + 1) + data2().lexStateSuffix + "(");
             for (j = 0; j < (maxLongsReqd - 1); j++) {
               if ((i + 1) <= getLexerData().maxLenForActive[j]) {
                 if (atLeastOne) {
@@ -1178,7 +1110,7 @@ public abstract class LexerGenerator extends CodeGenerator {
           } else {
             genCode("         return ");
 
-            genCode("jjMoveStringLiteralDfa" + (i + 1) + this.lexStateSuffix + "(");
+            genCode("jjMoveStringLiteralDfa" + (i + 1) + data2().lexStateSuffix + "(");
 
             for (j = 0; j < (maxLongsReqd - 1); j++) {
               if ((i + 1) <= (getLexerData().maxLenForActive[j] + 1)) {
@@ -1214,7 +1146,7 @@ public abstract class LexerGenerator extends CodeGenerator {
         if ((i == 0) && getLexerData().isMixedState()) {
 
           if (getLexerData().generatedStates() != 0) {
-            genCodeLine("         return jjMoveNfa" + this.lexStateSuffix + "(" + InitStateName() + ", 0);");
+            genCodeLine("         return jjMoveNfa" + data2().lexStateSuffix + "(" + InitStateName() + ", 0);");
           } else {
             genCodeLine("         return 1;");
           }
@@ -1243,7 +1175,7 @@ public abstract class LexerGenerator extends CodeGenerator {
           /*
            * This means no string literal is possible. Just move nfa with this guy and return.
            */
-          genCodeLine("         return jjMoveNfa" + this.lexStateSuffix + "(" + InitStateName() + ", 0);");
+          genCodeLine("         return jjMoveNfa" + data2().lexStateSuffix + "(" + InitStateName() + ", 0);");
         } else {
           genCodeLine("         break;");
           startNfaNeeded = true;
@@ -1264,7 +1196,7 @@ public abstract class LexerGenerator extends CodeGenerator {
              * matched string.
              */
 
-            genCode("   return jjStartNfa" + this.lexStateSuffix + "(" + (i - 1) + ", ");
+            genCode("   return jjStartNfa" + data2().lexStateSuffix + "(" + (i - 1) + ", ");
             for (k = 0; k < (maxLongsReqd - 1); k++) {
               if (i <= getLexerData().maxLenForActive[k]) {
                 genCode("active" + k + ", ");
@@ -1278,7 +1210,7 @@ public abstract class LexerGenerator extends CodeGenerator {
               genCodeLine("0L);");
             }
           } else if (getLexerData().generatedStates() != 0) {
-            genCodeLine("   return jjMoveNfa" + this.lexStateSuffix + "(" + InitStateName() + ", " + i + ");");
+            genCodeLine("   return jjMoveNfa" + data2().lexStateSuffix + "(" + InitStateName() + ", " + i + ");");
           } else {
             genCodeLine("   return " + (i + 1) + ";");
           }
@@ -1325,7 +1257,7 @@ public abstract class LexerGenerator extends CodeGenerator {
     genCodeLine("{");
 
     if (getLexerData().generatedStates() > 0) {
-      genCodeLine("   return jjMoveNfa" + this.lexStateSuffix + "(" + InitStateName() + ", 0);");
+      genCodeLine("   return jjMoveNfa" + data2().lexStateSuffix + "(" + InitStateName() + ", 0);");
     } else {
       genCodeLine("   return 1;");
     }
@@ -1337,10 +1269,10 @@ public abstract class LexerGenerator extends CodeGenerator {
     // TODO :: CBA -- Require Unification of output language specific processing into a single Enum
     // class
     if (isJavaLanguage()) {
-      genCodeLine("private int " + "jjStartNfaWithStates" + this.lexStateSuffix + "(int pos, int kind, int state)");
+      genCodeLine("private int " + "jjStartNfaWithStates" + data2().lexStateSuffix + "(int pos, int kind, int state)");
     } else if (isCppLanguage()) {
       generateMethodDefHeaderCpp("int",
-          "jjStartNfaWithStates" + this.lexStateSuffix + "(int pos, int kind, int state)");
+          "jjStartNfaWithStates" + data2().lexStateSuffix + "(int pos, int kind, int state)");
     } else {
       throw new RuntimeException("Output language type not fully implemented : " + getLanguage());
     }
@@ -1374,7 +1306,7 @@ public abstract class LexerGenerator extends CodeGenerator {
     if (Options.getDebugTokenManager()) {
       if (isJavaLanguage()) {
         genCodeLine("   debugStream.println("
-            + (this.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
+            + (data2().maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
             + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
             + "at line \" + input_stream.getEndLine() + \" column \" + input_stream.getEndColumn());");
       } else if (isCppLanguage()) {
@@ -1386,7 +1318,7 @@ public abstract class LexerGenerator extends CodeGenerator {
       }
     }
 
-    genCodeLine("   return jjMoveNfa" + this.lexStateSuffix + "(state, pos + 1);");
+    genCodeLine("   return jjMoveNfa" + data2().lexStateSuffix + "(state, pos + 1);");
     genCodeLine("}");
   }
 
@@ -1426,7 +1358,7 @@ public abstract class LexerGenerator extends CodeGenerator {
 
 
   private String GetLabel(int kind) {
-    RegularExpression re = this.rexprs[kind];
+    RegularExpression re = data2().rexprs[kind];
 
     if (re instanceof RStringLiteral) {
       return " \"" + Encoding.escape(((RStringLiteral) re).image) + "\"";
@@ -1438,11 +1370,11 @@ public abstract class LexerGenerator extends CodeGenerator {
   }
 
   private int GetLine(int kind) {
-    return this.rexprs[kind].getLine();
+    return data2().rexprs[kind].getLine();
   }
 
   private int GetColumn(int kind) {
-    return this.rexprs[kind].getColumn();
+    return data2().rexprs[kind].getColumn();
   }
 
   private int GetStateSetForKind(int pos, int kind) {
@@ -1482,7 +1414,7 @@ public abstract class LexerGenerator extends CodeGenerator {
       throw new Error("JavaCC Bug: Please send mail to sankar@cs.stanford.edu");
     }
 
-    String s = this.initialState.GetEpsilonMovesString();
+    String s = data2().initialState.GetEpsilonMovesString();
 
     if ((s == null) || s.equals("null;")) {
       return false;
@@ -1534,7 +1466,7 @@ public abstract class LexerGenerator extends CodeGenerator {
       }
 
       if ((info = temp.get(s)) == null) {
-        temp.put(s, info = rstring.new KindInfo(this.maxOrdinal));
+        temp.put(s, info = rstring.new KindInfo(data2().maxOrdinal));
       }
 
       if ((i + 1) == len) {
@@ -1543,7 +1475,7 @@ public abstract class LexerGenerator extends CodeGenerator {
         info.InsertValidKind(rstring.ordinal);
       }
 
-      if (!getLexerData().ignoreCase() && this.ignoreCase[rstring.ordinal] && (c != Character.toLowerCase(c))) {
+      if (!getLexerData().ignoreCase() && data2().ignoreCase[rstring.ordinal] && (c != Character.toLowerCase(c))) {
         s = ("" + rstring.image.charAt(i)).toLowerCase(Locale.ENGLISH);
 
         if (i >= getLexerData().charPosKind.size()) { // Kludge, but OK
@@ -1553,7 +1485,7 @@ public abstract class LexerGenerator extends CodeGenerator {
         }
 
         if ((info = temp.get(s)) == null) {
-          temp.put(s, info = rstring.new KindInfo(this.maxOrdinal));
+          temp.put(s, info = rstring.new KindInfo(data2().maxOrdinal));
         }
 
         if ((i + 1) == len) {
@@ -1563,7 +1495,7 @@ public abstract class LexerGenerator extends CodeGenerator {
         }
       }
 
-      if (!getLexerData().ignoreCase() && this.ignoreCase[rstring.ordinal] && (c != Character.toUpperCase(c))) {
+      if (!getLexerData().ignoreCase() && data2().ignoreCase[rstring.ordinal] && (c != Character.toUpperCase(c))) {
         s = ("" + rstring.image.charAt(i)).toUpperCase();
 
         if (i >= getLexerData().charPosKind.size()) { // Kludge, but OK
@@ -1573,7 +1505,7 @@ public abstract class LexerGenerator extends CodeGenerator {
         }
 
         if ((info = temp.get(s)) == null) {
-          temp.put(s, info = rstring.new KindInfo(this.maxOrdinal));
+          temp.put(s, info = rstring.new KindInfo(data2().maxOrdinal));
         }
 
         if ((i + 1) == len) {
@@ -1600,8 +1532,8 @@ public abstract class LexerGenerator extends CodeGenerator {
     int[] kindsForStates = null;
 
     if (getLexerData().kinds == null) {
-      getLexerData().kinds = new int[this.maxLexStates][];
-      getLexerData().statesForState = new int[this.maxLexStates][][];
+      getLexerData().kinds = new int[data2().maxLexStates][];
+      getLexerData().statesForState = new int[data2().maxLexStates][][];
     }
 
     ReArrange();
@@ -1644,9 +1576,9 @@ public abstract class LexerGenerator extends CodeGenerator {
     getLexerData().kinds[getLexerData().getStateIndex()] = kindsForStates;
 
     if (isJavaLanguage()) {
-      genCodeLine("private int " + "jjMoveNfa" + this.lexStateSuffix + "(int startState, int curPos)");
+      genCodeLine("private int " + "jjMoveNfa" + data2().lexStateSuffix + "(int startState, int curPos)");
     } else {
-      generateMethodDefHeaderCpp("int", "jjMoveNfa" + this.lexStateSuffix + "(int startState, int curPos)");
+      generateMethodDefHeaderCpp("int", "jjMoveNfa" + data2().lexStateSuffix + "(int startState, int curPos)");
     }
     genCodeLine("{");
     if (getLexerData().generatedStates() == 0) {
@@ -1689,7 +1621,7 @@ public abstract class LexerGenerator extends CodeGenerator {
     if (Options.getDebugTokenManager()) {
       if (isJavaLanguage()) {
         genCodeLine("      debugStream.println("
-            + (this.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
+            + (data2().maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
             + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
             + "at line \" + input_stream.getEndLine() + \" column \" + input_stream.getEndColumn());");
       } else {
@@ -1794,7 +1726,7 @@ public abstract class LexerGenerator extends CodeGenerator {
     if (Options.getDebugTokenManager()) {
       if (isJavaLanguage()) {
         genCodeLine("      debugStream.println("
-            + (this.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
+            + (data2().maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
             + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
             + "at line \" + input_stream.getEndLine() + \" column \" + input_stream.getEndColumn());");
       } else {
@@ -2877,9 +2809,9 @@ public abstract class LexerGenerator extends CodeGenerator {
   }
 
   private int InitStateName() {
-    String s = this.initialState.GetEpsilonMovesString();
+    String s = data2().initialState.GetEpsilonMovesString();
 
-    if (this.initialState.usefulEpsilonMoves != 0) {
+    if (data2().initialState.usefulEpsilonMoves != 0) {
       return StateNameForComposite(s);
     }
     return -1;
@@ -2962,7 +2894,8 @@ public abstract class LexerGenerator extends CodeGenerator {
       qualifiedModsAndRetType = qualifiedModsAndRetType.substring(i + "virtual".length());
     }
     ((CppWriter) getSource()).switchToImpl();
-    genCode("\n" + qualifiedModsAndRetType + " " + getTokenManager() + "::" + nameAndParams);
+    genCode("\n" + qualifiedModsAndRetType + " " + getLexerData().request.getParserName() + "TokenManager::"
+        + nameAndParams);
   }
 
 
@@ -3103,5 +3036,72 @@ public abstract class LexerGenerator extends CodeGenerator {
     getLexerData().compositeStateTable.put(stateSetString, nameSet);
 
     return tmp;
+  }
+
+  /**
+   * Generate a modifier
+   */
+  private void genModifier(String mod) {
+    String origMod = mod.toLowerCase(Locale.ENGLISH);
+    if (isJavaLanguage()) {
+      genCode(mod);
+    } else if (origMod.equals("public") || origMod.equals("private")) {
+      genCode(origMod + ": ");
+    }
+    // we don't care about other mods for now.
+  }
+
+  /**
+   * Generate a class with a given name, an array of superclass and another array of super interfaes
+   */
+  protected final void genClassStart(String mod, String name, String[] superClasses, String[] superInterfaces) {
+    if (isJavaLanguage() && (mod != null)) {
+      genModifier(mod);
+    }
+    genCode("class " + name);
+    if (isJavaLanguage()) {
+      if ((superClasses.length == 1) && (superClasses[0] != null)) {
+        genCode(" extends " + superClasses[0]);
+      }
+      if (superInterfaces.length != 0) {
+        genCode(" implements ");
+      }
+    } else {
+      if ((superClasses.length > 0) || (superInterfaces.length > 0)) {
+        genCode(" : ");
+      }
+
+      genCommaSeperatedString(superClasses);
+    }
+
+    genCommaSeperatedString(superInterfaces);
+    genCodeLine(" {");
+    if (isCppLanguage()) {
+      genCodeLine("public:");
+    }
+  }
+
+  private void genCommaSeperatedString(String[] strings) {
+    for (int i = 0; i < strings.length; i++) {
+      if (i > 0) {
+        genCode(", ");
+      }
+      genCode(strings[i]);
+    }
+  }
+
+  protected final void genToken(Token t) {
+    genCode(getStringToPrint(t));
+  }
+
+  protected final void genCode(Object... code) {
+    for (Object s : code) {
+      getSource().append("" + s);
+    }
+  }
+
+  protected final void genCodeLine(Object... code) {
+    genCode(code);
+    genCode("\n");
   }
 }
