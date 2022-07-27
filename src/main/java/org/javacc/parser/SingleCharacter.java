@@ -46,13 +46,10 @@ public class SingleCharacter {
    */
   public char ch;
 
-  SingleCharacter()
-  {
-  }
+  SingleCharacter() {}
 
-  SingleCharacter(char c)
-  {
-     ch = c;
+  SingleCharacter(char c) {
+    this.ch = c;
   }
 
   /**
@@ -66,7 +63,7 @@ public class SingleCharacter {
    * @return the line
    */
   int getLine() {
-    return line;
+    return this.line;
   }
 
   /**
@@ -80,7 +77,7 @@ public class SingleCharacter {
    * @return the column
    */
   int getColumn() {
-    return column;
+    return this.column;
   }
 
 }

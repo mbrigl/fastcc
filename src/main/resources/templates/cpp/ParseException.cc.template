@@ -1,7 +1,7 @@
-\#include "ParseException.h"
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
+#include "ParseException.h"
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
 
   ParseException::ParseException() {
   }
@@ -18,7 +18,7 @@ namespace ${NAMESPACE_OPEN}
   }
 
   JJString ParseException::initialise(const Token* currentToken, const int** expectedTokenSequences, const JJString* tokenImage) {
-\#if 0
+#if 0
     //JJString eol = System.getProperty("line.separator", "\n");
      expected = new JJString();
     int maxSize = 0;
@@ -57,11 +57,11 @@ namespace ${NAMESPACE_OPEN}
     }
     retval += expected.toString();
     return retval;
-\#endif
+#endif
     return (JJChar*)"Parse exception";
   }
 
-\#define eol "\n"
+#define eol "\n"
 
   /**
    * Used to convert raw characters to their escaped version
@@ -113,6 +113,6 @@ namespace ${NAMESPACE_OPEN}
 */ return str;
    }
 
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
+@if NAMESPACE
+}
+@fi

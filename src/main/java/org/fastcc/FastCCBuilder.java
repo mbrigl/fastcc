@@ -1,8 +1,9 @@
+
 package org.fastcc;
 
 
-import org.javacc.jjtree.JJTree;
-import org.javacc.parser.Main;
+import org.javacc.JJParser;
+import org.javacc.JJTree;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class FastCCBuilder {
 
     public final String name;
 
-    private Language(String name) {
+    Language(String name) {
       this.name = name;
     }
 
@@ -86,13 +87,11 @@ public class FastCCBuilder {
       List<String> arguments = new ArrayList<>();
       arguments.add("-CODE_GENERATOR=" + this.language.name);
       arguments.add("-OUTPUT_DIRECTORY=" + this.outputDirectory.getAbsolutePath());
-      arguments.add("-JJTREE_OUTPUT_DIRECTORY=" + this.outputDirectory.getAbsolutePath());
       if (this.jjt != null) {
-        arguments.add(jjt.getAbsolutePath());
-        String path = jjt.getAbsolutePath();
+        arguments.add(this.jjt.getAbsolutePath());
+        String path = this.jjt.getAbsolutePath();
 
-        JJTree jjtree = new JJTree();
-        jjtree.main(arguments.toArray(new String[arguments.size()]));
+        JJTree.main(arguments.toArray(new String[arguments.size()]));
 
         int offset = path.lastIndexOf("/");
         int length = path.lastIndexOf(".");
@@ -101,7 +100,7 @@ public class FastCCBuilder {
         arguments.add(this.jj.getAbsolutePath());
       }
 
-      Main.mainProgram(arguments.toArray(new String[arguments.size()]));
+      JJParser.main(arguments.toArray(new String[arguments.size()]));
     } catch (Throwable e) {
       e.printStackTrace();
     }

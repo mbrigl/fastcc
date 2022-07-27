@@ -1,14 +1,14 @@
-\#ifndef JAVACC_CHAR_STREAM_H
-\#define JAVACC_CHAR_STREAM_H
+#ifndef JAVACC_CHAR_STREAM_H
+#define JAVACC_CHAR_STREAM_H
 
-#if LIBRARY
-\#include "ImportExport.h"
-#fi
-\#include "JavaCC.h"
+@if LIBRARY
+#include "ImportExport.h"
+@fi
+#include "JavaCC.h"
 
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
 
 /**
  * This class describes a character stream that maintains line and
@@ -25,11 +25,11 @@ namespace ${NAMESPACE_OPEN}
  * operation.
  */
  
-#if LIBRARY
-class ${PARSER_NAME_UPPER_CASE}_API CharStream {
-#else
+@if LIBRARY
+class {{PARSER_NAME_UPPER_CASE}}_API CharStream {
+@else
 class CharStream {
-#fi
+@fi
 public:
   virtual ~CharStream() {}
 	
@@ -108,11 +108,57 @@ public:
 protected:
   virtual void updateLineColumn(JJChar c) = 0;
 
+
+public:
+
+/**
+  * TOL: Support UTF-8
+  *
+  * Returns the next utf-8 character from the selected input.
+  */
+inline int readUnicode() {
+  int c = readUChar();
+
+  // 1 byte
+  if((c & 0x80) == 0)
+      return c;
+  // 2 byte
+  if((c & 0xe0) == 0xc0) {
+      c = ((c & 0x1f) << 6);
+      return c + (readUChar() & 0x3f);
+  }
+
+  // 3 byte
+  if((c & 0xf0) == 0xe0) {
+    c = ((c & 0x0f) << 6);
+    c += (readUChar() & 0x3f);
+    c <<= 6;
+    return c + (readUChar() & 0x3f);
+  }
+
+  // 4 byte
+  // (c & 0xf08) == 0xf0
+  c = ((c & 0x07) << 6);
+  c += (readUChar() & 0x3f);
+  c <<= 6;
+  c += (readUChar() & 0x3f);
+  c <<= 6;
+  return c + (readUChar() & 0x3f);
+}
+
+private:
+/**
+  * TOL: Support UTF-8
+  */
+inline int readUChar() {
+  int c = readChar();
+  return (c < 0) ? c + 256 : c;
+}
 };
 
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
+@if NAMESPACE
+}
+@fi
 
 
-\#endif
+#endif

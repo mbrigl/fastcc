@@ -1,9 +1,8 @@
-\#ifndef JAVACC_PARSER_ERROR_HANDLER_H
-\#define JAVACC_PARSER_ERROR_HANDLER_H
+#ifndef JAVACC_PARSER_ERROR_HANDLER_H
+#define JAVACC_PARSER_ERROR_HANDLER_H
 
-#if BUILD_PARSER
-\#include "JavaCC.h"
-\#include "Token.h"
+#include "JavaCC.h"
+#include "Token.h"
 
 namespace JavaCC {
 
@@ -33,6 +32,5 @@ protected:
 };
 }
 using JavaCC::ParserErrorHandler;
-#fi
 
-\#endif
+#endif

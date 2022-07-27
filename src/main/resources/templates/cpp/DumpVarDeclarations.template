@@ -1,10 +1,10 @@
-  int                       jjrounds[${stateSetSize}];
-  int                       jjstateSet[2 * ${stateSetSize}];
+  int                       jjrounds[{{stateSetSize}}];
+  int                       jjstateSet[2 * {{stateSetSize}}];
   JJString                  jjimage;
   JJString                  image;
   int                       jjimageLen;
   int                       lengthOfMatch;
-  JJChar                    curChar;
+  int                       curChar; // TOL: Support Unicode
   TokenManagerErrorHandler* errorHandler = nullptr;
 
 public:

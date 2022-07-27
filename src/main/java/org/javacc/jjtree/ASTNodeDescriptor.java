@@ -35,14 +35,14 @@ import java.util.Hashtable;
 import java.util.List;
 
 public class ASTNodeDescriptor extends JJTreeNode {
+
   ASTNodeDescriptor(int id) {
     super(id);
   }
 
   private boolean faked = false;
 
-  static ASTNodeDescriptor indefinite(String s)
-  {
+  static ASTNodeDescriptor indefinite(String s) {
     ASTNodeDescriptor nd = new ASTNodeDescriptor(JJTreeParserTreeConstants.JJTNODEDESCRIPTOR);
     nd.name = s;
     nd.setNodeIdValue();
@@ -51,134 +51,104 @@ public class ASTNodeDescriptor extends JJTreeNode {
   }
 
 
-  static List<String> nodeIds = new ArrayList<>();
-  static List<String> nodeNames = new ArrayList<>();
-  static Hashtable<String, String> nodeSeen = new Hashtable<>();
+  private static List<String>              nodeIds   = new ArrayList<>();
+  private static List<String>              nodeNames = new ArrayList<>();
+  private static Hashtable<String, String> nodeSeen  = new Hashtable<>();
 
-  static List<String> getNodeIds()
-  {
-    return nodeIds;
+  public static List<String> getNodeIds() {
+    return ASTNodeDescriptor.nodeIds;
   }
 
-  static List<String> getNodeNames()
-  {
-    return nodeNames;
+  public static List<String> getNodeNames() {
+    return ASTNodeDescriptor.nodeNames;
   }
 
-  void setNodeIdValue()
-  {
+  void setNodeIdValue() {
     String k = getNodeId();
-    if (!nodeSeen.containsKey(k)) {
-      nodeSeen.put(k, k);
-      nodeNames.add(name);
-      nodeIds.add(k);
+    if (!ASTNodeDescriptor.nodeSeen.containsKey(k)) {
+      ASTNodeDescriptor.nodeSeen.put(k, k);
+      ASTNodeDescriptor.nodeNames.add(this.name);
+      ASTNodeDescriptor.nodeIds.add(k);
     }
   }
 
-  String getNodeId()
-  {
-    return "JJT" + name.toUpperCase().replace('.', '_');
+  public String getNodeId() {
+    return "JJT" + this.name.toUpperCase().replace('.', '_');
   }
 
 
-  String name;
-  boolean isGT;
+  String                      name;
+  boolean                     isGT;
   ASTNodeDescriptorExpression expression;
 
 
-  boolean isVoid()
-  {
-    return name.equals("void");
+  boolean isVoid() {
+    return this.name.equals("void");
   }
 
   @Override
-  public String toString()
-  {
-    if (faked) {
-      return "(faked) " + name;
+  public String toString() {
+    if (this.faked) {
+      return "(faked) " + this.name;
     } else {
-      return super.toString() + ": " + name;
+      return super.toString() + ": " + this.name;
     }
   }
 
 
-  String getDescriptor()
-  {
-    if (expression == null) {
-      return name;
+  public String getDescriptor() {
+    if (this.expression == null) {
+      return this.name;
     } else {
-      return "#" + name + "(" + (isGT ? ">" : "") + expression_text() + ")";
+      return "#" + this.name + "(" + (this.isGT ? ">" : "") + expression_text() + ")";
     }
   }
 
-  String getNodeType()
-  {
-    if (JJTreeOptions.getMulti()) {
-      return JJTreeOptions.getNodePrefix() + name;
-    } else {
-      return "Node";
-    }
+  public String getNodeType() {
+    return JJTreeOptions.getMulti() ? JJTreeOptions.getNodePrefix() + this.name : "Node";
   }
 
 
-  String getNodeName()
-  {
-    return name;
-  }
-
-
-  String openNode(String nodeVar)
-  {
+  public String openNode(String nodeVar) {
     return "jjtree.openNodeScope(" + nodeVar + ");";
   }
 
 
-  String expression_text()
-  {
-    if (expression.getFirstToken().image.equals(")") &&
-      expression.getLastToken().image.equals("(")) {
+  private String expression_text() {
+    if (this.expression.getFirstToken().image.equals(")") && this.expression.getLastToken().image.equals("(")) {
       return "true";
     }
 
     String s = "";
-    Token t = expression.getFirstToken();
+    Token t = this.expression.getFirstToken();
     while (true) {
-       s += " " + t.image;
-       if (t == expression.getLastToken()) {
-         break;
-       }
-       t = t.next;
+      s += " " + t.image;
+      if (t == this.expression.getLastToken()) {
+        break;
+      }
+      t = t.next;
     }
     return s;
   }
 
 
-  String closeNode(String nodeVar)
-  {
-    if (expression == null) {
+  public String closeNode(String nodeVar) {
+    if (this.expression == null) {
       return "jjtree.closeNodeScope(" + nodeVar + ", true);";
-    } else if (isGT) {
-      return "jjtree.closeNodeScope(" + nodeVar + ", jjtree.nodeArity() >" +
-          expression_text() + ");";
+    } else if (this.isGT) {
+      return "jjtree.closeNodeScope(" + nodeVar + ", jjtree.nodeArity() >" + expression_text() + ");";
     } else {
-      return "jjtree.closeNodeScope(" + nodeVar + ", " +
-          expression_text() + ");";
+      return "jjtree.closeNodeScope(" + nodeVar + ", " + expression_text() + ");";
     }
   }
 
-
   @Override
-  String translateImage(Token t)
-  {
+  public String translateImage(Token t) {
     return whiteOut(t);
   }
 
-  /** Accept the visitor. **/
   @Override
-  public Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
+  public final Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
     return visitor.visit(this, data);
   }
-
 }
-
-/*end*/

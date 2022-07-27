@@ -1,16 +1,15 @@
-\#include "DefaultTokenManagerErrorHandler.h"
-#if BUILD_TOKEN_MANAGER
-\#if (JAVACC_CHAR_TYPE_SIZEOF != 1)
-\#include <codecvt>
-\#include <locale>
-\#endif
-\#include "JavaCC.h"
-\#include "Token.h"
-\#include "DefaultParserErrorHandler.h"
+#include "DefaultTokenManagerErrorHandler.h"
+#if (JAVACC_CHAR_TYPE_SIZEOF != 1)
+#include <codecvt>
+#include <locale>
+#endif
+#include "JavaCC.h"
+#include "Token.h"
+#include "DefaultParserErrorHandler.h"
 
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
 
 void DefaultTokenManagerErrorHandler::lexicalError(bool EOFSeen, int lexState, int errorLine, int errorColumn, JJString errorAfter, JJChar curChar) {
     JJLOG 
@@ -22,7 +21,6 @@ void DefaultTokenManagerErrorHandler::lexicalError(const JJString& errorMessage)
     JJLOG << errorMessage << std::endl;
 }
 
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
-#fi
+@if NAMESPACE
+}
+@fi

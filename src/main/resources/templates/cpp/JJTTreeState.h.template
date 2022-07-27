@@ -1,17 +1,17 @@
-\#ifndef JAVACC_JJTREE_STATE_H
-\#define JAVACC_JJTREE_STATE_H
+#ifndef JAVACC_JJTREE_STATE_H
+#define JAVACC_JJTREE_STATE_H
 
-\#include <set>
-\#include <vector>
-\#include "JavaCC.h"
-\#include "Node.h"
+#include <set>
+#include <vector>
+#include "JavaCC.h"
+#include "Node.h"
 
 using namespace std;
 
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
-class JJT${PARSER_NAME}State {
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
+class JJT{{PARSER_NAME}}State {
 private: 
   vector<Node*>* nodes;
   vector<int>*   marks;
@@ -22,8 +22,8 @@ private:
   bool           node_created;
 
 public:
-            JJT${PARSER_NAME}State();
-   virtual ~JJT${PARSER_NAME}State();
+            JJT{{PARSER_NAME}}State();
+   virtual ~JJT{{PARSER_NAME}}State();
 
   /* Determines whether the current node was actually closed and
      pushed.  This should only be called in the final user action of a
@@ -74,8 +74,8 @@ public:
   public: void clear();
 };
 
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
+@if NAMESPACE
+}
+@fi
 
-\#endif
+#endif

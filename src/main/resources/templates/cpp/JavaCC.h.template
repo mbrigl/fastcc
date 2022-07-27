@@ -1,39 +1,39 @@
-\#ifndef JAVACC_JAVACC_H
-\#define JAVACC_JAVACC_H
+#ifndef JAVACC_JAVACC_H
+#define JAVACC_JAVACC_H
 
-\#include <climits>
-\#include <cstring>
-\#include <string>
-\#include <memory>
-\#include <cassert>
-\#include <cstdint>
-\#include <cctype>
-\#include <functional>
-\#include <iostream>
+#include <climits>
+#include <cstring>
+#include <string>
+#include <memory>
+#include <cassert>
+#include <cstdint>
+#include <cctype>
+#include <functional>
+#include <iostream>
 
-\#ifndef JAVACC_CHAR_TYPE
-\#define JAVACC_CHAR_TYPE char
-\#define JAVACC_CHAR_TYPE_SIZEOF 1
-\#define JJIN  std::cin
-\#define JJOUT std::cout
-\#define JJERR std::cerr
-\#define JJLOG std::cout
-\#define JJWIDE(x) #x
-\#else
-\#define JJIN  std::wcin
-\#define JJOUT std::wcout
-\#define JJERR std::wcerr
-\#define JJLOG std::wcout
-\#define JJWIDE(x) L###x
-\#endif
+#ifndef JAVACC_CHAR_TYPE
+#define JAVACC_CHAR_TYPE char
+#define JAVACC_CHAR_TYPE_SIZEOF 1
+#define JJIN  std::cin
+#define JJOUT std::cout
+#define JJERR std::cerr
+#define JJLOG std::cout
+#define JJWIDE(x) #x
+#else
+#define JJIN  std::wcin
+#define JJOUT std::wcout
+#define JJERR std::wcerr
+#define JJLOG std::wcout
+#define JJWIDE(x) L###x
+#endif
 
 constexpr unsigned long long ALLBITSUP = 0xFFFFFFFFFFFFFFFF;
 
-\#ifndef JAVACC_STRING_TYPE
-\#define JAVACC_STRING_TYPE   std::basic_string<JAVACC_CHAR_TYPE>
-\#endif
+#ifndef JAVACC_STRING_TYPE
+#define JAVACC_STRING_TYPE   std::basic_string<JAVACC_CHAR_TYPE>
+#endif
 
-\#define JAVACC_SIMPLE_STRING std::basic_string<char>
+#define JAVACC_SIMPLE_STRING std::basic_string<char>
 
 typedef JAVACC_CHAR_TYPE      JJChar;
 typedef JAVACC_STRING_TYPE    JJString;
@@ -54,12 +54,12 @@ public:
   virtual ~ReaderStream() {}
 };
 
-\#ifndef MAX
-\#define MAX(a,b) ((a)>=(b)?(a):(b))
-\#endif
-\#ifndef MIN
-\#define MIN(a,b) ((a)<=(b)?(a):(b))
-\#endif
+#ifndef MAX
+#define MAX(a,b) ((a)>=(b)?(a):(b))
+#endif
+#ifndef MIN
+#define MIN(a,b) ((a)<=(b)?(a):(b))
+#endif
 
 template<typename T>
 struct JJEnter
@@ -76,7 +76,7 @@ struct JJExit
     T f;
 };
 
-\#define OUT_OF_RANGE 0x0A
+#define OUT_OF_RANGE 0x0A
 template<int size, typename T>
 struct Array {
 	T array[size];
@@ -100,4 +100,4 @@ public:
 };
 
 JJString addUnicodeEscapes(const JJString& str);
-\#endif
+#endif

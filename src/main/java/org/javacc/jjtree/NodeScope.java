@@ -28,90 +28,79 @@
 package org.javacc.jjtree;
 
 
-public class NodeScope
-{
-  ASTProduction production;
-  ASTNodeDescriptor node_descriptor;
+public class NodeScope {
 
-  String closedVar;
-  String exceptionVar;
-  String nodeVar;
-  int scopeNumber;
+  public ASTProduction     production;
+  public ASTNodeDescriptor node_descriptor;
 
-  NodeScope(ASTProduction p, ASTNodeDescriptor n)
-  {
-    production = p;
+  public String            closedVar;
+  public String            exceptionVar;
+  public String            nodeVar;
+  private final int        scopeNumber;
+
+  NodeScope(ASTProduction p, ASTNodeDescriptor n) {
+    this.production = p;
 
     if (n == null) {
-      String nm = production.name;
+      String nm = this.production.name;
       if (JJTreeOptions.getNodeDefaultVoid()) {
         nm = "void";
       }
-      node_descriptor = ASTNodeDescriptor.indefinite(nm);
+      this.node_descriptor = ASTNodeDescriptor.indefinite(nm);
     } else {
-      node_descriptor = n;
+      this.node_descriptor = n;
     }
 
-    scopeNumber = production.getNodeScopeNumber(this);
-    nodeVar = constructVariable("n");
-    closedVar = constructVariable("c");
-    exceptionVar = constructVariable("e");
+    this.scopeNumber = this.production.getNodeScopeNumber(this);
+    this.nodeVar = constructVariable("n");
+    this.closedVar = constructVariable("c");
+    this.exceptionVar = constructVariable("e");
   }
 
 
-  boolean isVoid()
-  {
-    return node_descriptor.isVoid();
+  public boolean isVoid() {
+    return this.node_descriptor.isVoid();
   }
 
 
-  ASTNodeDescriptor getNodeDescriptor()
-  {
-    return node_descriptor;
+  public ASTNodeDescriptor getNodeDescriptor() {
+    return this.node_descriptor;
   }
 
 
-  String getNodeDescriptorText()
-  {
-    return node_descriptor.getDescriptor();
+  public String getNodeDescriptorText() {
+    return this.node_descriptor.getDescriptor();
   }
 
 
-  String getNodeVariable()
-  {
-    return nodeVar;
+  public String getNodeVariable() {
+    return this.nodeVar;
   }
 
 
-  private String constructVariable(String id)
-  {
-    String s = "000" + scopeNumber;
+  private String constructVariable(String id) {
+    String s = "000" + this.scopeNumber;
     return "jjt" + id + s.substring(s.length() - 3, s.length());
   }
 
 
-  boolean usesCloseNodeVar()
-  {
+  public boolean usesCloseNodeVar() {
     return true;
   }
 
-  static NodeScope getEnclosingNodeScope(Node node)
-  {
+  public static NodeScope getEnclosingNodeScope(Node node) {
     if (node instanceof ASTBNFDeclaration) {
-      return ((ASTBNFDeclaration)node).node_scope;
+      return ((ASTBNFDeclaration) node).node_scope;
     }
     for (Node n = node.jjtGetParent(); n != null; n = n.jjtGetParent()) {
       if (n instanceof ASTBNFDeclaration) {
-        return ((ASTBNFDeclaration)n).node_scope;
+        return ((ASTBNFDeclaration) n).node_scope;
       } else if (n instanceof ASTBNFNodeScope) {
-        return ((ASTBNFNodeScope)n).node_scope;
+        return ((ASTBNFNodeScope) n).node_scope;
       } else if (n instanceof ASTExpansionNodeScope) {
-        return ((ASTExpansionNodeScope)n).node_scope;
+        return ((ASTExpansionNodeScope) n).node_scope;
       }
     }
     return null;
   }
-
 }
-
-/*end*/

@@ -1,4 +1,4 @@
-\#include "Token.h"
+#include "Token.h"
 namespace JavaCC {
 
 Token::Token() :  _beginLine(0), _beginColumn(0), _endLine(0), _endColumn(0)

@@ -28,61 +28,40 @@
 
 package org.javacc.jjdoc;
 
-import org.javacc.parser.CppCodeProduction;
 import org.javacc.parser.Expansion;
-import org.javacc.parser.JavaCodeProduction;
 import org.javacc.parser.NonTerminal;
 import org.javacc.parser.NormalProduction;
 import org.javacc.parser.RegExprSpec;
 import org.javacc.parser.RegularExpression;
 import org.javacc.parser.TokenProduction;
 
-import java.util.Hashtable;
-import java.util.Iterator;
-
 /**
  * Output BNF in HTML 3.2 format.
  */
-public class XTextGenerator extends TextGenerator {
-  private final Hashtable<String, String> id_map = new Hashtable<>();
-  private int id = 1;
+class XTextGenerator extends TextGenerator {
 
-  static final String sep = "\n";
-
-  public XTextGenerator() {
-  }
+  public XTextGenerator() {}
 
   @Override
   public void handleTokenProduction(TokenProduction tp) {
 
-      StringBuilder sb = new StringBuilder();
+    StringBuilder sb = new StringBuilder();
 
-      for (Iterator<RegExprSpec> it2 = tp.respecs.iterator(); it2.hasNext();) {
-          RegExprSpec res = it2.next();
+    for (RegExprSpec res : tp.respecs) {
+      String regularExpressionText = JJDoc.emitRE(res.rexp);
+      sb.append(regularExpressionText);
 
-          String regularExpressionText = JJDoc.emitRE(res.rexp);
-          sb.append(regularExpressionText);
+      if (res.nsTok != null) {
+        sb.append(" : " + res.nsTok.image);
+      }
 
-          if (res.nsTok != null) {
-              sb.append(" : " + res.nsTok.image);
-          }
-
-          sb.append("\n");
-//          if (it2.hasNext()) {
-//              sb.append("| ");
-//          }
-        }
-
-      //text(sb.toString());
-  }
-
-  protected String get_id(String nt) {
-    String i = id_map.get(nt);
-    if (i == null) {
-      i = "prod" + id++;
-      id_map.put(nt, i);
+      sb.append("\n");
+      // if (it2.hasNext()) {
+      // sb.append("| ");
+      // }
     }
-    return i;
+
+    // text(sb.toString());
   }
 
   private void println(String s) {
@@ -91,145 +70,60 @@ public class XTextGenerator extends TextGenerator {
 
   @Override
   public void text(String s) {
-//    String ss = "";
-//    for (int i = 0; i < s.length(); ++i) {
-//      if (s.charAt(i) == '<') {
-//  ss += "&lt;";
-//      } else if (s.charAt(i) == '>') {
-//  ss += "&gt;";
-//      } else if (s.charAt(i) == '&') {
-//  ss += "&amp;";
-//      } else {
-//  ss += s.charAt(i);
-//      }
-//    }
     print(s);
   }
 
   @Override
   public void print(String s) {
-    ostr.print(s);
+    this.ostr.print(s);
   }
 
 
   @Override
   public void documentStart() {
-    ostr = create_output_stream();
-    println("grammar "+JJDocGlobals.input_file+" with org.eclipse.xtext.common.Terminals");
+    this.ostr = create_output_stream();
+    println("grammar " + JJDocGlobals.input_file + " with org.eclipse.xtext.common.Terminals");
     println("import \"http://www.eclipse.org/emf/2002/Ecore\" as ecore");
     println("");
-//
-//
-//    println("<HTML>");
-//    println("<HEAD>");
-//    if (!"".equals(JJDocOptions.getCSS())) {
-//      println("<LINK REL=\"stylesheet\" type=\"text/css\" href=\"" + JJDocOptions.getCSS() + "\"/>");
-//    }
-//    if (JJDocGlobals.input_file != null) {
-//      println("<TITLE>BNF for " + JJDocGlobals.input_file + "</TITLE>");
-//    } else {
-//      println("<TITLE>A BNF grammar by JJDoc</TITLE>");
-//    }
-//    println("</HEAD>");
-//    println("<BODY>");
-//    println("<H1 ALIGN=CENTER>BNF for " + JJDocGlobals.input_file + "</H1>");
   }
 
   @Override
   public void documentEnd() {
-//    println("</BODY>");
-//    println("</HTML>");
-    ostr.close();
+    this.ostr.close();
   }
 
   /**
-   * Prints out comments, used for tokens and non-terminals.
-   * {@inheritDoc}
+   * Prints out comments, used for tokens and non-terminals. {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.TextGenerator#specialTokens(java.lang.String)
    */
   @Override
   public void specialTokens(String s) {
-//    println(" <!-- Special token -->");
-//    println(" <TR>");
-//    println("  <TD>");
-//    println("<PRE>");
     print(s);
-//    println("</PRE>");
-//    println("  </TD>");
-//    println(" </TR>");
   }
 
 
   @Override
-  public void nonterminalsStart() {
-//    println("<H2 ALIGN=CENTER>NON-TERMINALS</H2>");
-//    if (JJDocOptions.getOneTable()) {
-//      println("<TABLE>");
-//    }
-  }
-  @Override
-  public void nonterminalsEnd() {
-//    if (JJDocOptions.getOneTable()) {
-//      println("</TABLE>");
-//    }
-  }
+  public void nonterminalsStart() {}
 
   @Override
-  public void tokensStart() {
-//    println("<H2 ALIGN=CENTER>TOKENS</H2>");
-//    println("<TABLE>");
-  }
-  @Override
-  public void tokensEnd() {
-//    println("</TABLE>");
-  }
+  public void nonterminalsEnd() {}
 
   @Override
-  public void javacode(JavaCodeProduction jp) {
-//    productionStart(jp);
-//    println("<I>java code</I></TD></TR>");
-//    productionEnd(jp);
-  }
+  public void tokensStart() {}
 
   @Override
-  public void cppcode(CppCodeProduction cp) {
-//    productionStart(cp);
-//    println("<I>c++ code</I></TD></TR>");
-//    productionEnd(cp);
-  }
+  public void tokensEnd() {}
 
   @Override
-  public void productionStart(NormalProduction np) {
-//    if (!JJDocOptions.getOneTable()) {
-//      println("");
-//      println("<TABLE ALIGN=CENTER>");
-//      println("<CAPTION><STRONG>" + np.getLhs() + "</STRONG></CAPTION>");
-//    }
-//    println("<TR>");
-//    println("<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME=\"" + get_id(np.getLhs()) + "\">" + np.getLhs() + "</A></TD>");
-//    println("<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>");
-//    print("<TD ALIGN=LEFT VALIGN=BASELINE>");
-  }
-  @Override
-  public void productionEnd(NormalProduction np) {
-//    if (!JJDocOptions.getOneTable()) {
-//      println("</TABLE>");
-//      println("<HR>");
-//    }
-  }
+  public void productionStart(NormalProduction np) {}
 
   @Override
-  public void expansionStart(Expansion e, boolean first) {
-//
-//
-//
-//    if (!first) {
-//      println("<TR>");
-//      println("<TD ALIGN=RIGHT VALIGN=BASELINE></TD>");
-//      println("<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>");
-//      print("<TD ALIGN=LEFT VALIGN=BASELINE>");
-//    }
-  }
+  public void productionEnd(NormalProduction np) {}
+
+  @Override
+  public void expansionStart(Expansion e, boolean first) {}
+
   @Override
   public void expansionEnd(Expansion e, boolean first) {
     println(";");
@@ -239,18 +133,15 @@ public class XTextGenerator extends TextGenerator {
   public void nonTerminalStart(NonTerminal nt) {
     print("terminal ");
   }
+
   @Override
   public void nonTerminalEnd(NonTerminal nt) {
     print(";");
   }
 
   @Override
-  public void reStart(RegularExpression r) {
-  }
+  public void reStart(RegularExpression r) {}
+
   @Override
-  public void reEnd(RegularExpression r) {
-  }
-
-
-
+  public void reEnd(RegularExpression r) {}
 }

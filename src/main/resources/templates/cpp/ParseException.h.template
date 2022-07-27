@@ -1,13 +1,13 @@
-\#ifndef JAVACC_PARSER_EXCEPTION_H
-\#define JAVACC_PARSER_EXCEPTION_H
+#ifndef JAVACC_PARSER_EXCEPTION_H
+#define JAVACC_PARSER_EXCEPTION_H
 
-\#include "JavaCC.h"
-\#include "Token.h"
+#include "JavaCC.h"
+#include "Token.h"
 
 
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
 /**
  * This exception is thrown when parse errors are encountered.
  * You can explicitly create objects of this exception type by
@@ -80,8 +80,8 @@ private:
   JJString addEscapes(const JJString& str);
 };
 
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
+@if NAMESPACE
+}
+@fi
 
-\#endif
+#endif

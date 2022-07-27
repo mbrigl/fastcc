@@ -1,5 +1,5 @@
 /** Reinitialise parser. */
-void ${tokMgrClassName}::ReInit(CharStream* stream, int lexState)
+void {{tokMgrClassName}}::ReInit(CharStream* stream, int lexState)
 {
     clear();
     jjmatchedPos = jjnewStateCnt = 0;
@@ -12,17 +12,17 @@ void ${tokMgrClassName}::ReInit(CharStream* stream, int lexState)
     errorHandler = new DefaultTokenManagerErrorHandler();
 }
 
-  void ${tokMgrClassName}::ReInitRounds() {
+  void {{tokMgrClassName}}::ReInitRounds() {
     int i;
     jjround = 0x80000001;
-    for (i = ${stateSetSize}; i-- > 0;)
+    for (i = {{stateSetSize}}; i-- > 0;)
       jjrounds[i] = 0x80000000;
   }
 
 /** Switch to specified lex state. */
-void ${tokMgrClassName}::SwitchTo(int lexState)
+void {{tokMgrClassName}}::SwitchTo(int lexState)
 {
-    if (lexState > ${lexStateName} || lexState < DEFAULT) {
+    if (lexState > {{lexStateName}} || lexState < DEFAULT) {
       JJString message;
       message += JJWIDE(Error: Ignoring invalid lexical state : );
       message += lexState; message += JJWIDE(. State unchanged.);
@@ -39,22 +39,19 @@ const  TokenManagerErrorHandler* OQLTokenManager::getErrorHandler() const {
 }
 
   /** Constructor. */
-  ${tokMgrClassName}::${tokMgrClassName}(CharStream* stream, int lexState)
-#if TOKEN_MANAGER_SUPER_CLASS
-  : ${TOKEN_MANAGER_SUPER_CLASS}()
-#fi
+  {{tokMgrClassName}}::{{tokMgrClassName}}(CharStream* stream, int lexState)
   {
     input_stream = nullptr;
     ReInit(stream, lexState);
   }
 
   // Destructor
-  ${tokMgrClassName}::~${tokMgrClassName} () {
+  {{tokMgrClassName}}::~{{tokMgrClassName}} () {
     clear();
   }
 
   // clear
-  void ${tokMgrClassName}::clear() {
+  void {{tokMgrClassName}}::clear() {
     //Since input_stream was generated outside of TokenManager
     //TokenManager should not take care of deleting it
     //if (input_stream) delete input_stream;

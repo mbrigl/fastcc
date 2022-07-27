@@ -1,0 +1,43 @@
+
+import java.io.IOException;
+
+public class StringProvider implements Provider {
+
+  private String _string;
+  private int    _size;
+  private int    _position;
+
+  public StringProvider(String string) {
+    _string = string;
+    _size = string.length();
+    _position = 0;
+  }
+
+  @Override
+  public int read(char[] cbuf, int off, int len) throws IOException {
+    int numCharsOutstandingInString = _size - _position;
+
+    if (numCharsOutstandingInString == 0) {
+      return -1;
+    }
+
+    int numBytesInBuffer = cbuf.length;
+    int numBytesToRead = numBytesInBuffer - off;
+    numBytesToRead = numBytesToRead > len ? len : numBytesToRead;
+
+    if (numBytesToRead > numCharsOutstandingInString) {
+      numBytesToRead = numCharsOutstandingInString;
+    }
+
+    _string.getChars(_position, _position + numBytesToRead, cbuf, off);
+
+    _position += numBytesToRead;
+
+    return numBytesToRead;
+  }
+
+  @Override
+  public void close() throws IOException {
+    _string = null;
+  }
+}

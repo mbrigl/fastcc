@@ -1,4 +1,4 @@
-\#include "DefaultCharStream.h"
+#include "DefaultCharStream.h"
 
 namespace {
 template <class T>
@@ -29,9 +29,9 @@ class StringReaderStream : public ReaderStream {
 };
 }
 
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
 void DefaultCharStream::init() {
   bufline        	= nullptr;
   bufcolumn      	= nullptr;
@@ -114,7 +114,7 @@ void DefaultCharStream::ReInit(ReaderStream *input_stream) {
   ReInit(input_stream, 1, 1, InitialBufferSize);
 } 
 
-#if KEEP_LINE_COLUMN
+@if KEEP_LINE_COLUMN
 int DefaultCharStream::getBufcolumn(int pos) {
   if (trackLineColumn && pos>=0) {
     return bufcolumn[pos];
@@ -130,7 +130,7 @@ int DefaultCharStream::getBufline(int pos) {
     return -1;
   }
 }
-#fi
+@fi
 
 void DefaultCharStream::ReInit(const JJString& str, int startline, int startcolumn, int buffersize) {
   StringReaderStream *stream = new StringReaderStream(str);
@@ -191,11 +191,11 @@ JJChar DefaultCharStream::readChar() {
 
   JJChar c = buffer[bufpos];
 
-#if KEEP_LINE_COLUMN
+@if KEEP_LINE_COLUMN
   if (trackLineColumn) {
     updateLineColumn(c);
   }
-#fi
+@fi
   return c;
 }
 
@@ -360,6 +360,6 @@ void DefaultCharStream::updateLineColumn(JJChar c) {
   bufcolumn[bufpos] = column;
 }
 
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
+@if NAMESPACE
+}
+@fi

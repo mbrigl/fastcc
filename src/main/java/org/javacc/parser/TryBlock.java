@@ -39,39 +39,39 @@ public class TryBlock extends Expansion {
   /**
    * The expansion contained within the try block.
    */
-  public Expansion exp;
+  public Expansion         exp;
 
   /**
-   * The types of each catch block.  Each list entry is itself a
-   * list which in turn contains tokens as entries.
+   * The types of each catch block. Each list entry is itself a list which in turn contains tokens
+   * as entries.
    */
   public List<List<Token>> types;
 
   /**
-   * The exception identifiers of each catch block.  Each list entry
-   * is a token.
+   * The exception identifiers of each catch block. Each list entry is a token.
    */
-  public List<Token> ids;
+  public List<Token>       ids;
 
   /**
-   * The block part of each catch block.  Each list entry is itself a
-   * list which in turn contains tokens as entries.
+   * The block part of each catch block. Each list entry is itself a list which in turn contains
+   * tokens as entries.
    */
   public List<List<Token>> catchblks;
 
   /**
-   * The block part of the finally block.  Each list entry is a token.
-   * If there is no finally block, this is null.
+   * The block part of the finally block. Each list entry is a token. If there is no finally block,
+   * this is null.
    */
-  public List<Token> finallyblk;
+  public List<Token>       finallyblk;
 
   @Override
-  public StringBuffer dump(int indent, Set<? super Expansion> alreadyDumped) {
-    StringBuffer sb = super.dump(indent, alreadyDumped);
-    if (alreadyDumped.contains(this))
+  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
+    StringBuilder sb = super.dump(indent, alreadyDumped);
+    if (alreadyDumped.contains(this)) {
       return sb;
+    }
     alreadyDumped.add(this);
-    sb.append(eol).append(exp.dump(indent + 1, alreadyDumped));
+    sb.append(Expansion.eol).append(this.exp.dump(indent + 1, alreadyDumped));
     return sb;
   }
 
