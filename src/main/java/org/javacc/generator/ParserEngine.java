@@ -54,14 +54,14 @@ public class ParserEngine {
       case Java:
         LexerGenerator generator = new LexerJava(request, context);
         generator.start();
-        new ParseGenJava(request, context).start();
+        new ParseGenJava(request.getParserName()).start(request, context);
         OtherFilesGenJava.start(generator.getLexerData(), context);
         break;
 
       case Cpp:
         generator = new LexerCpp(request, context);
         generator.start();
-        new ParseGenCpp(request, context).start();
+        new ParseGenCpp(request.getParserName()).start(request, context);
         OtherFilesGenCPP.start(generator.getLexerData(), context);
         break;
       default:

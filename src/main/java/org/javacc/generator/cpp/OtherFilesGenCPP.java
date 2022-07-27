@@ -29,6 +29,7 @@ package org.javacc.generator.cpp;
 import org.javacc.JavaCC;
 import org.javacc.JavaCCContext;
 import org.javacc.generator.JavaCCToken;
+import org.javacc.generator.JavaCCTokenInsertion;
 import org.javacc.generator.LexerData;
 import org.javacc.parser.JavaCCErrors;
 import org.javacc.parser.Options;
@@ -74,7 +75,7 @@ public class OtherFilesGenCPP {
     tn.add(JavaCC.TOOLNAME);
 
     OtherFilesGenCPP.ostr.println("/* " + JavaCCToken.getIdString(tn) + " */");
-    JavaCCToken.printTokenSetup(OtherFilesGenCPP.ostr, data.request.toInsertionPoint1());
+    JavaCCTokenInsertion.printTokenSetup(OtherFilesGenCPP.ostr, data.request);
     OtherFilesGenCPP.ostr.println("");
     OtherFilesGenCPP.ostr.println("/**");
     OtherFilesGenCPP.ostr.println(" * Token literal values and constants.");

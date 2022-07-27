@@ -8,10 +8,8 @@ import org.fastcc.utils.Encoding;
 import org.javacc.JavaCCLanguage;
 import org.javacc.parser.JavaCCParserConstants;
 import org.javacc.parser.Options;
-import org.javacc.parser.ParseException;
 import org.javacc.parser.Token;
 
-import java.io.IOException;
 import java.util.Locale;
 
 class CodeGenerator {
@@ -66,8 +64,6 @@ class CodeGenerator {
         throw new RuntimeException("Language type not fully supported : " + Options.getOutputLanguage());
     }
   }
-
-  public void start() throws ParseException, IOException {}
 
   protected final void saveOutput() {
     getSource().saveOutput(Options.getOutputDirectory());

@@ -27,7 +27,6 @@ import org.fastcc.utils.Encoding;
 import org.javacc.parser.JavaCCParserConstants;
 import org.javacc.parser.Token;
 
-import java.io.PrintWriter;
 import java.util.List;
 
 /**
@@ -37,15 +36,15 @@ import java.util.List;
  */
 public class JavaCCToken {
 
-  private static int cline;
-  private static int ccol;
+  protected static int cline;
+  protected static int ccol;
 
   public static void reset() {
     JavaCCToken.cline = 0;
     JavaCCToken.ccol = 0;
   }
 
-  static void setRow() {
+  public static void setRow() {
     JavaCCToken.cline--;
   }
 
@@ -88,50 +87,6 @@ public class JavaCCToken {
     JavaCCToken.ccol = tt.beginColumn;
   }
 
-  private static void printTokenOnly(Token t, PrintWriter ostr) {
-    for (; JavaCCToken.cline < t.beginLine; JavaCCToken.cline++) {
-      ostr.println("");
-      JavaCCToken.ccol = 1;
-    }
-    for (; JavaCCToken.ccol < t.beginColumn; JavaCCToken.ccol++) {
-      ostr.print(" ");
-    }
-    if ((t.kind == JavaCCParserConstants.STRING_LITERAL) || (t.kind == JavaCCParserConstants.CHARACTER_LITERAL)) {
-      ostr.print(Encoding.escapeUnicode(t.image));
-    } else {
-      ostr.print(t.image);
-    }
-    JavaCCToken.cline = t.endLine;
-    JavaCCToken.ccol = t.endColumn + 1;
-    char last = t.image.charAt(t.image.length() - 1);
-    if ((last == '\n') || (last == '\r')) {
-      JavaCCToken.cline++;
-      JavaCCToken.ccol = 1;
-    }
-  }
-
-  private static void printToken(Token t, PrintWriter ostr) {
-    Token tt = t.specialToken;
-    if (tt != null) {
-      while (tt.specialToken != null) {
-        tt = tt.specialToken;
-      }
-      while (tt != null) {
-        JavaCCToken.printTokenOnly(tt, ostr);
-        tt = tt.next;
-      }
-    }
-    JavaCCToken.printTokenOnly(t, ostr);
-  }
-
-
-  private static void printTrailingComments(Token t, PrintWriter ostr) {
-    if (t.next == null) {
-      return;
-    }
-    JavaCCToken.printLeadingComments(t.next);
-  }
-
   public static String printTokenOnly(Token t) {
     String retval = "";
     for (; JavaCCToken.cline < t.beginLine; JavaCCToken.cline++) {
@@ -154,63 +109,5 @@ public class JavaCCToken {
       JavaCCToken.ccol = 1;
     }
     return retval;
-  }
-
-
-  private static String printLeadingComments(Token t) {
-    String retval = "";
-    if (t.specialToken == null) {
-      return retval;
-    }
-    Token tt = t.specialToken;
-    while (tt.specialToken != null) {
-      tt = tt.specialToken;
-    }
-    while (tt != null) {
-      retval += JavaCCToken.printTokenOnly(tt);
-      tt = tt.next;
-    }
-    if ((JavaCCToken.ccol != 1) && (JavaCCToken.cline != t.beginLine)) {
-      retval += "\n";
-      JavaCCToken.cline++;
-      JavaCCToken.ccol = 1;
-    }
-    return retval;
-  }
-
-  public static void print(PrintWriter writer, List<Token> tokens) {
-    if ((tokens.size() != 0) && (tokens.get(0).kind == JavaCCParserConstants.PACKAGE)) {
-      for (int i = 1; i < tokens.size(); i++) {
-        if (tokens.get(i).kind == JavaCCParserConstants.SEMICOLON) {
-          JavaCCToken.cline = tokens.get(0).beginLine;
-          JavaCCToken.ccol = tokens.get(0).beginColumn;
-          for (int j = 0; j <= i; j++) {
-            JavaCCToken.printToken(tokens.get(j), writer);
-          }
-          writer.println("");
-          writer.println("");
-          break;
-        }
-      }
-    }
-  }
-
-  public static void printTokenSetup(PrintWriter writer, List<Token> tokens) {
-    Token t = null;
-    if ((tokens.size() != 0) && (tokens.get(0).kind == JavaCCParserConstants.PACKAGE)) {
-      for (int i = 1; i < tokens.size(); i++) {
-        if (tokens.get(i).kind == JavaCCParserConstants.SEMICOLON) {
-          JavaCCToken.printTokenSetup(tokens.get(0));
-          for (int j = 0; j <= i; j++) {
-            t = tokens.get(j);
-            JavaCCToken.printToken(t, writer);
-          }
-          JavaCCToken.printTrailingComments(t, writer);
-          writer.println("");
-          writer.println("");
-          break;
-        }
-      }
-    }
   }
 }

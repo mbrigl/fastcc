@@ -65,7 +65,6 @@ public class Options {
 
     temp.add(new OptionInfo(JavaCC.JJPARSER_CHOICE_AMBIGUITY_CHECK, Integer.valueOf(2)));
     temp.add(new OptionInfo(JavaCC.JJPARSER_OTHER_AMBIGUITY_CHECK, Integer.valueOf(1)));
-    temp.add(new OptionInfo(JavaCC.JJPARSER_STATIC, Boolean.TRUE));
     temp.add(new OptionInfo(JavaCC.JJPARSER_NO_DFA, Boolean.FALSE));
     temp.add(new OptionInfo(JavaCC.JJPARSER_DEBUG_PARSER, Boolean.FALSE));
 
@@ -362,15 +361,6 @@ public class Options {
    */
   public static int getOtherAmbiguityCheck() {
     return Options.intValue(JavaCC.JJPARSER_OTHER_AMBIGUITY_CHECK);
-  }
-
-  /**
-   * Find the static value.
-   *
-   * @return The requested static value.
-   */
-  public static boolean getStatic() {
-    return Options.booleanValue(JavaCC.JJPARSER_STATIC);
   }
 
   public static boolean getNoDfa() {

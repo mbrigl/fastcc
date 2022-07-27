@@ -58,9 +58,8 @@ public class JavaCodeGenerator extends JJTreeCodeGenerator {
 
       if (t == JJTreeGlobals.parserClassBodyStart) {
         JJTreeCodeGenerator.openJJTreeComment(io, null);
-        String s = Options.getStatic() ? "static " : "";
         io.println();
-        io.println("  protected " + s + JJTreeState.nameState() + " jjtree = new " + JJTreeState.nameState() + "();");
+        io.println("  protected " + JJTreeState.nameState() + " jjtree = new " + JJTreeState.nameState() + "();");
         io.println();
         JJTreeCodeGenerator.closeJJTreeComment(io);
       }

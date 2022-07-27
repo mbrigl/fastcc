@@ -28,7 +28,7 @@ import org.fastcc.utils.DigestWriter;
 import org.fastcc.utils.Template;
 import org.javacc.JavaCCRequest;
 import org.javacc.JavaCCVersion;
-import org.javacc.generator.JavaCCToken;
+import org.javacc.generator.JavaCCTokenInsertion;
 import org.javacc.parser.JavaCCErrors;
 import org.javacc.parser.Options;
 
@@ -100,13 +100,11 @@ class JavaFiles {
 
 
   static void gen_JavaCharStream(JavaCCRequest request, JavaResourceTemplateLocations locations) {
-    String prefix = request.isStatic() ? "static " : "";
     DigestOptions options = DigestOptions.get();
-    options.put("PREFIX", prefix);
 
     final File file = new File(Options.getOutputDirectory(), "JavaCharStream.java");
     try (DigestWriter ostr = DigestWriter.create(file, JavaCCVersion.VERSION, options)) {
-      JavaCCToken.print(ostr, request.toInsertionPoint1());
+      JavaCCTokenInsertion.print(ostr, request);
       Template.of(locations.getJavaCharStreamTemplateResourceUrl(), ostr.options()).write(ostr);
     } catch (IOException e) {
       System.err.println("Failed to create JavaCharStream " + e);
@@ -126,7 +124,7 @@ class JavaFiles {
     File file = new File(Options.getOutputDirectory(), fileName);
 
     try (DigestWriter ostr = DigestWriter.create(file, JavaCCVersion.VERSION, DigestOptions.get())) {
-      JavaCCToken.print(ostr, request.toInsertionPoint1());
+      JavaCCTokenInsertion.print(ostr, request);
       Template.of(templatePath, ostr.options()).write(ostr);
     } catch (IOException e) {
       System.err.println("Failed to create " + fileName + " " + e);
@@ -139,7 +137,7 @@ class JavaFiles {
   static void gen_ParseException(JavaCCRequest request, JavaResourceTemplateLocations locations) {
     File file = new File(Options.getOutputDirectory(), "ParseException.java");
     try (DigestWriter ostr = DigestWriter.create(file, JavaCCVersion.VERSION, DigestOptions.get())) {
-      JavaCCToken.print(ostr, request.toInsertionPoint1());
+      JavaCCTokenInsertion.print(ostr, request);
       Template.of(locations.getParseExceptionTemplateResourceUrl(), ostr.options()).write(ostr);
     } catch (IOException e) {
       System.err.println("Failed to create ParseException " + e);
@@ -153,7 +151,7 @@ class JavaFiles {
     String filename = "TokenMgrException.java";
     File file = new File(Options.getOutputDirectory(), filename);
     try (DigestWriter ostr = DigestWriter.create(file, JavaCCVersion.VERSION, DigestOptions.get())) {
-      JavaCCToken.print(ostr, request.toInsertionPoint1());
+      JavaCCTokenInsertion.print(ostr, request);
       Template.of(locations.getTokenMgrErrorTemplateResourceUrl(), ostr.options()).write(ostr);
     } catch (IOException e) {
       System.err.println("Failed to create " + filename + " " + e);
@@ -166,7 +164,7 @@ class JavaFiles {
   static void gen_Token(JavaCCRequest request, JavaResourceTemplateLocations locations) {
     final File file = new File(Options.getOutputDirectory(), "Token.java");
     try (DigestWriter ostr = DigestWriter.create(file, JavaCCVersion.VERSION, DigestOptions.get())) {
-      JavaCCToken.print(ostr, request.toInsertionPoint1());
+      JavaCCTokenInsertion.print(ostr, request);
       Template.of(locations.getTokenTemplateResourceUrl(), ostr.options()).write(ostr);
     } catch (IOException e) {
       System.err.println("Failed to create Token " + e);

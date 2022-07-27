@@ -31,10 +31,6 @@ public interface JavaCCRequest {
 
   String getParserName();
 
-  default boolean isStatic() {
-    return Options.getStatic();
-  }
-
   int getStateCount();
 
   int getTokenCount();
