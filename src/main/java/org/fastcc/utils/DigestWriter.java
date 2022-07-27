@@ -26,7 +26,6 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -66,6 +65,10 @@ public class DigestWriter extends PrintWriter {
     return this.options;
   }
 
+  private final boolean isPrintableOption(Object value) {
+    return value instanceof String || value instanceof Number || value instanceof Boolean;
+  }
+
   /**
    * Closes the stream and releases any system resources associated with it. Closing a previously
    * closed stream has no effect.
@@ -78,9 +81,8 @@ public class DigestWriter extends PrintWriter {
       this.stream.write(this.bytes.toByteArray());
       writer.printf("// FastCC Checksum=%s (Do not edit this line!)\n", checksum);
       if (this.options.hasConsumed()) {
-        writer.printf("// FastCC Options: %s\n",
-            this.options.consumed().filter(e -> !(e.getValue() instanceof Function))
-                .map(e -> String.format("%s='%s'", e.getKey(), e.getValue())).collect(Collectors.joining(", ")));
+        writer.printf("// FastCC Options: %s\n", this.options.consumed().filter(e -> isPrintableOption(e.getValue()))
+            .map(e -> String.format("%s='%s'", e.getKey(), e.getValue())).collect(Collectors.joining(", ")));
       }
     } catch (IOException e) {
       e.printStackTrace();

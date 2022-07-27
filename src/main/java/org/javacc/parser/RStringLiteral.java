@@ -31,8 +31,6 @@
 
 package org.javacc.parser;
 
-import org.javacc.generator.LexerData;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -84,46 +82,12 @@ public class RStringLiteral extends RegularExpression {
   }
 
   @Override
-  public Nfa GenerateNfa(LexerData data, boolean ignoreCase) {
-    if (this.image.length() == 1) {
-      RCharacterList temp = new RCharacterList(this.image.charAt(0));
-      return temp.GenerateNfa(data, ignoreCase);
-    }
-
-    NfaState startState = new NfaState(data);
-    NfaState theStartState = startState;
-    NfaState finalState = null;
-
-    if (this.image.length() == 0) {
-      return new Nfa(theStartState, theStartState);
-    }
-
-    int i;
-
-    for (i = 0; i < this.image.length(); i++) {
-      finalState = new NfaState(data);
-      startState.charMoves = new char[1];
-      startState.AddChar(this.image.charAt(i));
-
-      if (data.ignoreCase() || ignoreCase) {
-        startState.AddChar(Character.toLowerCase(this.image.charAt(i)));
-        startState.AddChar(Character.toUpperCase(this.image.charAt(i)));
-      }
-
-      startState.next = finalState;
-      startState = finalState;
-    }
-
-    return new Nfa(theStartState, finalState);
-  }
-
-  @Override
-  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
-    return super.dump(indent, alreadyDumped).append(' ').append(this.image);
-  }
-
-  @Override
   public String toString() {
     return super.toString() + " - " + this.image;
+  }
+
+  @Override
+  public final <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data) {
+    return visitor.visit(this, data);
   }
 }

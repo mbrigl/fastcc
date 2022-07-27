@@ -27,8 +27,6 @@
  */
 package org.javacc.parser;
 
-import org.javacc.generator.LexerData;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,48 +41,23 @@ public class RChoice extends RegularExpression {
    * The list of choices of this regular expression.  Each
    * list component will narrow to RegularExpression.
    */
-  private List<? super Object> choices = new ArrayList<>();
+  private List<RegularExpression> choices = new ArrayList<>();
 
   /**
    * @param choices the choices to set
    */
-  public void setChoices(List<? super Object> choices) {
+  public void setChoices(List<RegularExpression> choices) {
     this.choices = choices;
   }
 
   /**
    * @return the choices
    */
-  public List<? super Object> getChoices() {
+  public List<RegularExpression> getChoices() {
     return this.choices;
   }
 
-  @Override
-  public Nfa GenerateNfa(LexerData data, boolean ignoreCase) {
-    CompressCharLists();
-
-    if (getChoices().size() == 1) {
-      return ((RegularExpression) getChoices().get(0)).GenerateNfa(data, ignoreCase);
-    }
-
-    Nfa retVal = new Nfa(data);
-    NfaState startState = retVal.start;
-    NfaState finalState = retVal.end;
-
-    for (Object element : getChoices()) {
-      Nfa temp;
-      RegularExpression curRE = (RegularExpression) element;
-
-      temp = curRE.GenerateNfa(data, ignoreCase);
-
-      startState.AddMove(temp.start);
-      temp.end.AddMove(finalState);
-    }
-
-    return retVal;
-  }
-
-  private void CompressCharLists() {
+  public final void CompressCharLists() {
     CompressChoices(); // Unroll nested choices
     RegularExpression curRE;
     RCharacterList curCharList = null;
@@ -140,21 +113,8 @@ public class RChoice extends RegularExpression {
     }
   }
 
-  public void CheckUnmatchability(LexerData data) {
-    for (Object element : getChoices()) {
-      RegularExpression curRE = (RegularExpression) element;
-      if (!curRE.private_rexp && (// curRE instanceof RJustName &&
-      curRE.ordinal > 0) && (curRE.ordinal < this.ordinal)
-          && (data.getState(curRE.ordinal) == data.getState(this.ordinal))) {
-        if (this.label != null) {
-          JavaCCErrors.warning(this,
-              "Regular Expression choice : " + curRE.label + " can never be matched as : " + this.label);
-        } else {
-          JavaCCErrors.warning(this, "Regular Expression choice : " + curRE.label
-              + " can never be matched as token of kind : " + this.ordinal);
-        }
-      }
-    }
+  @Override
+  public final <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data) {
+    return visitor.visit(this, data);
   }
-
 }

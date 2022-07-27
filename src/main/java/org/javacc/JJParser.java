@@ -76,7 +76,7 @@ public abstract class JJParser {
    */
   public static void main(String args[]) throws Exception {
     if ((args.length == 1) && args[args.length - 1].equalsIgnoreCase("-version")) {
-      System.out.println(JavaCCVersion.VERSION.toString());
+      System.out.println(JavaCC.VERSION.toString());
       System.exit(0);
     }
 
@@ -126,9 +126,9 @@ public abstract class JJParser {
 
     JavaCCData request = new JavaCCData();
     try {
-      System.out.println("Reading from file " + args[args.length - 1] + " . . .");
-      context.jjtreeGenerated = JJMain.isGeneratedBy("JJTree", args[args.length - 1]);
-      context.toolNames = JJMain.getToolNames(args[args.length - 1]);
+      String jjFile = args[args.length - 1];
+      System.out.println("Reading from file " + jjFile + " . . .");
+      context.jjtreeGenerated = JJMain.isGeneratedBy("JJTree", jjFile);
 
       parser.initialize(request);
       parser.javacc_input();

@@ -29,17 +29,14 @@ package org.javacc.jjtree;
 
 import org.javacc.JavaCC;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class JJTreeGlobals {
 
   public static void initialize() {
-    JJTreeGlobals.toolList = new ArrayList<>();
     JJTreeGlobals.parserName = null;
     JJTreeGlobals.packageName = "";
     JJTreeGlobals.parserImplements = null;
@@ -77,8 +74,6 @@ public class JJTreeGlobals {
   static boolean isOptionJJTreeOnly(String optionName) {
     return JJTreeGlobals.jjtreeOptions.contains(optionName.toUpperCase());
   }
-
-  public static List<String>               toolList        = new ArrayList<>();
 
   /**
    * Use this like className.

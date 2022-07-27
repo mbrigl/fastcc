@@ -16,37 +16,44 @@
 package org.javacc.generator;
 
 import org.javacc.JavaCCRequest;
-import org.javacc.parser.NfaState;
-import org.javacc.parser.RStringLiteral.KindInfo;
+import org.javacc.lexer.NfaState;
+import org.javacc.parser.Action;
+import org.javacc.parser.Options;
+import org.javacc.parser.RegularExpression;
+import org.javacc.parser.Token;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The {@link LexerData} provides the request data for the lexer generator.
  */
 public class LexerData {
 
-  public final JavaCCRequest request;
+  final JavaCCRequest      request;
+  public final int         maxOrdinal;
+  public final int         maxLexStates;
+  public final Set<String> stateNames;
 
 
-  int[]     lexStates;
-  String[]  lexStateNames;
-  int       lexStateIndex;
+  final int[]    lexStates;
+  final String[] lexStateNames;
 
-  boolean[] mixed;
-  int       curKind;
+  int            curKind;
 
 
-  int                        lohiByteCnt;
-  List<NfaState>             nonAsciiTableForMethod;
-  Hashtable<String, Integer> lohiByteTab;
-  List<String>               allBitVectors;
-  int[]                      tmpIndices;            // 2 * 256
-  public int[][]             kinds;
-  public int[][][]           statesForState;
+  int                               lohiByteCnt;
+  public final Map<Integer, long[]> lohiByte;
+  final Hashtable<String, Integer>  lohiByteTab;
+
+  public List<NfaState>             nonAsciiTableForMethod;
+  public List<String>               allBitVectors;
+  public int[][]                    kinds;
+  public int[][][]                  statesForState;
 
 
   public boolean                        jjCheckNAddStatesUnaryNeeded;
@@ -55,65 +62,65 @@ public class LexerData {
   public final Hashtable<String, int[]> tableToDump;
   public final List<int[]>              orderedStateSet;
 
-  boolean                               boilerPlateDumped;
+
+  public boolean                            boilerPlateDumped;
+  private final Map<String, LexerStateData> stateData = new HashMap<>();
 
 
   // RString
-  int      maxLen;
-  int      maxStrKind;
-  String[] allImages;
-  boolean  subString[];
-  boolean  subStringAtPos[];
+  final String[] allImages;
 
+  // Additional attributes
+  public final int[]        maxLongsReqd;
 
-  int[]   maxLenForActive;
-  int[][] intermediateKinds;
-  int[][] intermediateMatchedPos;
+  public final String[]     newLexState;
+  public final boolean[]    ignoreCase;
+  public final Action[]     actions;
+  public int                stateSetSize;
+  public int                totalNumStates;
+  public final NfaState[]   singlesToSkip;
 
-
-  Hashtable<String, long[]>[]       statesForPos;
-  List<Hashtable<String, KindInfo>> charPosKind;
-
-  // NfaState
-  private int                  generatedStates;
-  private final List<NfaState> indexedAllStates;
-
-  private int                  idCnt;
-  private List<NfaState>       allStates;
-
-  int                          dummyStateIndex;
-  public boolean               done;
-  public boolean               mark[];
-
-
-  private final Hashtable<String, int[]> allNextStates;
-  final Hashtable<String, Integer>       stateNameForComposite;
-  final Hashtable<String, int[]>         compositeStateTable;
-  final Hashtable<String, String>        stateBlockTable;
-  final Hashtable<String, int[]>         stateSetsToFix;
-  public Hashtable<String, NfaState>     equivStatesTable;
+  public final long[]       toSkip;
+  public final long[]       toSpecial;
+  public final long[]       toMore;
+  public final long[]       toToken;
+  public int                defaultLexState;
+  final RegularExpression[] rexprs;
+  public final int[]        initMatch;
+  public final int[]        canMatchAnyChar;
+  public boolean            hasEmptyMatch;
+  public final boolean[]    canLoop;
+  public boolean            hasLoop        = false;
+  public final boolean[]    canReachOnMore;
+  public boolean            hasSkipActions = false;
+  public boolean            hasMoreActions = false;
+  public boolean            hasTokenActions;
+  public boolean            hasSpecial     = false;
+  public boolean            hasSkip        = false;
+  public boolean            hasMore        = false;
+  public boolean            keepLineCol;
 
   /**
    * Constructs an instance of {@link LexerData}.
    *
    * @param request
+   * @param maxOrdinal
+   * @param maxLexStates
    */
-  LexerData(JavaCCRequest request) {
+  LexerData(JavaCCRequest request, int maxOrdinal, int maxLexStates, Set<String> stateNames) {
     this.request = request;
+    this.maxOrdinal = maxOrdinal;
+    this.maxLexStates = maxLexStates;
+    this.stateNames = stateNames;
 
-    this.lexStates = null;
-    this.lexStateNames = null;
-    this.lexStateIndex = 0;
-
-    this.mixed = null;
     this.curKind = 0;
-    this.lohiByteCnt = 0;
     this.nonAsciiTableForMethod = new ArrayList<>();
+    this.lohiByteCnt = 0;
+    this.lohiByte = new HashMap<>();
     this.lohiByteTab = new Hashtable<>();
     this.allBitVectors = new ArrayList<>();
 
     this.kinds = null;
-    this.tmpIndices = new int[512];
     this.statesForState = null;
 
     this.tableToDump = new Hashtable<>();
@@ -123,44 +130,69 @@ public class LexerData {
     this.jjCheckNAddStatesDualNeeded = false;
     this.boilerPlateDumped = false;
 
-    // RString
-    this.maxLen = 0;
-    this.maxStrKind = 0;
-    this.allImages = null;
-    this.subString = null;
-    this.subStringAtPos = null;
-    this.charPosKind = new ArrayList<>();
-    this.maxLenForActive = new int[100]; // 6400 tokens
-    this.intermediateKinds = null;
-    this.intermediateMatchedPos = null;
-    this.statesForPos = null;
+    // additionals
+    this.defaultLexState = 0;
+    this.hasLoop = false;
+    this.hasMore = false;
+    this.hasMoreActions = false;
+    this.hasSkip = false;
+    this.hasSkipActions = false;
+    this.hasSpecial = false;
+    this.keepLineCol = Options.getKeepLineColumn();
+    this.stateSetSize = 0;
 
-    // NfaState
-    this.generatedStates = 0;
-    this.indexedAllStates = new ArrayList<>();
-    this.idCnt = 0;
-    this.allStates = new ArrayList<>();
-    this.dummyStateIndex = -1;
-    this.done = false;
-    this.mark = null;
-    this.allNextStates = new Hashtable<>();
-    this.stateNameForComposite = new Hashtable<>();
-    this.compositeStateTable = new Hashtable<>();
-    this.stateBlockTable = new Hashtable<>();
-    this.stateSetsToFix = new Hashtable<>();
-    this.equivStatesTable = new Hashtable<>();
+    this.toSkip = new long[(this.maxOrdinal / 64) + 1];
+    this.toSpecial = new long[(this.maxOrdinal / 64) + 1];
+    this.toMore = new long[(this.maxOrdinal / 64) + 1];
+    this.toToken = new long[(this.maxOrdinal / 64) + 1];
+    this.toToken[0] = 1L;
+
+    this.actions = new Action[this.maxOrdinal];
+    this.actions[0] = request.getActionForEof();
+    this.hasTokenActions = this.getActionForEof() != null;
+    this.canMatchAnyChar = new int[this.maxLexStates];
+    this.canLoop = new boolean[this.maxLexStates];
+    this.lexStateNames = new String[this.maxLexStates];
+    this.singlesToSkip = new NfaState[this.maxLexStates];
+
+    this.maxLongsReqd = new int[this.maxLexStates];
+    this.initMatch = new int[this.maxLexStates];
+    this.newLexState = new String[this.maxOrdinal];
+    this.newLexState[0] = this.getNextStateForEof();
+    this.hasEmptyMatch = false;
+    this.lexStates = new int[this.maxOrdinal];
+    this.ignoreCase = new boolean[this.maxOrdinal];
+    this.rexprs = new RegularExpression[this.maxOrdinal];
+    this.allImages = new String[this.maxOrdinal];
+    this.canReachOnMore = new boolean[this.maxLexStates];
+
+    for (int i = 0; i < this.maxLexStates; i++) {
+      this.canMatchAnyChar[i] = -1;
+    }
+  }
+
+  public final String getParserName() {
+    return this.request.getParserName();
   }
 
   public final boolean ignoreCase() {
     return request.ignoreCase();
   }
 
-  public final int getStateCount() {
-    return this.lexStateNames.length;
+  public final List<Token> getTokens() {
+    return this.request.getTokens();
   }
 
-  public final int getStateIndex() {
-    return this.lexStateIndex;
+  public final String getNextStateForEof() {
+    return request.getNextStateForEof();
+  }
+
+  public final Action getActionForEof() {
+    return request.getActionForEof();
+  }
+
+  public final int getStateCount() {
+    return this.lexStateNames.length;
   }
 
   public final int getState(int index) {
@@ -169,10 +201,6 @@ public class LexerData {
 
   public final String getStateName(int index) {
     return this.lexStateNames[index];
-  }
-
-  public final boolean isMixedState() {
-    return mixed[lexStateIndex];
   }
 
   public final int getCurrentKind() {
@@ -200,89 +228,19 @@ public class LexerData {
     throw new Error(); // Should never come here
   }
 
-  final int generatedStates() {
-    return this.generatedStates;
-  }
-
-  public final NfaState getIndexedState(int index) {
-    return this.indexedAllStates.get(index);
-  }
-
-  public final int addIndexedState(NfaState state) {
-    this.indexedAllStates.add(state);
-    return generatedStates++;
-  }
-
-  public final int getAllStateCount() {
-    return this.allStates.size();
-  }
-
-  public final NfaState getAllState(int index) {
-    return this.allStates.get(index);
-  }
-
-  final void setAllState(int index, NfaState state) {
-    this.allStates.set(index, state);
-  }
-
-  public final Iterable<NfaState> getAllStates() {
-    return this.allStates;
-  }
-
-  public final int addAllState(NfaState state) {
-    this.allStates.add(state);
-    return this.idCnt++;
-  }
-
-  final List<NfaState> cloneAllStates() {
-    List<NfaState> v = this.allStates;
-    this.allStates = new ArrayList<>(Collections.nCopies(generatedStates(), null));
-    return v;
-  }
-
-
-  final void clearAllStates() {
-    this.allStates.clear();
-  }
-
-  public final int[] getNextStates(String name) {
-    return this.allNextStates.get(name);
-  }
-
-  public final void setNextStates(String name, int[] states) {
-    this.allNextStates.put(name, states);
+  /**
+   * Reset the {@link LexerData} for another cycle.
+   */
+  final LexerStateData newStateData(String name) {
+    stateData.put(name, new LexerStateData(this, name));
+    return stateData.get(name);
   }
 
   /**
    * Reset the {@link LexerData} for another cycle.
    */
-  final void reset() {
-    // RString
-    this.maxStrKind = 0;
-    this.maxLen = 0;
-    this.subString = null;
-    this.subStringAtPos = null;
-
-    this.charPosKind = new ArrayList<>();
-    this.maxLenForActive = new int[100]; // 6400 tokens
-    this.intermediateKinds = null;
-    this.intermediateMatchedPos = null;
-    this.statesForPos = null;
-
-    // NfaState
-    this.generatedStates = 0;
-    this.idCnt = 0;
-    this.dummyStateIndex = -1;
-    this.done = false;
-    this.mark = null;
-
-    this.allStates.clear();
-    this.indexedAllStates.clear();
-    this.equivStatesTable.clear();
-    this.allNextStates.clear();
-    this.compositeStateTable.clear();
-    this.stateBlockTable.clear();
-    this.stateNameForComposite.clear();
-    this.stateSetsToFix.clear();
+  public final LexerStateData getStateData(String name) {
+    return stateData.get(name);
   }
+
 }

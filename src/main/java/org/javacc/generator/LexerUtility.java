@@ -13,42 +13,31 @@
  * the specific language governing rights and limitations under the License.
  */
 
-package org.javacc;
+package org.javacc.generator;
 
-import org.javacc.generator.java.JavaCCToken;
 import org.javacc.parser.JavaCCErrors;
-import org.javacc.parser.Options;
+import org.javacc.parser.RChoice;
+import org.javacc.parser.RegularExpression;
 
 /**
- * The {@link JavaCCContext} class.
+ * The {@link LexerUtility} class.
  */
-public class JavaCCContext {
+abstract class LexerUtility {
 
-
-  // Set to true if this file has been processed by JJTree.
-  boolean jjtreeGenerated;
-
-
-  /**
-   * Constructs an instance of {@link JavaCCContext}.
-   */
-  public JavaCCContext() {
-    JavaCCToken.reset();
-    JavaCCErrors.reInit();
-    Options.init();
-  }
-
-  public final boolean isGenerated() {
-    return jjtreeGenerated;
-  }
-
-
-  public final JavaCCLanguage getLanguage() {
-    String language = Options.getOutputLanguage();
-    if (language.equalsIgnoreCase("java"))
-      return JavaCCLanguage.Java;
-    if (language.equalsIgnoreCase("c++") || language.equalsIgnoreCase("cpp"))
-      return JavaCCLanguage.Cpp;
-    return JavaCCLanguage.Cpp;
+  static void CheckUnmatchability(RChoice choice, LexerData data) {
+    for (Object element : choice.getChoices()) {
+      RegularExpression curRE = (RegularExpression) element;
+      if (!curRE.private_rexp && (// curRE instanceof RJustName &&
+      curRE.ordinal > 0) && (curRE.ordinal < choice.ordinal)
+          && (data.getState(curRE.ordinal) == data.getState(choice.ordinal))) {
+        if (choice.label != null) {
+          JavaCCErrors.warning(choice,
+              "Regular Expression choice : " + curRE.label + " can never be matched as : " + choice.label);
+        } else {
+          JavaCCErrors.warning(choice, "Regular Expression choice : " + curRE.label
+              + " can never be matched as token of kind : " + choice.ordinal);
+        }
+      }
+    }
   }
 }

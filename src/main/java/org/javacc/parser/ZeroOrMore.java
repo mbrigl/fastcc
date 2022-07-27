@@ -28,8 +28,6 @@
 
 package org.javacc.parser;
 
-import java.util.Set;
-
 /**
  * Describes zero-or-more expansions (e.g., foo*).
  */
@@ -48,16 +46,5 @@ public class ZeroOrMore extends Expansion {
     setColumn(token.beginColumn);
     this.expansion = expansion;
     this.expansion.parent = this;
-  }
-
-  @Override
-  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
-    StringBuilder sb = super.dump(indent, alreadyDumped);
-    if (alreadyDumped.contains(this)) {
-      return sb;
-    }
-    alreadyDumped.add(this);
-    sb.append(Expansion.eol).append(this.expansion.dump(indent + 1, alreadyDumped));
-    return sb;
   }
 }

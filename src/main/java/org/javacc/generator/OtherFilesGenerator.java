@@ -13,42 +13,15 @@
  * the specific language governing rights and limitations under the License.
  */
 
-package org.javacc;
+package org.javacc.generator;
 
-import org.javacc.generator.java.JavaCCToken;
-import org.javacc.parser.JavaCCErrors;
-import org.javacc.parser.Options;
+import org.javacc.JavaCCRequest;
+import org.javacc.parser.ParseException;
 
 /**
- * The {@link JavaCCContext} class.
+ * The {@link OtherFilesGenerator} class.
  */
-public class JavaCCContext {
+public interface OtherFilesGenerator {
 
-
-  // Set to true if this file has been processed by JJTree.
-  boolean jjtreeGenerated;
-
-
-  /**
-   * Constructs an instance of {@link JavaCCContext}.
-   */
-  public JavaCCContext() {
-    JavaCCToken.reset();
-    JavaCCErrors.reInit();
-    Options.init();
-  }
-
-  public final boolean isGenerated() {
-    return jjtreeGenerated;
-  }
-
-
-  public final JavaCCLanguage getLanguage() {
-    String language = Options.getOutputLanguage();
-    if (language.equalsIgnoreCase("java"))
-      return JavaCCLanguage.Java;
-    if (language.equalsIgnoreCase("c++") || language.equalsIgnoreCase("cpp"))
-      return JavaCCLanguage.Cpp;
-    return JavaCCLanguage.Cpp;
-  }
+  void start(LexerData data, JavaCCRequest request) throws ParseException;
 }

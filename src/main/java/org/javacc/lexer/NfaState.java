@@ -1,36 +1,33 @@
 // Copyright 2011 Google Inc. All Rights Reserved.
 // Author: sreeni@google.com (Sreeni Viswanadha)
 
-/* Copyright (c) 2006, Sun Microsystems, Inc.
- * All rights reserved.
+/*
+ * Copyright (c) 2006, Sun Microsystems, Inc. All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted
+ * provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright notice,
- *       this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Sun Microsystems, Inc. nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
+ * * Redistributions of source code must retain the above copyright notice, this list of conditions
+ * and the following disclaimer. * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the documentation and/or other
+ * materials provided with the distribution. * Neither the name of the Sun Microsystems, Inc. nor
+ * the names of its contributors may be used to endorse or promote products derived from this
+ * software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
- * THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+ * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.javacc.parser;
 
-import org.javacc.generator.LexerData;
+package org.javacc.lexer;
+
+import org.javacc.generator.LexerStateData;
+import org.javacc.parser.JavaCCErrors;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -50,40 +47,40 @@ public class NfaState {
     return bitVec.equals(NfaState.ALL_BITS);
   }
 
-  public long[]           asciiMoves         = new long[2];
-  public char[]           charMoves          = null;
-  public char[]           rangeMoves         = null;
-  public NfaState         next               = null;
-  public NfaState         stateForCase;
-  public Vector<NfaState> epsilonMoves       = new Vector<>();
-  public String           epsilonMovesString;
-  private NfaState[]      epsilonMoveArray;
+  public long[]                asciiMoves         = new long[2];
+  public char[]                charMoves          = null;
+  public char[]                rangeMoves         = null;
+  public NfaState              next               = null;
+  public NfaState              stateForCase;
+  public Vector<NfaState>      epsilonMoves       = new Vector<>();
+  public String                epsilonMovesString;
+  private NfaState[]           epsilonMoveArray;
 
-  private final int       id;
-  public int              stateName          = -1;
-  public int              kind               = Integer.MAX_VALUE;
-  public int              lookingFor;
-  public int              usefulEpsilonMoves = 0;
-  public int              inNextOf;
-  public int              lexState;
-  public int              nonAsciiMethod     = -1;
-  public int              kindToPrint        = Integer.MAX_VALUE;
-  public boolean          dummy              = false;
-  public boolean          isComposite        = false;
-  public int[]            compositeStates    = null;
-  public boolean          isFinal            = false;
-  public Vector<Integer>  loByteVec;
-  public int[]            nonAsciiMoveIndices;
-  private int             onlyChar           = 0;
-  private char            matchSingleChar;
+  private final int            id;
+  public int                   stateName          = -1;
+  public int                   kind               = Integer.MAX_VALUE;
+  public int                   lookingFor;
+  public int                   usefulEpsilonMoves = 0;
+  public int                   inNextOf;
+  public int                   lexState;
+  public int                   nonAsciiMethod     = -1;
+  public int                   kindToPrint        = Integer.MAX_VALUE;
+  public boolean               dummy              = false;
+  public boolean               isComposite        = false;
+  public int[]                 compositeStates    = null;
+  public boolean               isFinal            = false;
+  public Vector<Integer>       loByteVec;
+  public int[]                 nonAsciiMoveIndices;
+  private int                  onlyChar           = 0;
+  private char                 matchSingleChar;
 
-  private final LexerData data;
+  private final LexerStateData data;
 
-  public NfaState(LexerData data) {
+  public NfaState(LexerStateData data) {
     this.data = data;
     this.id = data.addAllState(this);
     this.lexState = data.getStateIndex();
-    this.lookingFor = data.getCurrentKind();
+    this.lookingFor = data.global.getCurrentKind();
   }
 
   private NfaState CreateClone() {
@@ -174,7 +171,7 @@ public class NfaState {
     }
   }
 
-  void AddRange(char left, char right) {
+  final void AddRange(char left, char right) {
     this.onlyChar = 2;
     int i;
     char tempLeft1, tempLeft2, tempRight1, tempRight2;
@@ -258,7 +255,7 @@ public class NfaState {
    * kind of token number for the same length.
    */
 
-  private void EpsilonClosure(LexerData data) {
+  private void EpsilonClosure(LexerStateData data) {
     int i = 0;
 
     if (this.closureDone || data.mark[this.id]) {
@@ -376,7 +373,7 @@ public class NfaState {
     return newState;
   }
 
-  private NfaState GetEquivalentRunTimeState(LexerData data) {
+  private NfaState GetEquivalentRunTimeState(LexerStateData data) {
     Outer:
     for (int i = data.getAllStateCount(); i-- > 0;) {
       NfaState other = data.getAllState(i);
@@ -434,7 +431,7 @@ public class NfaState {
     }
   }
 
-  public static void ComputeClosures(LexerData data) {
+  public static void ComputeClosures(LexerStateData data) {
     for (int i = data.getAllStateCount(); i-- > 0;) {
       NfaState tmp = data.getAllState(i);
 
@@ -457,7 +454,7 @@ public class NfaState {
     }
   }
 
-  private void OptimizeEpsilonMoves(LexerData data, boolean optReqd) {
+  private void OptimizeEpsilonMoves(LexerStateData data, boolean optReqd) {
     int i;
 
     // First do epsilon closure
@@ -727,17 +724,17 @@ public class NfaState {
   }
 
 
-  public static int[] GetStateSetIndicesForUse(LexerData data, String arrayString) {
+  public static int[] GetStateSetIndicesForUse(LexerStateData data, String arrayString) {
     int[] ret;
     int[] set = data.getNextStates(arrayString);
 
-    if ((ret = data.tableToDump.get(arrayString)) == null) {
+    if ((ret = data.global.tableToDump.get(arrayString)) == null) {
       ret = new int[2];
-      ret[0] = data.lastIndex;
-      ret[1] = (data.lastIndex + set.length) - 1;
-      data.lastIndex += set.length;
-      data.tableToDump.put(arrayString, ret);
-      data.orderedStateSet.add(set);
+      ret[0] = data.global.lastIndex;
+      ret[1] = (data.global.lastIndex + set.length) - 1;
+      data.global.lastIndex += set.length;
+      data.global.tableToDump.put(arrayString, ret);
+      data.global.orderedStateSet.add(set);
     }
 
     return ret;
@@ -772,7 +769,7 @@ public class NfaState {
     // next.epsilonMovesString = GetStateSetString(newSet);
   }
 
-  public static boolean Intersect(LexerData data, String set1, String set2) {
+  public static boolean Intersect(LexerStateData data, String set1, String set2) {
     if ((set1 == null) || (set2 == null)) {
       return false;
     }

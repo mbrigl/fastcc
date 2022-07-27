@@ -27,8 +27,6 @@
  */
 package org.javacc.parser;
 
-import org.javacc.generator.LexerData;
-
 /**
  * Describes zero-or-one regular expressions (<foo?>).
  */
@@ -41,18 +39,7 @@ public class RZeroOrOne extends RegularExpression {
   public RegularExpression regexpr;
 
   @Override
-  public Nfa GenerateNfa(LexerData data, boolean ignoreCase) {
-    Nfa retVal = new Nfa(data);
-    NfaState startState = retVal.start;
-    NfaState finalState = retVal.end;
-
-    Nfa temp = this.regexpr.GenerateNfa(data, ignoreCase);
-
-    startState.AddMove(temp.start);
-    startState.AddMove(finalState);
-    temp.end.AddMove(finalState);
-
-    return retVal;
+  public final <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data) {
+    return visitor.visit(this, data);
   }
-
 }

@@ -27,8 +27,6 @@
  */
 package org.javacc.parser;
 
-import org.javacc.generator.LexerData;
-
 /**
  * Describes the EOF regular expression
  */
@@ -36,7 +34,7 @@ import org.javacc.generator.LexerData;
 public class REndOfFile extends RegularExpression {
 
   @Override
-  public Nfa GenerateNfa(LexerData data, boolean ignoreCase) {
-    return null;
+  public final <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data) {
+    return visitor.visit(this, data);
   }
 }

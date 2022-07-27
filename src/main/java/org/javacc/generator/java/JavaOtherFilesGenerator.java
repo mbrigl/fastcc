@@ -29,13 +29,11 @@ package org.javacc.generator.java;
 import org.fastcc.utils.DigestOptions;
 import org.fastcc.utils.DigestWriter;
 import org.fastcc.utils.Encoding;
+import org.fastcc.utils.Template;
 import org.javacc.JavaCC;
-import org.javacc.JavaCCContext;
-import org.javacc.JavaCCVersion;
-import org.javacc.generator.JavaCCToken;
-import org.javacc.generator.JavaCCTokenInsertion;
+import org.javacc.JavaCCRequest;
 import org.javacc.generator.LexerData;
-import org.javacc.generator.java.JavaFiles.JavaResourceTemplateLocations;
+import org.javacc.generator.OtherFilesGenerator;
 import org.javacc.parser.JavaCCErrors;
 import org.javacc.parser.Options;
 import org.javacc.parser.ParseException;
@@ -51,36 +49,27 @@ import java.util.List;
 /**
  * Generates the Constants file.
  */
-public class OtherFilesGenJava {
+public class JavaOtherFilesGenerator implements OtherFilesGenerator {
 
-  private static final String CONSTANTS_FILENAME_SUFFIX = "Constants.java";
-
-  static public void start(LexerData data, JavaCCContext context) throws ParseException {
-
-    JavaResourceTemplateLocations templateLoc = JavaFiles.RESOURCES_JAVA_MODERN;
-
-
+  @Override
+  public final void start(LexerData data, JavaCCRequest request) throws ParseException {
     if (JavaCCErrors.hasError()) {
       throw new ParseException();
     }
 
-    // Added this if condition -- 2012/10/17 -- cba
-    JavaFiles.gen_JavaModernFiles(data.request);
+    JavaOtherFilesGenerator.generateFile(request, "Provider.java", "/templates/Provider.template");
+    JavaOtherFilesGenerator.generateFile(request, "StringProvider.java", "/templates/StringProvider.template");
+    JavaOtherFilesGenerator.generateFile(request, "StreamProvider.java", "/templates/StreamProvider.template");
 
-    JavaFiles.gen_TokenMgrError(data.request, templateLoc);
-    JavaFiles.gen_ParseException(data.request, templateLoc);
-    JavaFiles.gen_Token(data.request, templateLoc);
-    JavaFiles.gen_JavaCharStream(data.request, templateLoc);
+    JavaOtherFilesGenerator.generateFile(request, "JavaCharStream.java", "/templates/JavaCharStream.template");
+    JavaOtherFilesGenerator.generateFile(request, "ParseException.java", "/templates/ParseException.template");
 
-    File file = new java.io.File(Options.getOutputDirectory(),
-        data.request.getParserName() + OtherFilesGenJava.CONSTANTS_FILENAME_SUFFIX);
-    try (DigestWriter ostr = DigestWriter.create(file, JavaCCVersion.VERSION, DigestOptions.get())) {
+    JavaOtherFilesGenerator.generateFile(request, "Token.java", "/templates/Token.template");
+    JavaOtherFilesGenerator.generateFile(request, "TokenMgrException.java", "/templates/TokenMgrError.template");
 
-      final List<String> tn = context.getToolNames();
-      tn.add(JavaCC.TOOLNAME);
-
-      ostr.println("/* " + JavaCCToken.getIdString(tn) + " */");
-      JavaCCTokenInsertion.printTokenSetup(ostr, data.request);
+    File file = new File(Options.getOutputDirectory(), request.getParserName() + "Constants.java");
+    try (DigestWriter ostr = DigestWriter.create(file, JavaCC.VERSION, DigestOptions.get())) {
+      JavaCCToken.printTokenSetup(ostr, request);
       ostr.println("");
       ostr.println("/**");
       ostr.println(" * Token literal values and constants.");
@@ -88,12 +77,12 @@ public class OtherFilesGenJava {
       ostr.println(" */");
 
       ostr.print("public ");
-      ostr.println("interface " + data.request.getParserName() + "Constants {");
+      ostr.println("interface " + request.getParserName() + "Constants {");
       ostr.println("");
 
       ostr.println("  /** End of File. */");
       ostr.println("  int EOF = 0;");
-      for (RegularExpression re : data.request.getOrderedsTokens()) {
+      for (RegularExpression re : request.getOrderedsTokens()) {
         ostr.println("  /** RegularExpression Id. */");
         ostr.println("  int " + re.label + " = " + re.ordinal + ";");
       }
@@ -107,7 +96,7 @@ public class OtherFilesGenJava {
       ostr.println("  String[] tokenImage = {");
       ostr.println("    \"<EOF>\",");
 
-      for (TokenProduction tokenProduction : data.request.getTokenProductions()) {
+      for (TokenProduction tokenProduction : request.getTokenProductions()) {
         TokenProduction tp = (tokenProduction);
         List<RegExprSpec> respecs = tp.respecs;
         for (RegExprSpec respec : respecs) {
@@ -132,8 +121,27 @@ public class OtherFilesGenJava {
       ostr.println("}");
 
     } catch (IOException e) {
-      JavaCCErrors
-          .semantic_error("Could not open file " + data.request.getParserName() + "Constants.java for writing.");
+      JavaCCErrors.semantic_error("Could not open file " + request.getParserName() + "Constants.java for writing.");
+      throw new Error();
+    }
+  }
+
+  /**
+   * Generates a {@link File} from a template.
+   *
+   * @param request
+   * @param filename
+   * @param template
+   */
+  private static void generateFile(JavaCCRequest request, String filename, String template) throws Error {
+    File file = new File(Options.getOutputDirectory(), filename);
+
+    try (DigestWriter ostr = DigestWriter.create(file, JavaCC.VERSION, DigestOptions.get())) {
+      JavaCCToken.print(ostr, request);
+      Template.of(template, ostr.options()).write(ostr);
+    } catch (IOException e) {
+      System.err.println("Failed to create " + filename + " " + e);
+      JavaCCErrors.semantic_error("Could not open file " + filename + " for writing.");
       throw new Error();
     }
   }

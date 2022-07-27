@@ -27,11 +27,6 @@
  */
 package org.javacc.parser;
 
-import org.javacc.generator.LexerData;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Describes one-or-more regular expressions (<foo+>).
  */
@@ -47,28 +42,7 @@ public class RRepetitionRange extends RegularExpression {
   public boolean           hasMax;
 
   @Override
-  public Nfa GenerateNfa(LexerData data, boolean ignoreCase) {
-    List<? super Object> units = new ArrayList<>();
-    RSequence seq;
-    int i;
-
-    for (i = 0; i < this.min; i++) {
-      units.add(this.regexpr);
-    }
-
-    if (this.hasMax && (this.max == -1)) // Unlimited
-    {
-      RZeroOrMore zoo = new RZeroOrMore();
-      zoo.regexpr = this.regexpr;
-      units.add(zoo);
-    }
-
-    while (i++ < this.max) {
-      RZeroOrOne zoo = new RZeroOrOne();
-      zoo.regexpr = this.regexpr;
-      units.add(zoo);
-    }
-    seq = new RSequence(units);
-    return seq.GenerateNfa(data, ignoreCase);
+  public final <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data) {
+    return visitor.visit(this, data);
   }
 }

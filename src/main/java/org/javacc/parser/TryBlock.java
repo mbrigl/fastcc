@@ -28,7 +28,6 @@
 package org.javacc.parser;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Describes expansions of the form "try {...} ...".
@@ -63,16 +62,4 @@ public class TryBlock extends Expansion {
    * this is null.
    */
   public List<Token>       finallyblk;
-
-  @Override
-  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
-    StringBuilder sb = super.dump(indent, alreadyDumped);
-    if (alreadyDumped.contains(this)) {
-      return sb;
-    }
-    alreadyDumped.add(this);
-    sb.append(Expansion.eol).append(this.exp.dump(indent + 1, alreadyDumped));
-    return sb;
-  }
-
 }

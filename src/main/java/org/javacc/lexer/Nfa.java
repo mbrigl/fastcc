@@ -1,6 +1,3 @@
-// Copyright 2011 Google Inc. All Rights Reserved.
-// Author: sreeni@google.com (Sreeni Viswanadha)
-
 /*
  * Copyright (c) 2006, Sun Microsystems, Inc. All rights reserved.
  *
@@ -24,41 +21,24 @@
  * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.javacc;
+package org.javacc.lexer;
 
-import org.fastcc.utils.Version;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import org.javacc.generator.LexerStateData;
 
 /**
- * Supply the version number.
+ * A Non-deterministic Finite Automaton.
  */
-public abstract class JavaCCVersion {
+public class Nfa {
 
-  private JavaCCVersion() {}
+  public NfaState start;
+  public NfaState end;
 
-  public static final Version VERSION;
+  Nfa(LexerStateData data) {
+    this(new NfaState(data), new NfaState(data));
+  }
 
-  static {
-    String major = "??";
-    String minor = "??";
-    String patch = "??";
-
-    Properties props = new Properties();
-    InputStream is = JavaCCVersion.class.getResourceAsStream("/version.properties");
-    if (is != null) {
-      try {
-        props.load(is);
-      } catch (IOException e) {
-        System.err.println("Could not read version.properties: " + e);
-      }
-      major = props.getProperty("version.major", major);
-      minor = props.getProperty("version.minor", minor);
-      patch = props.getProperty("version.patch", patch);
-    }
-    VERSION =
-        Version.of(Integer.parseInt(major), Integer.parseInt(minor), patch.equals("") ? 0 : Integer.parseInt(patch));
+  Nfa(NfaState startGiven, NfaState finalGiven) {
+    this.start = startGiven;
+    this.end = finalGiven;
   }
 }

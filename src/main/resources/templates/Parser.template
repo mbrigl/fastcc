@@ -29,9 +29,9 @@
 @if ERROR_REPORTING
   private int                jj_gen;
   private final int[]        jj_la1    = new int[{{maskIndex}}];
-@foreach tokenMaskSize
+@FOREACH tokenMaskSize
   private static final int[] jj_la1_{{$}}  = { {{maskFunction()}}};
-@end
+@END
 @fi
 @if maskIndex
 @if ERROR_REPORTING
@@ -375,11 +375,11 @@
     for (int i = 0; i < {{maskIndex}}; i++) {
       if (this.jj_la1[i] == this.jj_gen) {
         for (int j = 0; j < 32; j++) {
-@foreach tokenMaskSize
+@FOREACH tokenMaskSize
           if (({{PARSER_NAME}}.jj_la1_{{$}}[i] & (1 << j)) != 0) {
             la1tokens[{{la1tokens()}}j] = true;
           }
-@end
+@END
         }
       }
     }
@@ -501,11 +501,11 @@
             this.jj_la = p.arg;
             this.jj_lastpos = this.jj_scanpos = p.first;
             switch (i) {
-@foreach jj2Index
+@FOREACH jj2Index
               case {{$}}:
                 jj_3_{{rescanToken()}}();
                 break;
-@end
+@END
             }
           }
           p = p.next;

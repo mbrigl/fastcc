@@ -28,8 +28,6 @@
 
 package org.javacc.parser;
 
-import org.javacc.generator.LexerData;
-
 /**
  * Describes one-or-more regular expressions (<foo+>).
  */
@@ -41,26 +39,16 @@ public class ROneOrMore extends RegularExpression {
    */
   public RegularExpression regexpr;
 
-  @Override
-  public Nfa GenerateNfa(LexerData data, boolean ignoreCase) {
-    Nfa retVal = new Nfa(data);
-    NfaState startState = retVal.start;
-    NfaState finalState = retVal.end;
-
-    Nfa temp = this.regexpr.GenerateNfa(data, ignoreCase);
-
-    startState.AddMove(temp.start);
-    temp.end.AddMove(temp.start);
-    temp.end.AddMove(finalState);
-
-    return retVal;
-  }
-
   public ROneOrMore() {}
 
   ROneOrMore(Token t, RegularExpression re) {
     setLine(t.beginLine);
     setColumn(t.beginColumn);
     this.regexpr = re;
+  }
+
+  @Override
+  public final <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data) {
+    return visitor.visit(this, data);
   }
 }

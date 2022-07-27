@@ -21,7 +21,7 @@
  * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.javacc.generator;
+package org.javacc.generator.java;
 
 import org.fastcc.utils.Encoding;
 import org.javacc.JavaCCRequest;
@@ -36,7 +36,63 @@ import java.util.List;
  * This data is what is used by the back-ends of JavaCC as well as any other back-end of JavaCC
  * related tools such as JJTree.
  */
-public class JavaCCTokenInsertion extends JavaCCToken {
+public class JavaCCToken {
+
+  private static int cline;
+  private static int ccol;
+
+  public static void reset() {
+    JavaCCToken.cline = 0;
+    JavaCCToken.ccol = 0;
+  }
+
+  static void setRow() {
+    JavaCCToken.cline--;
+  }
+
+  static void setColumn() {
+    JavaCCToken.ccol = 1;
+  }
+
+  public static void set(Token token) {
+    JavaCCToken.cline = token.beginLine;
+    JavaCCToken.ccol = token.beginColumn;
+  }
+
+  // TODO from UCDetector: Change visibility of Method "JavaCCToken.printTokenSetup(Token)" to
+  // private
+  public static void printTokenSetup(Token t) { // NO_UCD (use private)
+    Token tt = t;
+    while (tt.specialToken != null) {
+      tt = tt.specialToken;
+    }
+    JavaCCToken.cline = tt.beginLine;
+    JavaCCToken.ccol = tt.beginColumn;
+  }
+
+  public static String printTokenOnly(Token t) {
+    String retval = "";
+    for (; JavaCCToken.cline < t.beginLine; JavaCCToken.cline++) {
+      retval += "\n";
+      JavaCCToken.ccol = 1;
+    }
+    for (; JavaCCToken.ccol < t.beginColumn; JavaCCToken.ccol++) {
+      retval += " ";
+    }
+    if ((t.kind == JavaCCParserConstants.STRING_LITERAL) || (t.kind == JavaCCParserConstants.CHARACTER_LITERAL)) {
+      retval += Encoding.escapeUnicode(t.image);
+    } else {
+      retval += t.image;
+    }
+    JavaCCToken.cline = t.endLine;
+    JavaCCToken.ccol = t.endColumn + 1;
+    char last = t.image.charAt(t.image.length() - 1);
+    if ((last == '\n') || (last == '\r')) {
+      JavaCCToken.cline++;
+      JavaCCToken.ccol = 1;
+    }
+    return retval;
+  }
 
   private static void printToken(Token t, PrintWriter ostr) {
     Token tt = t.specialToken;
@@ -45,11 +101,11 @@ public class JavaCCTokenInsertion extends JavaCCToken {
         tt = tt.specialToken;
       }
       while (tt != null) {
-        JavaCCTokenInsertion.printTokenOnly(tt, ostr);
+        JavaCCToken.printTokenOnly(tt, ostr);
         tt = tt.next;
       }
     }
-    JavaCCTokenInsertion.printTokenOnly(t, ostr);
+    JavaCCToken.printTokenOnly(t, ostr);
   }
 
   private static void printTokenOnly(Token t, PrintWriter ostr) {
@@ -99,10 +155,10 @@ public class JavaCCTokenInsertion extends JavaCCToken {
     if (t.next == null) {
       return;
     }
-    JavaCCTokenInsertion.printLeadingComments(t.next);
+    JavaCCToken.printLeadingComments(t.next);
   }
 
-  public static void printTokenSetup(PrintWriter writer, JavaCCRequest request) {
+  static void printTokenSetup(PrintWriter writer, JavaCCRequest request) {
     Token t = null;
     List<Token> tokens = request.toInsertionPoint1();
     if ((tokens.size() != 0) && (tokens.get(0).kind == JavaCCParserConstants.PACKAGE)) {
@@ -111,9 +167,9 @@ public class JavaCCTokenInsertion extends JavaCCToken {
           JavaCCToken.printTokenSetup(tokens.get(0));
           for (int j = 0; j <= i; j++) {
             t = tokens.get(j);
-            JavaCCTokenInsertion.printToken(t, writer);
+            JavaCCToken.printToken(t, writer);
           }
-          JavaCCTokenInsertion.printTrailingComments(t, writer);
+          JavaCCToken.printTrailingComments(t, writer);
           writer.println("");
           writer.println("");
           break;
@@ -122,7 +178,7 @@ public class JavaCCTokenInsertion extends JavaCCToken {
     }
   }
 
-  public static void print(PrintWriter writer, JavaCCRequest request) {
+  static void print(PrintWriter writer, JavaCCRequest request) {
     List<Token> tokens = request.toInsertionPoint1();
     if ((tokens.size() != 0) && (tokens.get(0).kind == JavaCCParserConstants.PACKAGE)) {
       for (int i = 1; i < tokens.size(); i++) {
@@ -130,7 +186,7 @@ public class JavaCCTokenInsertion extends JavaCCToken {
           JavaCCToken.cline = tokens.get(0).beginLine;
           JavaCCToken.ccol = tokens.get(0).beginColumn;
           for (int j = 0; j <= i; j++) {
-            JavaCCTokenInsertion.printToken(tokens.get(j), writer);
+            JavaCCToken.printToken(tokens.get(j), writer);
           }
           writer.println("");
           writer.println("");

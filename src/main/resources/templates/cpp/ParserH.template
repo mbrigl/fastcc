@@ -154,3 +154,7 @@ protected:
 private:
   bool jj_done;
 };
+@if NAMESPACE
+}
+@fi
+#endif

@@ -1,28 +1,19 @@
 
-package org.javacc;
+package org.fastcc;
 
+
+import org.fastcc.FastCCBuilder.Language;
+import org.javacc.JJParser;
+import org.javacc.JJTree;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The {@link JavaCCBuilder2} class.
+ * The {@link FastCCBuilder2} class.
  */
-public class JavaCCBuilder2 {
-
-  public enum Language {
-
-    Java("Java"),
-    Cpp("C++");
-
-    public final String name;
-
-    Language(String name) {
-      this.name = name;
-    }
-
-  }
+public class FastCCBuilder2 {
 
   private Language language;
   private File     outputDirectory;
@@ -35,7 +26,7 @@ public class JavaCCBuilder2 {
    *
    * @param language
    */
-  public final JavaCCBuilder2 setCodeGenerator(Language language) {
+  public final FastCCBuilder2 setCodeGenerator(Language language) {
     this.language = language;
     return this;
   }
@@ -45,8 +36,8 @@ public class JavaCCBuilder2 {
    *
    * @param outputDirectory
    */
-  public final JavaCCBuilder2 setOutputDirectory(File outputDirectory, String... pathes) {
-    this.outputDirectory = JavaCCBuilder2.toFile(outputDirectory, pathes);
+  public final FastCCBuilder2 setOutputDirectory(File outputDirectory, String... pathes) {
+    this.outputDirectory = FastCCBuilder2.toFile(outputDirectory, pathes);
     return this;
   }
 
@@ -55,8 +46,8 @@ public class JavaCCBuilder2 {
    *
    * @param file
    */
-  public final JavaCCBuilder2 setJJFile(File file, String... pathes) {
-    this.jj = JavaCCBuilder2.toFile(file, pathes);
+  public final FastCCBuilder2 setJJFile(File file, String... pathes) {
+    this.jj = FastCCBuilder2.toFile(file, pathes);
     return this;
   }
 
@@ -65,13 +56,13 @@ public class JavaCCBuilder2 {
    *
    * @param file
    */
-  public final JavaCCBuilder2 setJJTreeFile(File file, String... pathes) {
-    this.jjt = JavaCCBuilder2.toFile(file, pathes);
+  public final FastCCBuilder2 setJJTreeFile(File file, String... pathes) {
+    this.jjt = FastCCBuilder2.toFile(file, pathes);
     return this;
   }
 
-  public static JavaCCBuilder2 of(Language language) {
-    JavaCCBuilder2 builder = new JavaCCBuilder2();
+  public static FastCCBuilder2 of(Language language) {
+    FastCCBuilder2 builder = new FastCCBuilder2();
     builder.setCodeGenerator(language);
     return builder;
   }
@@ -116,14 +107,14 @@ public class JavaCCBuilder2 {
    * @param args
    */
   public static void main(String[] args) {
-    JavaCCBuilder2 builderJJ = JavaCCBuilder2.of(Language.Java);
-    builderJJ.setOutputDirectory(JavaCCBuilder2.BASE, "generated/org/javacc/parser");
-    builderJJ.setJJFile(JavaCCBuilder2.BASE, "javacc/JavaCC.jj");
+    FastCCBuilder2 builderJJ = FastCCBuilder2.of(Language.Java);
+    builderJJ.setOutputDirectory(FastCCBuilder2.BASE, "generated/org/javacc/parser");
+    builderJJ.setJJFile(FastCCBuilder2.BASE, "javacc/JavaCC.jj");
     builderJJ.build();
 
-    JavaCCBuilder2 builderJJT = JavaCCBuilder2.of(Language.Java);
-    builderJJT.setOutputDirectory(JavaCCBuilder2.BASE, "generated/org/javacc/jjtree");
-    builderJJT.setJJTreeFile(JavaCCBuilder2.BASE, "jjtree/JJTree.jjt");
+    FastCCBuilder2 builderJJT = FastCCBuilder2.of(Language.Java);
+    builderJJT.setOutputDirectory(FastCCBuilder2.BASE, "generated/org/javacc/jjtree");
+    builderJJT.setJJTreeFile(FastCCBuilder2.BASE, "jjtree/JJTree.jjt");
     builderJJT.build();
   }
 }

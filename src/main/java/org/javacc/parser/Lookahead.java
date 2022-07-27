@@ -29,7 +29,6 @@ package org.javacc.parser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Describes lookahead rule for a particular expansion or expansion
@@ -70,17 +69,6 @@ public class Lookahead extends Expansion {
    * Is set to true if this is an explicit lookahead specification.
    */
   private boolean           isExplicit;
-
-  @Override
-  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
-    StringBuilder sb = super.dump(indent, alreadyDumped).append(this.isExplicit ? " explicit" : " implicit");
-    if (alreadyDumped.contains(this)) {
-      return sb;
-    }
-    alreadyDumped.add(this);
-    sb.append(Expansion.eol).append(this.la_expansion.dump(indent + 1, alreadyDumped));
-    return sb;
-  }
 
   /**
    * @return the action_tokens

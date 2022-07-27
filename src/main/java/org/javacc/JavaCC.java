@@ -23,6 +23,12 @@
 
 package org.javacc;
 
+import org.fastcc.utils.Version;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 /**
  * This package contains data created as a result of parsing and semanticizing a JavaCC input file.
  * This data is what is used by the back-ends of JavaCC as well as any other back-end of JavaCC
@@ -30,11 +36,7 @@ package org.javacc;
  */
 public interface JavaCC {
 
-  // String that identifies the JavaCC generated files.
-  String TOOLNAME    = "JavaCC";
-
-  String PARSER_NAME = "PARSER_NAME";
-
+  String PARSER_NAME                = "PARSER_NAME";
 
   String JJTREE_MULTI               = "MULTI";
   String JJTREE_NODE_TYPE           = "NODE_TYPE";
@@ -76,4 +78,27 @@ public interface JavaCC {
   String JJPARSER_CPP_NAMESPACE           = "NAMESPACE";
   String JJPARSER_CPP_STOP_ON_FIRST_ERROR = "STOP_ON_FIRST_ERROR";
   String JJPARSER_CPP_STACK_LIMIT         = "STACK_LIMIT";
+
+
+  Version VERSION = JavaCC.load();
+
+  static Version load() {
+    String major = "??";
+    String minor = "??";
+    String patch = "??";
+
+    Properties props = new Properties();
+    InputStream is = JavaCC.class.getResourceAsStream("/version.properties");
+    if (is != null) {
+      try {
+        props.load(is);
+      } catch (IOException e) {
+        System.err.println("Could not read version.properties: " + e);
+      }
+      major = props.getProperty("version.major", major);
+      minor = props.getProperty("version.minor", minor);
+      patch = props.getProperty("version.patch", patch);
+    }
+    return Version.of(Integer.parseInt(major), Integer.parseInt(minor), patch.equals("") ? 0 : Integer.parseInt(patch));
+  }
 }

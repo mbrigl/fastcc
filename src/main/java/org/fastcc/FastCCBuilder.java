@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class FastCCBuilder {
 
-  public enum Language {
+  enum Language {
 
     Java("Java"),
     Cpp("C++");

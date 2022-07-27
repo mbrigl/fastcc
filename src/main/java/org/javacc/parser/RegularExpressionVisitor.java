@@ -13,42 +13,31 @@
  * the specific language governing rights and limitations under the License.
  */
 
-package org.javacc;
+package org.javacc.parser;
 
-import org.javacc.generator.java.JavaCCToken;
-import org.javacc.parser.JavaCCErrors;
-import org.javacc.parser.Options;
 
 /**
- * The {@link JavaCCContext} class.
+ * The {@link RegularExpressionVisitor} class.
  */
-public class JavaCCContext {
+public interface RegularExpressionVisitor<R, D> {
 
+  R visit(RCharacterList expr, D data);
 
-  // Set to true if this file has been processed by JJTree.
-  boolean jjtreeGenerated;
+  R visit(RChoice expr, D data);
 
+  R visit(REndOfFile expr, D data);
 
-  /**
-   * Constructs an instance of {@link JavaCCContext}.
-   */
-  public JavaCCContext() {
-    JavaCCToken.reset();
-    JavaCCErrors.reInit();
-    Options.init();
-  }
+  R visit(RJustName expr, D data);
 
-  public final boolean isGenerated() {
-    return jjtreeGenerated;
-  }
+  R visit(ROneOrMore expr, D data);
 
+  R visit(RRepetitionRange expr, D data);
 
-  public final JavaCCLanguage getLanguage() {
-    String language = Options.getOutputLanguage();
-    if (language.equalsIgnoreCase("java"))
-      return JavaCCLanguage.Java;
-    if (language.equalsIgnoreCase("c++") || language.equalsIgnoreCase("cpp"))
-      return JavaCCLanguage.Cpp;
-    return JavaCCLanguage.Cpp;
-  }
+  R visit(RSequence expr, D data);
+
+  R visit(RStringLiteral expr, D data);
+
+  R visit(RZeroOrMore expr, D data);
+
+  R visit(RZeroOrOne expr, D data);
 }

@@ -5,56 +5,14 @@ package org.javacc.generator;
 
 import org.fastcc.source.SourceWriter;
 import org.fastcc.utils.Encoding;
-import org.javacc.JavaCCLanguage;
 import org.javacc.parser.JavaCCParserConstants;
 import org.javacc.parser.Options;
 import org.javacc.parser.Token;
 
 class CodeGenerator {
 
-  private final SourceWriter   source;
-  private final JavaCCLanguage language;
-
-  /**
-   * Constructs an instance of {@link CodeGenerator}.
-   *
-   * @param source
-   * @param langauge
-   */
-  protected CodeGenerator(SourceWriter source, JavaCCLanguage language) {
-    this.source = source;
-    this.language = language;
-  }
-
-  protected SourceWriter getSource() {
-    return this.source;
-  }
-
-  protected final JavaCCLanguage getLanguage() {
-    return this.language;
-  }
-
-  protected final boolean isCppLanguage() {
-    return getLanguage() == JavaCCLanguage.Cpp;
-  }
-
-  protected final boolean isJavaLanguage() {
-    return getLanguage() == JavaCCLanguage.Java;
-  }
-
-  protected final String getLongType() {
-    switch (getLanguage()) {
-      case Java:
-        return "long";
-      case Cpp:
-        return "unsigned long long";
-      default:
-        throw new RuntimeException("Language type not fully supported : " + Options.getOutputLanguage());
-    }
-  }
-
-  protected final void saveOutput() {
-    getSource().saveOutput(Options.getOutputDirectory());
+  protected final void saveOutput(SourceWriter writer) {
+    writer.saveOutput(Options.getOutputDirectory());
   }
 
   public int cline, ccol;
