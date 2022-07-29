@@ -1,0 +1,124 @@
+@foreach lohiBytes
+static final long[] jjbitVec{{$}} = {{getLohiBytes()}};
+@end
+@foreach stateNames
+{{dumpNfaAndDfa()}}
+@end
+/** Token literal values. */
+public static final String[] jjstrLiteralImages = {
+{{getStrLiteralImages()}}};
+
+{{DumpFillToken()}}
+{{DumpStateSets()}}
+@FOREACH nonAsciiTableForMethod
+{{DumpNonAsciiMoveMethod()}}
+@END
+{{DumpGetNextToken()}}
+@if DEBUG_TOKEN_MANAGER
+protected static final int[][][] statesForState = {{getStatesForState()}};
+protected static final int[][] kindForState = {{getKindForState()}};
+@fi
+@if hasLoop
+	int[] jjemptyLineNo = new int[{{maxLexStates}}];
+	int[] jjemptyColNo = new int[{{maxLexStates}}];
+boolean[] jjbeenHere = new boolean[{{maxLexStates}}];
+@fi
+{{DumpSkipActions()}}
+{{DumpMoreActions()}}
+{{DumpTokenActions()}}
+
+private void jjCheckNAdd(int state)
+{
+   if (jjrounds[state] != jjround)
+   {
+      jjstateSet[jjnewStateCnt++] = state;
+      jjrounds[state] = jjround;
+   }
+}
+private void jjAddStates(int start, int end)
+{
+   do {
+      jjstateSet[jjnewStateCnt++] = jjnextStates[start];
+   } while (start++ != end);
+}
+private void jjCheckNAddTwoStates(int state1, int state2)
+{
+   jjCheckNAdd(state1);
+   jjCheckNAdd(state2);
+}
+
+@if jjCheckNAddStatesDualNeeded
+private void jjCheckNAddStates(int start, int end)
+{
+   do {
+      jjCheckNAdd(jjnextStates[start]);
+   } while (start++ != end);
+}
+
+@fi
+@if jjCheckNAddStatesUnaryNeeded
+private void jjCheckNAddStates(int start)
+{
+   jjCheckNAdd(jjnextStates[start]);
+   jjCheckNAdd(jjnextStates[start + 1]);
+}
+
+@fi
+
+    /** Constructor. */
+    public {{PARSER_NAME}}TokenManager(JavaCharStream stream) {
+
+    input_stream = stream;
+  }
+
+  /** Constructor. */
+  public {{PARSER_NAME}}TokenManager(JavaCharStream stream, int lexState) {
+    ReInit(stream);
+    SwitchTo(lexState);
+  }
+
+  /** Reinitialise parser. */
+  public void ReInit(JavaCharStream stream)
+  {
+    jjmatchedPos = 0;
+    jjnewStateCnt = 0;
+    curLexState = defaultLexState;
+    input_stream = stream;
+    ReInitRounds();
+  }
+
+  private void ReInitRounds()
+  {
+    int i;
+    jjround = 0x80000001;
+    for (i = {{stateSetSize}}; i-- > 0;)
+      jjrounds[i] = 0x80000000;
+  }
+
+  /** Reinitialise parser. */
+  public void ReInit(JavaCharStream stream, int lexState)  
+  {
+    ReInit(stream);
+    SwitchTo(lexState);
+  }
+
+  /** Switch to specified lex state. */
+  public void SwitchTo(int lexState)
+  {
+    if (lexState >= {{lexStateNameLength}} || lexState < 0)
+      throw new TokenMgrException("Error: Ignoring invalid lexical state : " + lexState + ". State unchanged.", TokenMgrException.INVALID_LEXICAL_STATE);
+    else
+      curLexState = lexState;
+  }
+
+{{dumpStaticVarDeclarations()}}
+
+    protected JavaCharStream  input_stream;
+    private final int[] jjrounds = new int[{{stateSetSize}}];
+    private final int[] jjstateSet = new int[2 * {{stateSetSize}}];
+    private final StringBuilder jjimage = new StringBuilder();
+    private StringBuilder image = jjimage;
+    private int jjimageLen;
+    private int lengthOfMatch;
+    protected int curChar;
+}

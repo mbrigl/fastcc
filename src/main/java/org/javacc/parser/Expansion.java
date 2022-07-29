@@ -27,8 +27,6 @@
  */
 package org.javacc.parser;
 
-import java.util.Set;
-
 /**
  * Describes expansions - entities that may occur on the
  * right hand sides of productions.  This is the base class of
@@ -95,21 +93,6 @@ public class Expansion {
   @Override
   public String toString() {
     return "[" + getLine() + "," + getColumn() + " " + System.identityHashCode(this) + " " + getSimpleName() + "]";
-  }
-
-  protected static final String eol = System.getProperty("line.separator", "\n");
-
-  protected StringBuilder dumpPrefix(int indent) {
-    StringBuilder sb = new StringBuilder(128);
-    for (int i = 0; i < indent; i++) {
-      sb.append("  ");
-    }
-    return sb;
-  }
-
-  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
-    StringBuilder value = dumpPrefix(indent).append(System.identityHashCode(this)).append(" ").append(getSimpleName());
-    return value;
   }
 
   public String getProductionName() {

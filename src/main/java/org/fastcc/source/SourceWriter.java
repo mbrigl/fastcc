@@ -18,7 +18,7 @@ package org.fastcc.source;
 import org.fastcc.utils.DigestOptions;
 import org.fastcc.utils.DigestWriter;
 import org.fastcc.utils.Template;
-import org.javacc.JavaCCVersion;
+import org.javacc.JavaCC;
 import org.javacc.parser.JavaCCErrors;
 import org.javacc.parser.Options;
 
@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * The {@link SourceWriter} class.
@@ -71,6 +73,26 @@ public class SourceWriter extends PrintWriter {
   }
 
   /**
+   * Set an {@link BiConsumer} writer.
+   *
+   * @param name
+   * @param writer
+   */
+  public final void setWriter(String name, BiConsumer<PrintWriter, Object> writer) {
+    this.options.put(name, writer);
+  }
+
+  /**
+   * Set an {@link Function} by name.
+   *
+   * @param name
+   * @param function
+   */
+  public final void setFunction(String name, Function<Object, String> function) {
+    this.options.put(name, function);
+  }
+
+  /**
    * Write the content using a template.
    *
    * @param path
@@ -88,7 +110,7 @@ public class SourceWriter extends PrintWriter {
    */
   public void saveOutput(File path) {
     File file = new File(Options.getOutputDirectory(), getName() + ".java");
-    try (DigestWriter writer = DigestWriter.create(file, JavaCCVersion.VERSION, getOptions())) {
+    try (DigestWriter writer = DigestWriter.create(file, JavaCC.VERSION, getOptions())) {
       writer.print(toString());
     } catch (IOException e) {
       JavaCCErrors.fatal("Could not create output file: " + file);

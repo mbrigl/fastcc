@@ -30,7 +30,6 @@ package org.javacc.parser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Describes expansions where one of many choices
@@ -43,7 +42,7 @@ public class Choice extends Expansion {
    * The list of choices of this expansion unit.  Each
    * List component will narrow to ExpansionUnit.
    */
-  private List<? super Object> choices = new ArrayList<>();
+  private List<Expansion> choices = new ArrayList<>();
 
   public Choice() {}
 
@@ -61,28 +60,14 @@ public class Choice extends Expansion {
   /**
    * @param choices the choices to set
    */
-  public void setChoices(List<? super Object> choices) {
+  public void setChoices(List<Expansion> choices) {
     this.choices = choices;
   }
 
   /**
    * @return the choices
    */
-  public List<? super Object> getChoices() {
+  public List<Expansion> getChoices() {
     return this.choices;
-  }
-
-  @Override
-  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
-    StringBuilder sb = super.dump(indent, alreadyDumped);
-    if (alreadyDumped.contains(this)) {
-      return sb;
-    }
-    alreadyDumped.add(this);
-    for (Object expansion : getChoices()) {
-      Expansion next = (Expansion) expansion;
-      sb.append(Expansion.eol).append(next.dump(indent + 1, alreadyDumped));
-    }
-    return sb;
   }
 }

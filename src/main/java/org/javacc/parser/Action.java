@@ -29,7 +29,6 @@ package org.javacc.parser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Describes actions that may occur on the right hand side
@@ -43,16 +42,6 @@ public class Action extends Expansion {
    * list does not include the surrounding braces.
    */
   private final List<Token> action_tokens = new ArrayList<>();
-
-  @Override
-  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
-    StringBuilder sb = super.dump(indent, alreadyDumped);
-    alreadyDumped.add(this);
-    if (getActionTokens().size() > 0) {
-      sb.append(' ').append(getActionTokens().get(0));
-    }
-    return sb;
-  }
 
   /**
    * @return the action_tokens

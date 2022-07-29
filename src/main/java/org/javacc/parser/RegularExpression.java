@@ -27,11 +27,8 @@
  */
 package org.javacc.parser;
 
-import org.javacc.generator.LexerData;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Describes regular expressions.
@@ -74,8 +71,6 @@ public abstract class RegularExpression extends Expansion {
    */
   public TokenProduction tpContext    = null;
 
-  public abstract Nfa GenerateNfa(LexerData data, boolean ignoreCase);
-
   public boolean CanMatchAnyChar() {
     return false;
   }
@@ -88,11 +83,5 @@ public abstract class RegularExpression extends Expansion {
    */
   public int walkStatus = 0;
 
-  @Override
-  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
-    StringBuilder sb = super.dump(indent, alreadyDumped);
-    alreadyDumped.add(this);
-    sb.append(' ').append(this.label);
-    return sb;
-  }
+  public abstract <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data);
 }

@@ -29,7 +29,7 @@
 package org.javacc.jjdoc;
 
 import org.fastcc.utils.Encoding;
-import org.javacc.generator.JavaCCToken;
+import org.javacc.generator.java.JavaCCToken;
 import org.javacc.parser.Action;
 import org.javacc.parser.BNFProduction;
 import org.javacc.parser.CharacterRange;
@@ -223,8 +223,8 @@ class JJDoc extends JJDocGlobals {
   private static void emitExpansionAction(Action a, Generator gen) {}
 
   private static void emitExpansionChoice(Choice c, Generator gen) {
-    for (Iterator it = c.getChoices().iterator(); it.hasNext();) {
-      Expansion e = (Expansion) (it.next());
+    for (Iterator<Expansion> it = c.getChoices().iterator(); it.hasNext();) {
+      Expansion e = it.next();
       JJDoc.emitExpansionTree(e, gen);
       if (it.hasNext()) {
         gen.text(" | ");
@@ -326,7 +326,7 @@ class JJDoc extends JJDocGlobals {
         returnString += "~";
       }
       returnString += "[";
-      for (Iterator it = cl.descriptors.iterator(); it.hasNext();) {
+      for (Iterator<Object> it = cl.descriptors.iterator(); it.hasNext();) {
         Object o = it.next();
         if (o instanceof SingleCharacter) {
           returnString += "\"";
@@ -351,8 +351,8 @@ class JJDoc extends JJDocGlobals {
       returnString += "]";
     } else if (re instanceof RChoice) {
       RChoice c = (RChoice) re;
-      for (Iterator it = c.getChoices().iterator(); it.hasNext();) {
-        RegularExpression sub = (RegularExpression) (it.next());
+      for (Iterator<RegularExpression> it = c.getChoices().iterator(); it.hasNext();) {
+        RegularExpression sub = it.next();
         returnString += JJDoc.emitRE(sub);
         if (it.hasNext()) {
           returnString += " | ";
@@ -370,8 +370,8 @@ class JJDoc extends JJDocGlobals {
       returnString += ")+";
     } else if (re instanceof RSequence) {
       RSequence s = (RSequence) re;
-      for (Iterator it = s.units.iterator(); it.hasNext();) {
-        RegularExpression sub = (RegularExpression) (it.next());
+      for (Iterator<RegularExpression> it = s.units.iterator(); it.hasNext();) {
+        RegularExpression sub = it.next();
         boolean needParens = false;
         if (sub instanceof RChoice) {
           needParens = true;

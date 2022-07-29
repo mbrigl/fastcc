@@ -30,7 +30,6 @@ package org.javacc.parser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Describes expansions that are sequences of expansion
@@ -51,21 +50,5 @@ public class Sequence extends Expansion {
     setLine(token.beginLine);
     setColumn(token.beginColumn);
     this.units.add(lookahead);
-  }
-
-
-  @Override
-  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
-    if (alreadyDumped.contains(this)) {
-      return super.dump(0, alreadyDumped).insert(0, '[').append(']').insert(0, dumpPrefix(indent));
-    }
-
-    alreadyDumped.add(this);
-    final StringBuilder sb = super.dump(indent, alreadyDumped);
-    for (Object object : this.units) {
-      Expansion next = (Expansion) object;
-      sb.append(Expansion.eol).append(next.dump(indent + 1, alreadyDumped));
-    }
-    return sb;
   }
 }

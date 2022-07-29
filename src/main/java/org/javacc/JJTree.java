@@ -143,9 +143,6 @@ public class JJTree {
       System.out.println("Reading from file " + fn + " . . .");
 
       try (Reader reader = new InputStreamReader(new FileInputStream(fn), Options.getGrammarEncoding())) {
-        JJTreeGlobals.toolList = JJMain.getToolNames(fn);
-        JJTreeGlobals.toolList.add("JJTree");
-
         JJTreeParserDefault parser = new JJTreeParserDefault(reader);
         ASTGrammar root = parser.parse();
         if (Boolean.getBoolean("jjtree-dump")) {
@@ -157,6 +154,7 @@ public class JJTree {
         ParserEngine engine = ParserEngine.create(context);
 
         try (PrintWriter writer = new PrintWriter(file)) {
+          JJMain.writeGenerated(writer);
           engine.generateJJTree(root, writer);
         } catch (IOException ioe) {
           System.out.println("Error setting input: " + ioe.getMessage());

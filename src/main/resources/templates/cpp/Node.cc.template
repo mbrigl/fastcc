@@ -10,31 +10,31 @@ namespace {{NAMESPACE}} {
 @fi
 
 Node::Node(int id) 
-	: id(id), parser(nullptr), parent(nullptr), value(nullptr)
+    : id(id), parser(nullptr), parent(nullptr), value(nullptr)
 @if NODE_EXTENDS
-   	, {{NODE_EXTENDS}}()
+    , {{NODE_EXTENDS}}()
 @fi
 {
 @if TRACK_TOKENS
-  firstToken = nullptr;
-  lastToken  = nullptr;
+    firstToken = nullptr;
+    lastToken  = nullptr;
 @fi
 }
 
 Node::Node({{PARSER_NAME}} *parser, int id) :
-	id(id), parser(parser), parent(nullptr), value(nullptr)
+    id(id), parser(parser), parent(nullptr), value(nullptr)
 @if NODE_EXTENDS
-	, {{NODE_EXTENDS}}()
+    , {{NODE_EXTENDS}}()
 @fi
 {
 @if TRACK_TOKENS
-  firstToken = nullptr;
-  lastToken  = nullptr;
+    firstToken = nullptr;
+    lastToken  = nullptr;
 @fi
 }
 Node::~Node() {
     for (int i = 0; i < children.size(); ++i) {
-      delete children[i];
+        delete children[i];
     }
 }
 void Node::jjtOpen() const {
@@ -44,15 +44,15 @@ void Node::jjtClose() const {
 }
 
 void Node::jjtSetParent(Node *n) {
-    parent = n; 
+    parent = n;
 }
 Node* Node::jjtGetParent() const {
-    return parent; 
+    return parent;
 }
 
 void Node::jjtAddChild(Node *n, int i) {
     if (i >= children.size()) {
-      children.resize(i + 1, nullptr);
+        children.resize(i + 1, nullptr);
     }
     children[i] = n;
 }
@@ -66,7 +66,7 @@ int Node::jjtGetNumChildren() const {
 }
 
 void Node::jjtSetValue(void * value) {
-    this->value = value; 
+    this->value = value;
 }
 
 void* Node::jjtGetValue() const {
@@ -119,18 +119,18 @@ void Node::dumpToBuffer(const JJString& prefix, const JJString& separator, JJStr
     buffer->append(toString(prefix));
     buffer->append(separator);
     for (int i = 0; i < children.size(); ++i) {
-      Node *n = (Node*)children[i];
-      if (n != nullptr) {
-        n->dumpToBuffer(prefix + space, separator, buffer);
-      }
+        Node *n = (Node*)children[i];
+        if (n != nullptr) {
+            n->dumpToBuffer(prefix + space, separator, buffer);
+        }
     }
 }
-  
+
 void Node::dump(const JJString& prefix) const {
     JJString *buffer = new JJString();
     dumpToBuffer(prefix, newline, buffer);
     for (int i = 0; i < buffer->size(); i++) {
-      printf("%c", (*buffer)[i]);
+        printf("%c", (*buffer)[i]);
     }
     delete buffer;
 }

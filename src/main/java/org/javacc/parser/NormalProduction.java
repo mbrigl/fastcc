@@ -36,55 +36,40 @@ import java.util.List;
 
 public class NormalProduction {
 
-  /**
-   * The line and column number of the construct that corresponds most closely to this node.
-   */
-  private int                column;
+  // The line and column number of the construct that corresponds most closely to this node.
+  private int column;
+  private int line;
 
-  private int                line;
+  // The NonTerminal nodes which refer to this production.
+  private final List<Object> parents = new ArrayList<>();
 
-  /**
-   * The NonTerminal nodes which refer to this production.
-   */
-  private final List<Object> parents               = new ArrayList<>();
+  // The name of the non-terminal of this production.
+  private String lhs;
 
-  /**
-   * The name of the non-terminal of this production.
-   */
-  private String             lhs;
+  // The tokens that make up the return type of this production.
+  private final List<Token> return_type_tokens = new ArrayList<>();
 
-  /**
-   * The tokens that make up the return type of this production.
-   */
-  private final List<Token>  return_type_tokens    = new ArrayList<>();
-
-  /**
-   * The tokens that make up the parameters of this production.
-   */
-  private final List<Token>  parameter_list_tokens = new ArrayList<>();
+  // The tokens that make up the parameters of this production.
+  private final List<Token> parameter_list_tokens = new ArrayList<>();
 
   /**
    * Each entry in this list is a list of tokens that represents an exception in the throws list of
    * this production. This list does not include ParseException which is always thrown.
    */
-  private List<List<Token>>  throws_list           = new ArrayList<>();
+  private List<List<Token>> throws_list           = new ArrayList<>();
 
-  /**
-   * The RHS of this production. Not used for JavaCodeProduction.
-   */
-  private Expansion          expansion;
+  // The RHS of this production. Not used for JavaCodeProduction.
+  private Expansion expansion;
 
-  /**
-   * This boolean flag is true if this production can expand to empty.
-   */
-  private boolean            emptyPossible         = false;
+  // This boolean flag is true if this production can expand to empty.
+  private boolean            emptyPossible  = false;
 
   /**
    * A list of all non-terminals that this one can expand to without having to consume any tokens.
    * Also an index that shows how many pointers exist.
    */
-  private NormalProduction[] leftExpansions        = new NormalProduction[10];
-  public int                 leIndex               = 0;
+  private NormalProduction[] leftExpansions = new NormalProduction[10];
+  public int                 leIndex        = 0;
 
   /**
    * The following variable is used to maintain state information for the left-recursion
@@ -93,14 +78,11 @@ public class NormalProduction {
    * node has been traversed. i.e., -1 indicates partially processed, and 1 indicates fully
    * processed.
    */
-  private int                walkStatus            = 0;
+  private int                walkStatus     = 0;
 
-  /**
-   * The first and last tokens from the input stream that represent this production.
-   */
-  private Token              lastToken;
-
-  private Token              firstToken;
+  // The first and last tokens from the input stream that represent this production.
+  private Token lastToken;
+  private Token firstToken;
 
   /**
    * @param line the line to set
@@ -264,5 +246,4 @@ public class NormalProduction {
   public Token getLastToken() {
     return this.lastToken;
   }
-
 }

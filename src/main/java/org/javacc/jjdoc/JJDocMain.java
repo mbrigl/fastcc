@@ -95,15 +95,6 @@ public final class JJDocMain extends JJDocGlobals {
    * A main program that exercises the parser.
    */
   public static void main(String args[]) throws Exception {
-    int errorcode = JJDocMain.mainProgram(args);
-    System.exit(errorcode);
-  }
-
-  /**
-   * The method to call to exercise the parser from other Java programs. It returns an error code.
-   * See how the main program above uses this method.
-   */
-  private static int mainProgram(String args[]) throws Exception {
     new JavaCCContext();
 
     JJDocOptions.init();
@@ -113,7 +104,7 @@ public final class JJDocMain extends JJDocGlobals {
     JavaCCParser parser = null;
     if (args.length == 0) {
       JJDocMain.help_message();
-      return 1;
+      System.exit(1);
     } else {
       JJDocGlobals.info("(type \"jjdoc\" with no arguments for help)");
     }
@@ -121,12 +112,12 @@ public final class JJDocMain extends JJDocGlobals {
 
     if (Options.isOption(args[args.length - 1])) {
       JJDocGlobals.error("Last argument \"" + args[args.length - 1] + "\" is not a filename or \"-\".  ");
-      return 1;
+      System.exit(1);
     }
     for (int arg = 0; arg < (args.length - 1); arg++) {
       if (!Options.isOption(args[arg])) {
         JJDocGlobals.error("Argument \"" + args[arg] + "\" must be an option setting.  ");
-        return 1;
+        System.exit(1);
       }
       Options.setCmdLineOption(args[arg]);
     }
@@ -142,21 +133,17 @@ public final class JJDocMain extends JJDocGlobals {
         java.io.File fp = new java.io.File(args[args.length - 1]);
         if (!fp.exists()) {
           JJDocGlobals.error("File " + args[args.length - 1] + " not found.");
-          return 1;
         }
         if (fp.isDirectory()) {
           JJDocGlobals.error(args[args.length - 1] + " is a directory. Please use a valid file name.");
-          return 1;
         }
         JJDocGlobals.input_file = fp.getName();
         parser = new JavaCCParser(
             new StreamProvider(new java.io.FileInputStream(args[args.length - 1]), Options.getGrammarEncoding()));
       } catch (SecurityException se) {
         JJDocGlobals.error("Security violation while trying to open " + args[args.length - 1]);
-        return 1;
       } catch (java.io.FileNotFoundException e) {
         JJDocGlobals.error("File " + args[args.length - 1] + " not found.");
-        return 1;
       }
     }
 
@@ -174,17 +161,17 @@ public final class JJDocMain extends JJDocGlobals {
           JJDocGlobals.info(
               "Grammar documentation generated with 0 errors and " + JavaCCErrors.get_warning_count() + " warnings.");
         }
-        return 0;
+        System.exit(0);
       } else {
         JJDocGlobals.error("Detected " + JavaCCErrors.get_error_count() + " errors and "
             + JavaCCErrors.get_warning_count() + " warnings.");
-        return (JavaCCErrors.get_error_count() == 0) ? 0 : 1;
+        System.exit((JavaCCErrors.get_error_count() == 0) ? 0 : 1);
       }
     } catch (ParseException e) {
       JJDocGlobals.error(e.toString());
       JJDocGlobals.error("Detected " + JavaCCErrors.get_error_count() + " errors and "
           + JavaCCErrors.get_warning_count() + " warnings.");
-      return 1;
+      System.exit(1);
     }
   }
 

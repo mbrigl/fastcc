@@ -23,7 +23,7 @@ import java.io.Reader;
 public class JJTreeParserDefault extends JJTreeParser {
 
   public JJTreeParserDefault(Reader reader) {
-    super(new JJTreeParserTokenManager(new JavaCharStream(new StreamProvider(reader), 1, 1)));
+    super(new JJTreeParserTokenManager(new JavaCharStream(new StreamProvider(reader))));
   }
 
   /**

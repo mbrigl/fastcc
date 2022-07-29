@@ -33,7 +33,6 @@ import java.util.List;
 /**
  * Describes a CODE productions.
  */
-
 public class CodeProduction extends NormalProduction {
 
   /**
@@ -47,5 +46,4 @@ public class CodeProduction extends NormalProduction {
   public List<Token> getCodeTokens() {
     return code_tokens;
   }
-
 }

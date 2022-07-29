@@ -26,10 +26,7 @@
 
 package org.javacc.generator;
 
-import org.fastcc.source.SourceWriter;
-import org.javacc.JavaCC;
 import org.javacc.JavaCCContext;
-import org.javacc.JavaCCLanguage;
 import org.javacc.JavaCCRequest;
 import org.javacc.generator.ParserData.Phase3Data;
 import org.javacc.parser.Action;
@@ -52,7 +49,6 @@ import org.javacc.parser.ZeroOrOne;
 import org.javacc.semantic.Semanticize;
 
 import java.io.IOException;
-import java.util.List;
 
 public abstract class ParserGenerator extends CodeGenerator {
 
@@ -68,12 +64,8 @@ public abstract class ParserGenerator extends CodeGenerator {
 
   /**
    * Constructs an instance of {@link ParserGenerator}.
-   *
-   * @param source
-   * @param language
    */
-  protected ParserGenerator(SourceWriter source, JavaCCLanguage language) {
-    super(source, language);
+  protected ParserGenerator() {
     this.labelIndex = 0;
     this.rIndex = 0;
   }
@@ -90,9 +82,6 @@ public abstract class ParserGenerator extends CodeGenerator {
     if (JavaCCErrors.hasError()) {
       throw new ParseException();
     }
-
-    List<String> toolNames = context.getToolNames();
-    toolNames.add(JavaCC.TOOLNAME);
 
     ParserData data = new ParserData(request, context);
     for (NormalProduction p : data.getProductions()) {
@@ -116,10 +105,10 @@ public abstract class ParserGenerator extends CodeGenerator {
       buildPhase3Routine(data, e, data.getCount(e));
     }
 
-    generate(data, toolNames);
+    generate(data);
   }
 
-  protected abstract void generate(ParserData data, List<String> toolNames) throws IOException;
+  protected abstract void generate(ParserData data) throws IOException;
 
   private final void buildPhase1(ParserData data, Expansion e) {
     if (e instanceof Choice) {

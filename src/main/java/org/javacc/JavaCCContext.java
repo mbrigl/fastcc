@@ -15,12 +15,9 @@
 
 package org.javacc;
 
-import org.javacc.generator.JavaCCToken;
+import org.javacc.generator.java.JavaCCToken;
 import org.javacc.parser.JavaCCErrors;
 import org.javacc.parser.Options;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The {@link JavaCCContext} class.
@@ -29,9 +26,7 @@ public class JavaCCContext {
 
 
   // Set to true if this file has been processed by JJTree.
-  boolean      jjtreeGenerated;
-  // The list of tools that have participated in generating the input grammar file.
-  List<String> toolNames;
+  boolean jjtreeGenerated;
 
 
   /**
@@ -45,10 +40,6 @@ public class JavaCCContext {
 
   public final boolean isGenerated() {
     return jjtreeGenerated;
-  }
-
-  public final List<String> getToolNames() {
-    return new ArrayList<>(toolNames);
   }
 
 

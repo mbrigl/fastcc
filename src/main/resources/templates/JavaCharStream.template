@@ -6,6 +6,8 @@
 
 class JavaCharStream
 {
+  private static final int BUFFER_SIZE = 4096;
+
   static final int hexval(char c) throws java.io.IOException {
     switch(c)
     {
@@ -142,12 +144,12 @@ class JavaCharStream
   protected void FillBuff() throws java.io.IOException
   {
     int i;
-    if (maxNextCharInd == 4096)
+    if (maxNextCharInd == BUFFER_SIZE)
       maxNextCharInd = nextCharInd = 0;
 
     try {
       if ((i = inputStream.read(nextCharBuf, maxNextCharInd,
-                                          4096 - maxNextCharInd)) == -1)
+                                          BUFFER_SIZE - maxNextCharInd)) == -1)
       {
         inputStream.close();
         throw new java.io.IOException();
@@ -442,77 +444,22 @@ class JavaCharStream
   }
 
 /** Constructor. */
-  public JavaCharStream(Provider dstream,
-                 int startline, int startcolumn, int buffersize)
-  {
-    inputStream = dstream;
-@if KEEP_LINE_COLUMN
-    line = startline;
-    column = startcolumn - 1;
-@fi
-
-    available = bufsize = buffersize;
-    buffer = new char[buffersize];
-@if KEEP_LINE_COLUMN
-    bufline = new int[buffersize];
-    bufcolumn = new int[buffersize];
-@fi
-    nextCharBuf = new char[4096];
-  }
-
-/** Constructor. */
-  public JavaCharStream(Provider dstream,
-                                        int startline, int startcolumn)
-  {
-    this(dstream, startline, startcolumn, 4096);
-  }
-
-/** Constructor. */
   public JavaCharStream(Provider dstream)
   {
-    this(dstream, 1, 1, 4096);
-  }
-/** Reinitialise. */
-  public void ReInit(Provider dstream,
-                 int startline, int startcolumn, int buffersize)
-  {
     inputStream = dstream;
 @if KEEP_LINE_COLUMN
-    line = startline;
-    column = startcolumn - 1;
+    line = 1;
+    column = 0;
 @fi
 
-    if (buffer == null || buffersize != buffer.length)
-    {
-      available = bufsize = buffersize;
-      buffer = new char[buffersize];
+    available = bufsize = BUFFER_SIZE;
+    buffer = new char[BUFFER_SIZE];
 @if KEEP_LINE_COLUMN
-      bufline = new int[buffersize];
-      bufcolumn = new int[buffersize];
+    bufline = new int[BUFFER_SIZE];
+    bufcolumn = new int[BUFFER_SIZE];
 @fi
-      nextCharBuf = new char[4096];
-    }
-@if KEEP_LINE_COLUMN
-    prevCharIsLF = prevCharIsCR = false;
-@fi
-    tokenBegin = inBuf = maxNextCharInd = 0;
-    nextCharInd = bufpos = -1;
+    nextCharBuf = new char[BUFFER_SIZE];
   }
-
-/** Reinitialise. */
-  public void ReInit(Provider dstream,
-                                        int startline, int startcolumn)
-  {
-    ReInit(dstream, startline, startcolumn, 4096);
-  }
-
-/** Reinitialise. */
-  public void ReInit(Provider dstream)
-  {
-    ReInit(dstream, 1, 1, 4096);
-  }
-
-
 
   /** @return token image as String */
   public String GetImage()

@@ -3,9 +3,9 @@
 #include "{{PARSER_NAME}}Tree.h"
 
 @if ERROR_REPORTING
-@foreach tokenMaskSize
+@FOREACH tokenMaskSize
 {{writeMasks()}}
-@end
+@END
 @fi
 
 
@@ -29,7 +29,7 @@ namespace {{NAMESPACE}} {
 void {{PARSER_NAME}}::ReInit(TokenManager* tokenManager)
 {
     clear();
-    errorHandler = new DefaultParserErrorHandler();
+    errorHandler = new ParserErrorHandler();
     delete_eh = true;
     hasError = false;
     token_source = tokenManager;
@@ -360,9 +360,9 @@ Token * {{PARSER_NAME}}::getToken(int index)
         if (p->gen > jj_gen) {
           jj_la = p->arg; jj_lastpos = jj_scanpos = p->first;
           switch (i) {
-@foreach jj2Index
+@FOREACH jj2Index
             case {{$}}: jj_3_{{writeJJ_3Call()}}(); break;
-@end
+@END
           }
         }
         p = p->next;
@@ -382,4 +382,7 @@ Token * {{PARSER_NAME}}::getToken(int index)
   }
 
 @fi
+@fi
+@if NAMESPACE
+}
 @fi

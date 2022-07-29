@@ -27,8 +27,6 @@
  */
 package org.javacc.parser;
 
-import org.javacc.generator.LexerData;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,43 +41,17 @@ public class RSequence extends RegularExpression {
    * The list of units in this regular expression sequence.  Each
    * list component will narrow to RegularExpression.
    */
-  public List<? super Object> units = new ArrayList<>();
-
-  @Override
-  public Nfa GenerateNfa(LexerData data, boolean ignoreCase) {
-    if (this.units.size() == 1) {
-      return ((RegularExpression) this.units.get(0)).GenerateNfa(data, ignoreCase);
-    }
-
-    Nfa retVal = new Nfa(data);
-    NfaState startState = retVal.start;
-    NfaState finalState = retVal.end;
-    Nfa temp1;
-    Nfa temp2 = null;
-
-    RegularExpression curRE;
-
-    curRE = (RegularExpression) this.units.get(0);
-    temp1 = curRE.GenerateNfa(data, ignoreCase);
-    startState.AddMove(temp1.start);
-
-    for (int i = 1; i < this.units.size(); i++) {
-      curRE = (RegularExpression) this.units.get(i);
-
-      temp2 = curRE.GenerateNfa(data, ignoreCase);
-      temp1.end.AddMove(temp2.start);
-      temp1 = temp2;
-    }
-
-    temp2.end.AddMove(finalState);
-
-    return retVal;
-  }
+  public List<RegularExpression> units = new ArrayList<>();
 
   RSequence() {}
 
-  RSequence(List<? super Object> seq) {
+  public RSequence(List<RegularExpression> seq) {
     this.ordinal = Integer.MAX_VALUE;
     this.units = seq;
+  }
+
+  @Override
+  public final <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data) {
+    return visitor.visit(this, data);
   }
 }

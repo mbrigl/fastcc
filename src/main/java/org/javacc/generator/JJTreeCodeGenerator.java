@@ -39,10 +39,7 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
 
   @Override
   public final Object visit(ASTGrammar node, Object data) {
-    PrintWriter io = (PrintWriter) data;
-    io.println("/*@bgen(jjtree) " + JavaCCToken.getIdString(JJTreeGlobals.toolList) + " */");
-    io.print("/*@egen*/");
-    return node.childrenAccept(this, io);
+    return node.childrenAccept(this, data);
   }
 
   @Override
@@ -361,4 +358,6 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
 
 
   protected abstract void tryExpansionUnit(NodeScope ns, PrintWriter io, String indent, JJTreeNode expansion_unit);
+
+  public abstract void generateJJTree();
 }

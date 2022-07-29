@@ -18,7 +18,6 @@ package org.fastcc.source;
 import org.fastcc.utils.DigestOptions;
 import org.fastcc.utils.DigestWriter;
 import org.javacc.JavaCC;
-import org.javacc.JavaCCVersion;
 import org.javacc.parser.JavaCCErrors;
 import org.javacc.parser.Options;
 
@@ -32,8 +31,7 @@ import java.io.StringWriter;
 public class CppWriter extends SourceWriter {
 
   private final StringWriter writer;
-  private final StringWriter header    = new StringWriter();
-  private final StringWriter statistic = new StringWriter();
+  private final StringWriter header = new StringWriter();
 
 
   /**
@@ -48,31 +46,15 @@ public class CppWriter extends SourceWriter {
     header.append("#define JAVACC_" + name.replace('.', '_').toUpperCase() + "_H\n");
   }
 
-  public final void switchToImpl() {
-    this.out = this.writer;
-  }
-
   public final void switchToHeader() {
     this.out = this.header;
-  }
-
-  public final void switchToStatics() {
-    this.out = this.statistic;
   }
 
   @Override
   public final void saveOutput(File path) {
     // dump the statics into the main file with the code.
     StringBuffer buffer = new StringBuffer();
-    buffer.append(statistic.toString());
     buffer.append(writer.toString());
-
-    // Finally enclose the whole thing in the namespace, if specified.
-    if (Options.stringValue(JavaCC.JJPARSER_CPP_NAMESPACE).length() > 0) {
-      buffer.append("}\n");
-      header.append("}\n");
-    }
-    header.append("#endif\n");
 
     File file = new File(Options.getOutputDirectory(), getName() + ".h");
     saveOutput(file, header.getBuffer(), getOptions());
@@ -84,7 +66,7 @@ public class CppWriter extends SourceWriter {
   private void saveOutput(File file, StringBuffer buffer, DigestOptions options) {
     CppWriter.fixupLongLiterals(buffer);
 
-    try (DigestWriter writer = DigestWriter.create(file, JavaCCVersion.VERSION, options)) {
+    try (DigestWriter writer = DigestWriter.create(file, JavaCC.VERSION, options)) {
       writer.print(buffer.toString());
     } catch (IOException ioe) {
       JavaCCErrors.fatal("Could not create output file: " + file);

@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -101,8 +102,11 @@ public class Template {
       for (int i = 0; i < ((Integer) value); i++) {
         list.add(i);
       }
+    } else if (value instanceof Iterable) {
+      for (Object v : (Iterable<?>) value) {
+        list.add(v);
+      }
     }
-
     return list;
   }
 
@@ -134,22 +138,23 @@ public class Template {
     Stack<Boolean> conditions = new Stack<>();
     while (index < lines.size()) {
       String line = lines.get(index++);
-      if (line.startsWith("@if ")) {
+      String cmd = line.toLowerCase();
+      if (cmd.startsWith("@if ")) {
         boolean condition = validate(line.substring(4).trim());
         conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
-      } else if (line.startsWith("@elfi")) {
+      } else if (cmd.startsWith("@elfi")) {
         boolean condition = validate(line.substring(4).trim());
         conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
-      } else if (line.startsWith("@else")) {
+      } else if (cmd.startsWith("@else")) {
         boolean condition = !conditions.pop();
         conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
-      } else if (line.startsWith("@fi")) {
+      } else if (cmd.startsWith("@fi")) {
         conditions.pop();
-      } else if (line.startsWith("@foreach ")) {
+      } else if (cmd.startsWith("@foreach ")) {
         Iterable<Object> iterable = iterable(line.substring(9).trim());
         List<String> subList = new ArrayList<>();
         String subLine = lines.get(index++);
-        while (!subLine.startsWith("@end")) {
+        while (!subLine.toLowerCase().startsWith("@end")) {
           subList.add(subLine);
           subLine = lines.get(index++);
         }
@@ -169,9 +174,16 @@ public class Template {
             boolean validate = validate(matcher.group(1));
             writer.print(validate ? this.options.get(matcher.group(1)) : matcher.group(4));
           } else if (matcher.group(1).endsWith("()")) {
-            String name = matcher.group(1).substring(0, matcher.group(1).length() - 2);
-            Function<Object, String> func = (Function<Object, String>) this.options.get(name);
-            writer.print(func.apply(this.options.get("$")));
+            String name = matcher.group(1);
+            String funcName = name.substring(0, name.length() - 2);
+            Object instance = this.options.get(funcName);
+            if (instance instanceof Function) {
+              Function<Object, String> func = (Function<Object, String>) instance;
+              writer.print(func.apply(this.options.get("$")));
+            } else if (instance instanceof BiConsumer) {
+              BiConsumer<PrintWriter, Object> func = (BiConsumer<PrintWriter, Object>) instance;
+              func.accept(writer, this.options.get("$"));
+            }
           } else {
             writer.print(this.options.get(matcher.group(1)));
           }

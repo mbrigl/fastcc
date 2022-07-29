@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class FastCCBuilder {
 
-  public enum Language {
+  enum Language {
 
     Java("Java"),
     Cpp("C++");
@@ -110,7 +110,6 @@ public class FastCCBuilder {
     return (pathes.length == 0) ? file : new File(file, String.join(File.separator, pathes));
   }
 
-  public static final File USER = new File(System.getProperty("user.dir"));
   public static final File BASE = new File("/data/smartIO/develop/parser/parser/src/main/resources/it/smartio/text");
 
   /**
@@ -126,7 +125,7 @@ public class FastCCBuilder {
 
     builder = FastCCBuilder.of(Language.Java);
     builder.setOutputDirectory(FastCCBuilder.BASE, "java");
-    builder.setJJTreeFile(FastCCBuilder.BASE, "parser/OQL-Java.jjt");
+    builder.setJJTreeFile(FastCCBuilder.BASE, "parser/OQL.jjt");
     builder.build();
   }
 }

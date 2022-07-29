@@ -29,7 +29,6 @@ package org.javacc.parser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Describes non terminals.
@@ -58,12 +57,6 @@ public class NonTerminal extends Expansion {
    * The production this non-terminal corresponds to.
    */
   private NormalProduction prod;
-
-  @Override
-  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
-    StringBuilder value = super.dump(indent, alreadyDumped).append(' ').append(this.name);
-    return value;
-  }
 
   /**
    * @param lhsTokens the lhsTokens to set
