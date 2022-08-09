@@ -27,8 +27,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,7 +42,7 @@ import java.util.regex.Pattern;
 public class Template {
 
   private static final Pattern PARAMETERS =
-      Pattern.compile("\\{\\{([^\\}\\?\\:]+)(?:\\?([^:]*):([^\\}]*))?(?:\\:\\-([^\\}]+))?\\}\\}");
+      Pattern.compile("\\{\\{([^\\{\\}\\?\\:]+)(?:\\?([^:]*):([^\\}]*))?(?:\\:\\-([^\\}]+))?\\}\\}");
 
 
   private final byte[]              bytes;
@@ -68,11 +72,38 @@ public class Template {
     }
 
     Object value = this.options.get(condition);
-    if ((value == null) || ((value instanceof String) && ((String) value).isEmpty())) {
+    if (value == null) {
+      return false;
+    }
+    if ((value instanceof String) && ((String) value).isEmpty()) {
+      return false;
+    }
+    if ((value instanceof Number) && ((Number) value).intValue() == 0) {
       return false;
     }
 
     return (!(value instanceof Boolean) || ((Boolean) value));
+  }
+
+  /**
+   * Gets the iterable for the option
+   *
+   * @param option
+   */
+  private final Iterable<Object> iterable(String option) {
+    if (!this.options.containsKey(option)) {
+      return Collections.emptySet();
+    }
+
+    Object value = this.options.get(option);
+    List<Object> list = new ArrayList<>();
+    if (value instanceof Integer) {
+      for (int i = 0; i < ((Integer) value); i++) {
+        list.add(i);
+      }
+    }
+
+    return list;
   }
 
   /**
@@ -81,41 +112,73 @@ public class Template {
    * @param writer
    */
   public void write(PrintWriter writer) throws IOException {
-    Stack<Boolean> conditions = new Stack<>();
+    List<String> lines = new ArrayList<String>();
     InputStream stream = new ByteArrayInputStream(this.bytes);
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
       String line = null;
       while ((line = reader.readLine()) != null) {
-        if (line.startsWith("@if ")) {
-          boolean condition = validate(line.substring(4).trim());
-          conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
-        } else if (line.startsWith("@elfi")) {
-          boolean condition = validate(line.substring(4).trim());
-          conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
-        } else if (line.startsWith("@else")) {
-          boolean condition = !conditions.pop();
-          conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
-        } else if (line.startsWith("@fi")) {
-          conditions.pop();
-        } else if (conditions.isEmpty() || conditions.peek()) {
-          int offset = 0;
-          Matcher matcher = Template.PARAMETERS.matcher(line);
-          while (matcher.find()) {
-            writer.print(line.substring(offset, matcher.start()));
-            if (matcher.group(2) != null) {
-              boolean validate = validate(matcher.group(1));
-              writer.print(matcher.group(validate ? 2 : 3));
-            } else if (matcher.group(4) != null) {
-              boolean validate = validate(matcher.group(1));
-              writer.print(validate ? this.options.get(matcher.group(1)) : matcher.group(4));
-            } else {
-              writer.print(this.options.get(matcher.group(1)));
-            }
-            offset = matcher.end();
-          }
-          writer.print(line.substring(offset));
-          writer.println();
+        lines.add(line);
+      }
+    }
+    write(writer, lines);
+  }
+
+  /**
+   * Use the template.
+   *
+   * @param writer
+   * @param lines
+   */
+  private void write(PrintWriter writer, List<String> lines) {
+    int index = 0;
+    Stack<Boolean> conditions = new Stack<>();
+    while (index < lines.size()) {
+      String line = lines.get(index++);
+      if (line.startsWith("@if ")) {
+        boolean condition = validate(line.substring(4).trim());
+        conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
+      } else if (line.startsWith("@elfi")) {
+        boolean condition = validate(line.substring(4).trim());
+        conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
+      } else if (line.startsWith("@else")) {
+        boolean condition = !conditions.pop();
+        conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
+      } else if (line.startsWith("@fi")) {
+        conditions.pop();
+      } else if (line.startsWith("@foreach ")) {
+        Iterable<Object> iterable = iterable(line.substring(9).trim());
+        List<String> subList = new ArrayList<>();
+        String subLine = lines.get(index++);
+        while (!subLine.startsWith("@end")) {
+          subList.add(subLine);
+          subLine = lines.get(index++);
         }
+        for (Object value : iterable) {
+          this.options.put("$", value);
+          write(writer, subList);
+        }
+      } else if (conditions.isEmpty() || conditions.peek()) {
+        int offset = 0;
+        Matcher matcher = Template.PARAMETERS.matcher(line);
+        while (matcher.find()) {
+          writer.print(line.substring(offset, matcher.start()));
+          if (matcher.group(2) != null) {
+            boolean validate = validate(matcher.group(1));
+            writer.print(matcher.group(validate ? 2 : 3));
+          } else if (matcher.group(4) != null) {
+            boolean validate = validate(matcher.group(1));
+            writer.print(validate ? this.options.get(matcher.group(1)) : matcher.group(4));
+          } else if (matcher.group(1).endsWith("()")) {
+            String name = matcher.group(1).substring(0, matcher.group(1).length() - 2);
+            Function<Object, String> func = (Function<Object, String>) this.options.get(name);
+            writer.print(func.apply(this.options.get("$")));
+          } else {
+            writer.print(this.options.get(matcher.group(1)));
+          }
+          offset = matcher.end();
+        }
+        writer.print(line.substring(offset));
+        writer.println();
       }
     }
   }

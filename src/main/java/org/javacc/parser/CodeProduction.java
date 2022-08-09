@@ -34,7 +34,7 @@ import java.util.List;
  * Describes a CODE productions.
  */
 
-abstract class CodeProduction extends NormalProduction {
+public class CodeProduction extends NormalProduction {
 
   /**
    * The tokens that implement this JAVACODE/CPPCODE production.

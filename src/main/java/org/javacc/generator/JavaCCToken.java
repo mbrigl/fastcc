@@ -73,7 +73,7 @@ public class JavaCCToken {
       System.out.println("Tool names too long.");
       throw new Error();
     }
-    return toolNamePrefix + " Do not edit this line. ";
+    return toolNamePrefix + " Do not edit this line.";
   }
 
   // TODO from UCDetector: Change visibility of Method "JavaCCToken.printTokenSetup(Token)" to

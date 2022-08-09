@@ -32,15 +32,32 @@ import org.javacc.JavaCCLanguage;
 import org.javacc.generator.JavaCCToken;
 import org.javacc.generator.ParserData;
 import org.javacc.generator.ParserGenerator;
+import org.javacc.parser.Action;
 import org.javacc.parser.BNFProduction;
+import org.javacc.parser.Choice;
+import org.javacc.parser.CodeProduction;
+import org.javacc.parser.Expansion;
 import org.javacc.parser.JavaCCParserConstants;
-import org.javacc.parser.JavaCodeProduction;
+import org.javacc.parser.Lookahead;
+import org.javacc.parser.NonTerminal;
+import org.javacc.parser.NormalProduction;
+import org.javacc.parser.OneOrMore;
 import org.javacc.parser.Options;
-import org.javacc.parser.ParseException;
+import org.javacc.parser.RegularExpression;
+import org.javacc.parser.Sequence;
 import org.javacc.parser.Token;
+import org.javacc.parser.TryBlock;
+import org.javacc.parser.ZeroOrMore;
+import org.javacc.parser.ZeroOrOne;
+import org.javacc.semantic.Semanticize;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Implements the {@link ParserGenerator} for the JAVA language.
@@ -57,718 +74,877 @@ public class ParseGenJava extends ParserGenerator {
   }
 
   @Override
-  protected void generate(ParserData data, List<String> tn) throws ParseException {
-    // This is the first line generated -- the the comment line at the top of the generated parser
-    genCodeLine("/* " + JavaCCToken.getIdString(tn) + " */");
-    Token t = null;
-
-    boolean implementsExists = false;
-    // final boolean extendsExists = false;
-
-    if (data.toInsertionPoint1().size() != 0) {
-      Object firstToken = data.toInsertionPoint1().get(0);
-      genTokenSetup((Token) firstToken);
-      this.ccol = 1;
-      for (final Iterator<Token> it = data.toInsertionPoint1().iterator(); it.hasNext();) {
-        t = it.next();
-        if (t.kind == JavaCCParserConstants.IMPLEMENTS) {
-          implementsExists = true;
-        } else if (t.kind == JavaCCParserConstants.CLASS) {
-          implementsExists = false;
+  protected void generate(ParserData data, List<String> tools) throws IOException {
+    Function<Object, String> maskFunction = i -> {
+      int index = (Integer) i;
+      return data.maskVals().stream().map(v -> "0x" + Integer.toHexString(v[index])).collect(Collectors.joining(", "));
+    };
+    Function<Object, String> la1tokens = i -> {
+      int index = (Integer) i;
+      return (index == 0) ? "" : (32 * index) + " + ";
+    };
+    Function<Object, String> rescanToken = i -> {
+      return "" + ((Integer) i + 1);
+    };
+    Function<Object, String> writeProductions = i -> {
+      StringWriter writer = new StringWriter();
+      PrintWriter pp = new PrintWriter(writer);
+      for (NormalProduction p : data.getProductions()) {
+        if (p instanceof CodeProduction) {
+          genCodeProduction((CodeProduction) p, pp);
+        } else {
+          String code = generatePhase1Expansion(data, p.getExpansion());
+          generatePhase1((BNFProduction) p, code, pp);
         }
-        genToken(t);
       }
-    }
-
-    if (implementsExists) {
-      genCode(", ");
-    } else {
-      genCode(" implements ");
-    }
-    genCode(data.getParserName() + "Constants ");
-    if (data.toInsertionPoint2().size() != 0) {
-      genTokenSetup(data.toInsertionPoint2().get(0));
-      for (Token token : data.toInsertionPoint2()) {
-        genToken(token);
+      return writer.toString();
+    };
+    Function<Object, String> writeLookaheads = i -> {
+      StringWriter writer = new StringWriter();
+      PrintWriter p = new PrintWriter(writer);
+      for (Lookahead la : data.getLoakaheads()) {
+        generatePhase2(la.getLaExpansion(), p);
       }
-    }
-
-    if (!Options.isLegacy()) {
-      genCodeLine("");
-      genCodeLine("  protected final Node rootNode() { return jjtree.rootNode(); }");
-      genCodeLine("  protected void jjtreeOpenNodeScope(Node node) throws ParseException {}");
-      genCodeLine("  protected void jjtreeCloseNodeScope(Node node) throws ParseException {}");
-      genCodeLine();
-    }
-
-    build(data);
-    build2(data);
-
-    genCodeLine("  /** Generated Token Manager. */");
-    genCodeLine("  public " + data.getParserName() + "TokenManager token_source;");
-    genCodeLine("  JavaCharStream jj_input_stream;");
-    genCodeLine("  /** Current token. */");
-    genCodeLine("  public Token token;");
-    genCodeLine("  /** Next token. */");
-    genCodeLine("  public Token jj_nt;");
-    if (!Options.getCacheTokens()) {
-      genCodeLine("  private int jj_ntk;");
-    }
-    if (Options.getDepthLimit() > 0) {
-      genCodeLine("  private int jj_depth;");
-    }
-    if (data.jj2Index() != 0) {
-      genCodeLine("  private Token jj_scanpos, jj_lastpos;");
-      genCodeLine("  private int jj_la;");
-      if (data.isLookAheadNeeded()) {
-        genCodeLine("  /** Whether we are looking ahead. */");
-        genCodeLine("  private boolean jj_lookingAhead = false;");
-        genCodeLine("  private boolean jj_semLA;");
+      return writer.toString();
+    };
+    Function<Object, String> writeExpansions = i -> {
+      StringWriter writer = new StringWriter();
+      PrintWriter p = new PrintWriter(writer);
+      for (Expansion e : data.getExpansions()) {
+        generatePhase3Routine(data, e, data.getCount(e), p);
       }
-    }
-    if (Options.getErrorReporting()) {
-      genCodeLine("  private int jj_gen;");
-      genCodeLine("  final private int[] jj_la1 = new int[" + data.maskIndex() + "];");
-      final int tokenMaskSize = ((data.getTokenCount() - 1) / 32) + 1;
-      for (int i = 0; i < tokenMaskSize; i++) {
-        genCodeLine("  static private int[] jj_la1_" + i + ";");
-      }
-      genCodeLine("  static {");
-      for (int i = 0; i < tokenMaskSize; i++) {
-        genCodeLine("	   jj_la1_init_" + i + "();");
-      }
-      genCodeLine("	}");
-      for (int i = 0; i < tokenMaskSize; i++) {
-        genCodeLine("	private static void jj_la1_init_" + i + "() {");
-        genCode("	   jj_la1_" + i + " = new int[] {");
-        for (int[] maskVal : data.maskVals()) {
-          genCode("0x" + Integer.toHexString(maskVal[i]) + ",");
+      return writer.toString();
+    };
+    Function<Object, String> postInsertion = i -> {
+      StringWriter writer = new StringWriter();
+      PrintWriter p = new PrintWriter(writer);
+      if (data.fromInsertionPoint2().size() != 0) {
+        genTokenSetup(data.fromInsertionPoint2().get(0));
+        this.ccol = 1;
+        Token t = null;
+        for (Object name : data.fromInsertionPoint2()) {
+          t = (Token) name;
+          p.print(getStringToPrint(t));
         }
-        genCodeLine("};");
-        genCodeLine("	}");
+        p.print(getTrailingComments(t));
       }
-    }
-    if ((data.jj2Index() != 0) && Options.getErrorReporting()) {
-      genCodeLine("  final private JJCalls[] jj_2_rtns = new JJCalls[" + data.jj2Index() + "];");
-      genCodeLine("  private boolean jj_rescan = false;");
-      genCodeLine("  private int jj_gc = 0;");
-    }
-    genCodeLine("");
+      return writer.toString();
+    };
+    Function<Object, String> preInsertion = i -> {
+      StringWriter writer = new StringWriter();
+      PrintWriter p = new PrintWriter(writer);
 
-    if (Options.getDebugParser()) {
-      genCodeLine("  {");
-      genCodeLine("      enable_tracing();");
-      genCodeLine("  }");
-    }
-
-    genCodeLine("  /** Constructor. */");
-    genCodeLine("  public " + data.getParserName() + "(Provider stream) {");
-    genCodeLine("	 jj_input_stream = new JavaCharStream(stream, 1, 1);");
-    genCodeLine("	 token_source = new " + data.getParserName() + "TokenManager(jj_input_stream);");
-    genCodeLine("	 token = new Token();");
-    if (Options.getCacheTokens()) {
-      genCodeLine("	 token.next = jj_nt = token_source.getNextToken();");
-    } else {
-      genCodeLine("	 jj_ntk = -1;");
-    }
-    if (Options.getDepthLimit() > 0) {
-      genCodeLine("    jj_depth = -1;");
-    }
-    if (Options.getErrorReporting()) {
-      genCodeLine("	 jj_gen = 0;");
-      if (data.maskIndex() > 0) {
-        genCodeLine("	 for (int i = 0; i < " + data.maskIndex() + "; i++) jj_la1[i] = -1;");
-      }
-      if (data.jj2Index() != 0) {
-        genCodeLine("	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();");
-      }
-    }
-    genCodeLine("  }");
-    genCodeLine("");
-
-    // Add-in a string based constructor because its convenient (modern only to prevent
-    // regressions)
-    genCodeLine("  /** Constructor. */");
-    genCodeLine("  public " + data.getParserName() + "(String dsl) throws ParseException, TokenMgrException {");
-    genCodeLine("	   this(new StringProvider(dsl));");
-    genCodeLine("  }");
-    genCodeLine("");
-
-    genCodeLine("  public void ReInit(String s) {");
-    genCodeLine("	  ReInit(new StringProvider(s));");
-    genCodeLine("  }");
-
-
-    genCodeLine("  /** Reinitialise. */");
-    genCodeLine("  public void ReInit(Provider stream) {");
-    genCodeLine("	if (jj_input_stream == null) {");
-    genCodeLine("	   jj_input_stream = new JavaCharStream(stream, 1, 1);");
-    genCodeLine("	} else {");
-    genCodeLine("	   jj_input_stream.ReInit(stream, 1, 1);");
-    genCodeLine("	}");
-
-    genCodeLine("	if (token_source == null) {");
-    genCodeLine(" token_source = new " + data.getParserName() + "TokenManager(jj_input_stream);");
-    genCodeLine("	}");
-    genCodeLine("");
-    genCodeLine("	 token_source.ReInit(jj_input_stream);");
-
-    genCodeLine("	 token = new Token();");
-    if (Options.getCacheTokens()) {
-      genCodeLine("	 token.next = jj_nt = token_source.getNextToken();");
-    } else {
-      genCodeLine("	 jj_ntk = -1;");
-    }
-    if (Options.getDepthLimit() > 0) {
-      genCodeLine("    jj_depth = -1;");
-    }
-    if (data.isGenerated()) {
-      genCodeLine("	 jjtree.reset();");
-    }
-    if (Options.getErrorReporting()) {
-      genCodeLine("	 jj_gen = 0;");
-      if (data.maskIndex() > 0) {
-        genCodeLine("	 for (int i = 0; i < " + data.maskIndex() + "; i++) jj_la1[i] = -1;");
-      }
-      if (data.jj2Index() != 0) {
-        genCodeLine("	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();");
-      }
-    }
-    genCodeLine("  }");
-    genCodeLine("");
-    genCodeLine("  /** Constructor with generated Token Manager. */");
-    genCodeLine("  public " + data.getParserName() + "(" + data.getParserName() + "TokenManager tm) {");
-    genCodeLine("	 token_source = tm;");
-    genCodeLine("	 token = new Token();");
-    if (Options.getCacheTokens()) {
-      genCodeLine("	 token.next = jj_nt = token_source.getNextToken();");
-    } else {
-      genCodeLine("	 jj_ntk = -1;");
-    }
-    if (Options.getDepthLimit() > 0) {
-      genCodeLine("    jj_depth = -1;");
-    }
-    if (Options.getErrorReporting()) {
-      genCodeLine("	 jj_gen = 0;");
-      if (data.maskIndex() > 0) {
-        genCodeLine("	 for (int i = 0; i < " + data.maskIndex() + "; i++) jj_la1[i] = -1;");
-      }
-      if (data.jj2Index() != 0) {
-        genCodeLine("	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();");
-      }
-    }
-    genCodeLine("  }");
-    genCodeLine("");
-    genCodeLine("  /** Reinitialise. */");
-    genCodeLine("  public void ReInit(" + data.getParserName() + "TokenManager tm) {");
-    genCodeLine("	 token_source = tm;");
-    genCodeLine("	 token = new Token();");
-    if (Options.getCacheTokens()) {
-      genCodeLine("	 token.next = jj_nt = token_source.getNextToken();");
-    } else {
-      genCodeLine("	 jj_ntk = -1;");
-    }
-    if (Options.getDepthLimit() > 0) {
-      genCodeLine("    jj_depth = -1;");
-    }
-    if (data.isGenerated()) {
-      genCodeLine("	 jjtree.reset();");
-    }
-    if (Options.getErrorReporting()) {
-      genCodeLine("	 jj_gen = 0;");
-      if (data.maskIndex() > 0) {
-        genCodeLine("	 for (int i = 0; i < " + data.maskIndex() + "; i++) jj_la1[i] = -1;");
-      }
-      if (data.jj2Index() != 0) {
-        genCodeLine("	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();");
-      }
-    }
-    genCodeLine("  }");
-    genCodeLine("");
-    genCodeLine("  private Token jj_consume_token(int kind) throws ParseException {");
-    if (Options.getCacheTokens()) {
-      genCodeLine("	 Token oldToken = token;");
-      genCodeLine("	 if ((token = jj_nt).next != null) jj_nt = jj_nt.next;");
-      genCodeLine("	 else jj_nt = jj_nt.next = token_source.getNextToken();");
-    } else {
-      genCodeLine("	 Token oldToken;");
-      genCodeLine("	 if ((oldToken = token).next != null) token = token.next;");
-      genCodeLine("	 else token = token.next = token_source.getNextToken();");
-      genCodeLine("	 jj_ntk = -1;");
-    }
-    genCodeLine("	 if (token.kind == kind) {");
-    if (Options.getErrorReporting()) {
-      genCodeLine("	   jj_gen++;");
-      if (data.jj2Index() != 0) {
-        genCodeLine("	   if (++jj_gc > 100) {");
-        genCodeLine("		 jj_gc = 0;");
-        genCodeLine("		 for (int i = 0; i < jj_2_rtns.length; i++) {");
-        genCodeLine("		   JJCalls c = jj_2_rtns[i];");
-        genCodeLine("		   while (c != null) {");
-        genCodeLine("			 if (c.gen < jj_gen) c.first = null;");
-        genCodeLine("			 c = c.next;");
-        genCodeLine("		   }");
-        genCodeLine("		 }");
-        genCodeLine("	   }");
-      }
-    }
-    if (Options.getDebugParser()) {
-      genCodeLine("	   trace_token(token, \"\");");
-    }
-    genCodeLine("	   return token;");
-    genCodeLine("	 }");
-    if (Options.getCacheTokens()) {
-      genCodeLine("	 jj_nt = token;");
-    }
-    genCodeLine("	 token = oldToken;");
-    if (Options.getErrorReporting()) {
-      genCodeLine("	 jj_kind = kind;");
-    }
-    genCodeLine("	 throw generateParseException();");
-    genCodeLine("  }");
-    genCodeLine("");
-    if (data.jj2Index() != 0) {
-      genCodeLine("  @SuppressWarnings(\"serial\")");
-      genCodeLine("  static private final class LookaheadSuccess extends java.lang.RuntimeException {");
-      genCodeLine("    @Override");
-      genCodeLine("    public Throwable fillInStackTrace() {");
-      genCodeLine("      return this;");
-      genCodeLine("    }");
-      genCodeLine("  }");
-      genCodeLine("  static private final LookaheadSuccess jj_ls = new LookaheadSuccess();");
-      genCodeLine("  private boolean jj_scan_token(int kind) {");
-      genCodeLine("	 if (jj_scanpos == jj_lastpos) {");
-      genCodeLine("	   jj_la--;");
-      genCodeLine("	   if (jj_scanpos.next == null) {");
-      genCodeLine("		 jj_lastpos = jj_scanpos = jj_scanpos.next = token_source.getNextToken();");
-      genCodeLine("	   } else {");
-      genCodeLine("		 jj_lastpos = jj_scanpos = jj_scanpos.next;");
-      genCodeLine("	   }");
-      genCodeLine("	 } else {");
-      genCodeLine("	   jj_scanpos = jj_scanpos.next;");
-      genCodeLine("	 }");
-      if (Options.getErrorReporting()) {
-        genCodeLine("	 if (jj_rescan) {");
-        genCodeLine("	   int i = 0; Token tok = token;");
-        genCodeLine("	   while (tok != null && tok != jj_scanpos) { i++; tok = tok.next; }");
-        genCodeLine("	   if (tok != null) jj_add_error_token(kind, i);");
-        if (Options.getDebugLookahead()) {
-          genCodeLine("	 } else {");
-          genCodeLine("	   trace_scan(jj_scanpos, kind);");
+      boolean implementsExists = false;
+      if (data.toInsertionPoint1().size() != 0) {
+        Token t = null;
+        Object firstToken = data.toInsertionPoint1().get(0);
+        genTokenSetup((Token) firstToken);
+        this.ccol = 1;
+        for (final Iterator<Token> it = data.toInsertionPoint1().iterator(); it.hasNext();) {
+          t = it.next();
+          if (t.kind == JavaCCParserConstants.IMPLEMENTS) {
+            implementsExists = true;
+          } else if (t.kind == JavaCCParserConstants.CLASS) {
+            implementsExists = false;
+          }
+          p.print(getStringToPrint(t));
         }
-        genCodeLine("	 }");
-      } else if (Options.getDebugLookahead()) {
-        genCodeLine("	 trace_scan(jj_scanpos, kind);");
       }
-      genCodeLine("	 if (jj_scanpos.kind != kind) return true;");
-      genCodeLine("	 if (jj_la == 0 && jj_scanpos == jj_lastpos) throw jj_ls;");
-      genCodeLine("	 return false;");
-      genCodeLine("  }");
-      genCodeLine("");
-    }
-    genCodeLine("");
-    genCodeLine("/** Get the next Token. */");
-    genCodeLine("  final public Token getNextToken() {");
-    if (Options.getCacheTokens()) {
-      genCodeLine("	 if ((token = jj_nt).next != null) jj_nt = jj_nt.next;");
-      genCodeLine("	 else jj_nt = jj_nt.next = token_source.getNextToken();");
-    } else {
-      genCodeLine("	 if (token.next != null) token = token.next;");
-      genCodeLine("	 else token = token.next = token_source.getNextToken();");
-      genCodeLine("	 jj_ntk = -1;");
-    }
-    if (Options.getErrorReporting()) {
-      genCodeLine("	 jj_gen++;");
-    }
-    if (Options.getDebugParser()) {
-      genCodeLine("	   trace_token(token, \" (in getNextToken)\");");
-    }
-    genCodeLine("	 return token;");
-    genCodeLine("  }");
-    genCodeLine("");
-    genCodeLine("/** Get the specific Token. */");
-    genCodeLine("  final public Token getToken(int index) {");
-    if (data.isLookAheadNeeded()) {
-      genCodeLine("	 Token t = jj_lookingAhead ? jj_scanpos : token;");
-    } else {
-      genCodeLine("	 Token t = token;");
-    }
-    genCodeLine("	 for (int i = 0; i < index; i++) {");
-    genCodeLine("	   if (t.next != null) t = t.next;");
-    genCodeLine("	   else t = t.next = token_source.getNextToken();");
-    genCodeLine("	 }");
-    genCodeLine("	 return t;");
-    genCodeLine("  }");
-    genCodeLine("");
-    if (!Options.getCacheTokens()) {
-      genCodeLine("  private int jj_ntk_f() {");
-      genCodeLine("	 if ((jj_nt=token.next) == null)");
-      genCodeLine("	   return (jj_ntk = (token.next=token_source.getNextToken()).kind);");
-      genCodeLine("	 else");
-      genCodeLine("	   return (jj_ntk = jj_nt.kind);");
-      genCodeLine("  }");
-      genCodeLine("");
-    }
 
-    if (Options.getErrorReporting()) {
-      genCodeLine("  private java.util.List<int[]> jj_expentries = new java.util.ArrayList<int[]>();");
-      genCodeLine("  private int[] jj_expentry;");
-      genCodeLine("  private int jj_kind = -1;");
-      if (data.jj2Index() != 0) {
-        genCodeLine("  private int[] jj_lasttokens = new int[100];");
-        genCodeLine("  private int jj_endpos;");
-        genCodeLine("");
-        genCodeLine("  private void jj_add_error_token(int kind, int pos) {");
-        genCodeLine("	 if (pos >= 100) {");
-        genCodeLine("		return;");
-        genCodeLine("	 }");
-        genCodeLine("");
-        genCodeLine("	 if (pos == jj_endpos + 1) {");
-        genCodeLine("	   jj_lasttokens[jj_endpos++] = kind;");
-        genCodeLine("	 } else if (jj_endpos != 0) {");
-        genCodeLine("	   jj_expentry = new int[jj_endpos];");
-        genCodeLine("");
-        genCodeLine("	   for (int i = 0; i < jj_endpos; i++) {");
-        genCodeLine("		 jj_expentry[i] = jj_lasttokens[i];");
-        genCodeLine("	   }");
-        genCodeLine("");
-        genCodeLine("	   for (int[] oldentry : jj_expentries) {");
-        genCodeLine("		 if (oldentry.length == jj_expentry.length) {");
-        genCodeLine("		   boolean isMatched = true;");
-        genCodeLine("");
-        genCodeLine("		   for (int i = 0; i < jj_expentry.length; i++) {");
-        genCodeLine("			 if (oldentry[i] != jj_expentry[i]) {");
-        genCodeLine("			   isMatched = false;");
-        genCodeLine("			   break;");
-        genCodeLine("			 }");
-        genCodeLine("");
-        genCodeLine("		   }");
-        genCodeLine("		   if (isMatched) {");
-        genCodeLine("			 jj_expentries.add(jj_expentry);");
-        genCodeLine("			 break;");
-        genCodeLine("		   }");
-        genCodeLine("		 }");
-        genCodeLine("	   }");
-        genCodeLine("");
-        genCodeLine("	   if (pos != 0) {");
-        genCodeLine("		 jj_lasttokens[(jj_endpos = pos) - 1] = kind;");
-        genCodeLine("	   }");
-        genCodeLine("	 }");
-        genCodeLine("  }");
-      }
-      genCodeLine("");
-      genCodeLine("  /** Generate ParseException. */");
-      genCodeLine("  public ParseException generateParseException() {");
-      genCodeLine("	 jj_expentries.clear();");
-      genCodeLine("	 boolean[] la1tokens = new boolean[" + data.getTokenCount() + "];");
-      genCodeLine("	 if (jj_kind >= 0) {");
-      genCodeLine("	   la1tokens[jj_kind] = true;");
-      genCodeLine("	   jj_kind = -1;");
-      genCodeLine("	 }");
-      genCodeLine("	 for (int i = 0; i < " + data.maskIndex() + "; i++) {");
-      genCodeLine("	   if (jj_la1[i] == jj_gen) {");
-      genCodeLine("		 for (int j = 0; j < 32; j++) {");
-      for (int i = 0; i < (((data.getTokenCount() - 1) / 32) + 1); i++) {
-        genCodeLine("		   if ((jj_la1_" + i + "[i] & (1<<j)) != 0) {");
-        genCode("			 la1tokens[");
-        if (i != 0) {
-          genCode((32 * i) + "+");
-        }
-        genCodeLine("j] = true;");
-        genCodeLine("		   }");
-      }
-      genCodeLine("		 }");
-      genCodeLine("	   }");
-      genCodeLine("	 }");
-      genCodeLine("	 for (int i = 0; i < " + data.getTokenCount() + "; i++) {");
-      genCodeLine("	   if (la1tokens[i]) {");
-      genCodeLine("		 jj_expentry = new int[1];");
-      genCodeLine("		 jj_expentry[0] = i;");
-      genCodeLine("		 jj_expentries.add(jj_expentry);");
-      genCodeLine("	   }");
-      genCodeLine("	 }");
-      if (data.jj2Index() != 0) {
-        genCodeLine("	 jj_endpos = 0;");
-        genCodeLine("	 jj_rescan_token();");
-        genCodeLine("	 jj_add_error_token(0, 0);");
-      }
-      genCodeLine("	 int[][] exptokseq = new int[jj_expentries.size()][];");
-      genCodeLine("	 for (int i = 0; i < jj_expentries.size(); i++) {");
-      genCodeLine("	   exptokseq[i] = jj_expentries.get(i);");
-      genCodeLine("	 }");
-
-
-      // Add the lexical state onto the exception message
-      genCodeLine("	 return new ParseException(token, exptokseq, tokenImage, token_source == null ? null : "
-          + data.getParserName() + "TokenManager.lexStateNames[token_source.curLexState]);");
-
-      genCodeLine("  }");
-    } else {
-      genCodeLine("  /** Generate ParseException. */");
-      genCodeLine("  public ParseException generateParseException() {");
-      genCodeLine("	 Token errortok = token.next;");
-      if (Options.getKeepLineColumn()) {
-        genCodeLine("	 int line = errortok.beginLine, column = errortok.beginColumn;");
-      }
-      genCodeLine("	 String mess = (errortok.kind == 0) ? tokenImage[0] : errortok.image;");
-      if (Options.getKeepLineColumn()) {
-        genCodeLine("	 return new ParseException(" + "\"Parse error at line \" + line + \", column \" + column + \".  "
-            + "Encountered: \" + mess);");
+      if (implementsExists) {
+        p.print(", ");
       } else {
-        genCodeLine("	 return new ParseException(\"Parse error at <unknown location>.  " + "Encountered: \" + mess);");
+        p.print(" implements ");
       }
-      genCodeLine("  }");
-    }
-    genCodeLine("");
-
-    genCodeLine("  private boolean trace_enabled;");
-    genCodeLine("");
-    genCodeLine("/** Trace enabled. */");
-    genCodeLine("  final public boolean trace_enabled() {");
-    genCodeLine("	 return trace_enabled;");
-    genCodeLine("  }");
-    genCodeLine("");
-
-    if (Options.getDebugParser()) {
-      genCodeLine("  private int trace_indent = 0;");
-
-      genCodeLine("/** Enable tracing. */");
-      genCodeLine("  final public void enable_tracing() {");
-      genCodeLine("	 trace_enabled = true;");
-      genCodeLine("  }");
-      genCodeLine("");
-      genCodeLine("/** Disable tracing. */");
-      genCodeLine("  final public void disable_tracing() {");
-      genCodeLine("	 trace_enabled = false;");
-      genCodeLine("  }");
-      genCodeLine("");
-      genCodeLine("  protected void trace_call(String s) {");
-      genCodeLine("	 if (trace_enabled) {");
-      genCodeLine("	   for (int i = 0; i < trace_indent; i++) { System.out.print(\" \"); }");
-      genCodeLine("	   System.out.println(\"Call:	\" + s);");
-      genCodeLine("	 }");
-      genCodeLine("	 trace_indent = trace_indent + 2;");
-      genCodeLine("  }");
-      genCodeLine("");
-      genCodeLine("  protected void trace_return(String s) {");
-      genCodeLine("	 trace_indent = trace_indent - 2;");
-      genCodeLine("	 if (trace_enabled) {");
-      genCodeLine("	   for (int i = 0; i < trace_indent; i++) { System.out.print(\" \"); }");
-      genCodeLine("	   System.out.println(\"Return: \" + s);");
-      genCodeLine("	 }");
-      genCodeLine("  }");
-      genCodeLine("");
-      genCodeLine("  protected void trace_token(Token t, String where) {");
-      genCodeLine("	 if (trace_enabled) {");
-      genCodeLine("	   for (int i = 0; i < trace_indent; i++) { System.out.print(\" \"); }");
-      genCodeLine("	   System.out.print(\"Consumed token: <\" + tokenImage[t.kind]);");
-      genCodeLine("	   if (t.kind != 0 && !tokenImage[t.kind].equals(\"\\\"\" + t.image + \"\\\"\")) {");
-      genCodeLine("		 System.out.print(\": \\\"\" + TokenMgrException.addEscapes(" + "t.image) + \"\\\"\");");
-      genCodeLine("	   }");
-      genCodeLine(
-          "	   System.out.println(\" at line \" + t.beginLine + " + "\" column \" + t.beginColumn + \">\" + where);");
-      genCodeLine("	 }");
-      genCodeLine("  }");
-      genCodeLine("");
-      genCodeLine("  protected void trace_scan(Token t1, int t2) {");
-      genCodeLine("	 if (trace_enabled) {");
-      genCodeLine("	   for (int i = 0; i < trace_indent; i++) { System.out.print(\" \"); }");
-      genCodeLine("	   System.out.print(\"Visited token: <\" + tokenImage[t1.kind]);");
-      genCodeLine("	   if (t1.kind != 0 && !tokenImage[t1.kind].equals(\"\\\"\" + t1.image + \"\\\"\")) {");
-      genCodeLine("		 System.out.print(\": \\\"\" + TokenMgrException.addEscapes(" + "t1.image) + \"\\\"\");");
-      genCodeLine("	   }");
-      genCodeLine("	   System.out.println(\" at line \" + t1.beginLine + \""
-          + " column \" + t1.beginColumn + \">; Expected token: <\" + tokenImage[t2] + \">\");");
-      genCodeLine("	 }");
-      genCodeLine("  }");
-      genCodeLine("");
-    } else {
-      genCodeLine("  /** Enable tracing. */");
-      genCodeLine("  final public void enable_tracing() {");
-      genCodeLine("  }");
-      genCodeLine("");
-      genCodeLine("  /** Disable tracing. */");
-      genCodeLine("  final public void disable_tracing() {");
-      genCodeLine("  }");
-      genCodeLine("");
-    }
-
-    if ((data.jj2Index() != 0) && Options.getErrorReporting()) {
-      genCodeLine("  private void jj_rescan_token() {");
-      genCodeLine("	 jj_rescan = true;");
-      genCodeLine("	 for (int i = 0; i < " + data.jj2Index() + "; i++) {");
-      genCodeLine("	   try {");
-      genCodeLine("		 JJCalls p = jj_2_rtns[i];");
-      genCodeLine("");
-      genCodeLine("		 do {");
-      genCodeLine("		   if (p.gen > jj_gen) {");
-      genCodeLine("			 jj_la = p.arg; jj_lastpos = jj_scanpos = p.first;");
-      genCodeLine("			 switch (i) {");
-      for (int i = 0; i < data.jj2Index(); i++) {
-        genCodeLine("			   case " + i + ": jj_3_" + (i + 1) + "(); break;");
+      p.print(data.getParserName() + "Constants ");
+      if (data.toInsertionPoint2().size() != 0) {
+        genTokenSetup(data.toInsertionPoint2().get(0));
+        for (Token token : data.toInsertionPoint2()) {
+          p.print(getStringToPrint(token));
+        }
       }
-      genCodeLine("			 }");
-      genCodeLine("		   }");
-      genCodeLine("		   p = p.next;");
-      genCodeLine("		 } while (p != null);");
-      genCodeLine("");
-      genCodeLine("		 } catch(LookaheadSuccess ls) { }");
-      genCodeLine("	 }");
-      genCodeLine("	 jj_rescan = false;");
-      genCodeLine("  }");
-      genCodeLine("");
-      genCodeLine("  private void jj_save(int index, int xla) {");
-      genCodeLine("	 JJCalls p = jj_2_rtns[index];");
-      genCodeLine("	 while (p.gen > jj_gen) {");
-      genCodeLine("	   if (p.next == null) { p = p.next = new JJCalls(); break; }");
-      genCodeLine("	   p = p.next;");
-      genCodeLine("	 }");
-      genCodeLine("");
-      genCodeLine("	 p.gen = jj_gen + xla - jj_la; ");
-      genCodeLine("	 p.first = token;");
-      genCodeLine("	 p.arg = xla;");
-      genCodeLine("  }");
-      genCodeLine("");
-    }
+      return writer.toString();
+    };
 
-    if ((data.jj2Index() != 0) && Options.getErrorReporting()) {
-      genCodeLine("  static final class JJCalls {");
-      genCodeLine("	 int gen;");
-      genCodeLine("	 Token first;");
-      genCodeLine("	 int arg;");
-      genCodeLine("	 JJCalls next;");
-      genCodeLine("  }");
-      genCodeLine("");
-    }
+    getSource().setOption("LOOKAHEAD_NEEDED", data.isLookAheadNeeded());
+    getSource().setOption("IS_GENERATED", data.isGenerated());
+    getSource().setOption("jj2Index", data.jj2Index());
+    getSource().setOption("maskIndex", data.maskIndex());
+    getSource().setOption("tokenCount", data.getTokenCount());
+    getSource().setOption("tokenMaskSize", ((data.getTokenCount() - 1) / 32) + 1);
+    getSource().setOption("maskFunction", maskFunction);
+    getSource().setOption("la1tokens", la1tokens);
+    getSource().setOption("rescanToken", rescanToken);
+    getSource().setOption("writeProductions", writeProductions);
+    getSource().setOption("writeLookaheads", writeLookaheads);
+    getSource().setOption("writeExpansions", writeExpansions);
+    getSource().setOption("preInsertion", preInsertion);
+    getSource().setOption("postInsertion", postInsertion);
 
-    if (data.fromInsertionPoint2().size() != 0) {
-      genTokenSetup(data.fromInsertionPoint2().get(0));
-      this.ccol = 1;
-      for (Object name : data.fromInsertionPoint2()) {
-        t = (Token) name;
-        genToken(t);
-      }
-      genTrailingComments(t);
-    }
-    genCodeLine("");
+    // This is the first line generated -- the the comment line at the top of the generated parser
+    getSource().println("/* " + JavaCCToken.getIdString(tools) + " */");
+    getSource().writeTemplate("/templates/Parser.template");
 
     saveOutput();
   }
 
-  @Override
-  protected final String generateHeaderMethod(ParserData data, BNFProduction p, Token t, String parserName) {
+  /**
+   * The phase 1 routines generates their output into String's and dumps these String's once for
+   * each method. These String's contain the special characters '\u0001' to indicate a positive
+   * indent, and '\u0002' to indicate a negative indent. '\n' is used to indicate a line terminator.
+   * The characters '\u0003' and '\u0004' are used to delineate portions of text where '\n's should
+   * not be followed by an indentation.
+   */
+  private void generatePhase1(BNFProduction p, String code, PrintWriter writer) {
+    Token t = p.getReturnTypeTokens().get(0);
+
+    boolean voidReturn = (t.kind == JavaCCParserConstants.VOID);
+    genHeaderMethod(p, t, writer);
+
+    writer.print(" {");
+
+    if (Options.getDepthLimit() > 0) {
+      writer.println("if(++jj_depth > " + Options.getDepthLimit() + ") {");
+      writer.println("  jj_consume_token(-1);");
+      writer.println("  throw new ParseException();");
+      writer.println("}");
+      writer.println("try {");
+    }
+
+    int indentamt = 4;
+    if (Options.getDebugParser()) {
+      writer.println();
+      writer.println("    trace_call(\"" + Encoding.escapeUnicode(p.getLhs()) + "\");");
+      writer.println("    try {");
+      indentamt = 6;
+    }
+
+    if (p.getDeclarationTokens().size() != 0) {
+      genTokenSetup((p.getDeclarationTokens().get(0)));
+      JavaCCToken.setRow();
+      for (Iterator<Token> it = p.getDeclarationTokens().iterator(); it.hasNext();) {
+        t = it.next();
+        writer.print(getStringToPrint(t));
+      }
+      writer.print(getTrailingComments(t));
+    }
+
+    char ch = ' ';
+    char prevChar;
+    boolean indentOn = true;
+    for (int i = 0; i < code.length(); i++) {
+      prevChar = ch;
+      ch = code.charAt(i);
+      if ((ch == '\n') && (prevChar == '\r')) {
+        // do nothing - we've already printed a new line for the '\r'
+        // during the previous iteration.
+      } else if ((ch == '\n') || (ch == '\r')) {
+        if (indentOn) {
+          writer.println();
+          for (int i0 = 0; i0 < indentamt; i0++) {
+            writer.print(" ");
+          }
+        } else {
+          writer.println();
+        }
+      } else if (ch == '\u0001') {
+        indentamt += 2;
+      } else if (ch == '\u0002') {
+        indentamt -= 2;
+      } else if (ch == '\u0003') {
+        indentOn = false;
+      } else if (ch == '\u0004') {
+        indentOn = true;
+      } else {
+        writer.print(ch);
+      }
+    }
+    writer.println();
+
+    if (p.isJumpPatched() && !voidReturn) {
+      writer.println("    throw new " + "RuntimeException" + "(\"Missing return statement in function\");");
+    }
+    if (Options.getDebugParser()) {
+      writer.println("    } finally {");
+      writer.println("      trace_return(\"" + Encoding.escapeUnicode(p.getLhs()) + "\");");
+      writer.println("    }");
+    }
+    if (Options.getDepthLimit() > 0) {
+      writer.println(" } finally {");
+      writer.println("   --jj_depth;");
+      writer.println(" }");
+    }
+    writer.println("}");
+    writer.println();
+  }
+
+  private String generatePhase1Expansion(ParserData data, Expansion e) {
+    String retval = "";
+    Token t = null;
+    if (e instanceof RegularExpression) {
+      RegularExpression e_nrw = (RegularExpression) e;
+      retval += "\n";
+      if (e_nrw.lhsTokens.size() != 0) {
+        genTokenSetup((e_nrw.lhsTokens.get(0)));
+        for (Iterator<Token> it = e_nrw.lhsTokens.iterator(); it.hasNext();) {
+          t = it.next();
+          retval += getStringToPrint(t);
+        }
+        retval += getTrailingComments(t);
+        retval += " = ";
+      }
+      String tail = e_nrw.rhsToken == null ? ");" : ")." + e_nrw.rhsToken.image + ";";
+      if (e_nrw.label.equals("")) {
+        Object label = data.getNameOfToken(e_nrw.ordinal);
+        if (label != null) {
+          retval += "jj_consume_token(" + (String) label + tail;
+        } else {
+          retval += "jj_consume_token(" + e_nrw.ordinal + tail;
+        }
+      } else {
+        retval += "jj_consume_token(" + e_nrw.label + tail;
+      }
+
+    } else if (e instanceof NonTerminal) {
+      NonTerminal e_nrw = (NonTerminal) e;
+      retval += "\n";
+      if (e_nrw.getLhsTokens().size() != 0) {
+        genTokenSetup((e_nrw.getLhsTokens().get(0)));
+        for (Iterator<Token> it = e_nrw.getLhsTokens().iterator(); it.hasNext();) {
+          t = it.next();
+          retval += getStringToPrint(t);
+        }
+        retval += getTrailingComments(t);
+        retval += " = ";
+      }
+      retval += e_nrw.getName() + "(";
+      if (e_nrw.getArgumentTokens().size() != 0) {
+        genTokenSetup((e_nrw.getArgumentTokens().get(0)));
+        for (Iterator<Token> it = e_nrw.getArgumentTokens().iterator(); it.hasNext();) {
+          t = it.next();
+          retval += getStringToPrint(t);
+        }
+        retval += getTrailingComments(t);
+      }
+      retval += ");";
+    } else if (e instanceof Action) {
+      Action e_nrw = (Action) e;
+      retval += "\u0003\n";
+      if (e_nrw.getActionTokens().size() != 0) {
+        genTokenSetup((e_nrw.getActionTokens().get(0)));
+        JavaCCToken.setColumn();
+        for (Iterator<Token> it = e_nrw.getActionTokens().iterator(); it.hasNext();) {
+          t = it.next();
+          retval += getStringToPrint(t);
+        }
+        retval += getTrailingComments(t);
+      }
+      retval += "\u0004";
+    } else if (e instanceof Choice) {
+      Choice e_nrw = (Choice) e;
+      Lookahead[] conds = data.getLoakaheads(e);
+      String[] actions = new String[e_nrw.getChoices().size() + 1];
+      actions[e_nrw.getChoices().size()] = "\n" + "jj_consume_token(-1);\nthrow new ParseException();";
+
+      // In previous line, the "throw" never throws an exception since the
+      // evaluation of jj_consume_token(-1) causes ParseException to be
+      // thrown first.
+      Sequence nestedSeq;
+      for (int i = 0; i < e_nrw.getChoices().size(); i++) {
+        nestedSeq = (Sequence) (e_nrw.getChoices().get(i));
+        actions[i] = generatePhase1Expansion(data, nestedSeq);
+      }
+      retval = genLookaheadChecker(data, conds, actions);
+    } else if (e instanceof Sequence) {
+      Sequence e_nrw = (Sequence) e;
+      // We skip the first element in the following iteration since it is the
+      // Lookahead object.
+      for (int i = 1; i < e_nrw.units.size(); i++) {
+        // For C++, since we are not using exceptions, we will protect all the
+        // expansion choices with if (!error)
+        boolean wrap_in_block = false;
+        retval += generatePhase1Expansion(data, (Expansion) e_nrw.units.get(i));
+        if (wrap_in_block) {
+          retval += "\n}";
+        }
+      }
+    } else if (e instanceof OneOrMore) {
+      OneOrMore e_nrw = (OneOrMore) e;
+      Expansion nested_e = e_nrw.expansion;
+      retval += "\n";
+      int labelIndex = nextLabelIndex();
+      retval += "label_" + labelIndex + ":\n";
+      retval += "while (true) {\u0001";
+      retval += generatePhase1Expansion(data, nested_e);
+      Lookahead[] conds = data.getLoakaheads(e);
+      String[] actions = { "\n;", "\nbreak label_" + labelIndex + ";" };
+      retval += genLookaheadChecker(data, conds, actions);
+      retval += "\u0002\n" + "}";
+    } else if (e instanceof ZeroOrMore) {
+      ZeroOrMore e_nrw = (ZeroOrMore) e;
+      Expansion nested_e = e_nrw.expansion;
+      retval += "\n";
+      int labelIndex = nextLabelIndex();
+      retval += "label_" + labelIndex + ":\n";
+      retval += "while (true) {\u0001";
+      Lookahead[] conds = data.getLoakaheads(e);
+      String[] actions = { "\n;", "\nbreak label_" + labelIndex + ";" };
+      retval += genLookaheadChecker(data, conds, actions);
+      retval += generatePhase1Expansion(data, nested_e);
+      retval += "\u0002\n" + "}";
+    } else if (e instanceof ZeroOrOne) {
+      ZeroOrOne e_nrw = (ZeroOrOne) e;
+      Expansion nested_e = e_nrw.expansion;
+      Lookahead[] conds = data.getLoakaheads(e);
+      String[] actions = { generatePhase1Expansion(data, nested_e), "\n;" };
+      retval += genLookaheadChecker(data, conds, actions);
+    } else if (e instanceof TryBlock) {
+      TryBlock e_nrw = (TryBlock) e;
+      Expansion nested_e = e_nrw.exp;
+      List<Token> list;
+      retval += "\n";
+      retval += "try {\u0001";
+      retval += generatePhase1Expansion(data, nested_e);
+      retval += "\u0002\n" + "}";
+      for (int i = 0; i < e_nrw.catchblks.size(); i++) {
+        retval += " catch (";
+        list = e_nrw.types.get(i);
+        if (list.size() != 0) {
+          genTokenSetup((list.get(0)));
+          for (Iterator<Token> it = list.iterator(); it.hasNext();) {
+            t = it.next();
+            retval += getStringToPrint(t);
+          }
+          retval += getTrailingComments(t);
+        }
+        retval += " ";
+        t = (e_nrw.ids.get(i));
+        genTokenSetup(t);
+        retval += getStringToPrint(t);
+        retval += getTrailingComments(t);
+        retval += ") {\u0003\n";
+        list = e_nrw.catchblks.get(i);
+        if (list.size() != 0) {
+          genTokenSetup((list.get(0)));
+          JavaCCToken.setColumn();
+          for (Iterator<Token> it = list.iterator(); it.hasNext();) {
+            t = it.next();
+            retval += getStringToPrint(t);
+          }
+          retval += getTrailingComments(t);
+        }
+        retval += "\u0004\n" + "}";
+      }
+      if (e_nrw.finallyblk != null) {
+        retval += " finally {\u0003\n";
+
+        if (e_nrw.finallyblk.size() != 0) {
+          genTokenSetup((e_nrw.finallyblk.get(0)));
+          JavaCCToken.setColumn();
+          for (Iterator<Token> it = e_nrw.finallyblk.iterator(); it.hasNext();) {
+            t = it.next();
+            retval += getStringToPrint(t);
+          }
+          retval += getTrailingComments(t);
+        }
+        retval += "\u0004\n" + "}";
+      }
+    }
+    return retval;
+  }
+
+  /**
+   * This method takes two parameters - an array of Lookahead's "conds", and an array of String's
+   * "actions". "actions" contains exactly one element more than "conds". "actions" are Java source
+   * code, and "conds" translate to conditions - so lets say "f(conds[i])" is true if the lookahead
+   * required by "conds[i]" is indeed the case. This method returns a string corresponding to the
+   * Java code for:
+   *
+   * if (f(conds[0]) actions[0] else if (f(conds[1]) actions[1] . . . else actions[action.length-1]
+   *
+   * A particular action entry ("actions[i]") can be null, in which case, a noop is generated for
+   * that action.
+   */
+  private String genLookaheadChecker(ParserData data, Lookahead[] conds, String[] actions) {
+    // The state variables.
+    LookaheadState state = LookaheadState.NOOPENSTM;
+    int indentAmt = 0;
+    boolean[] casedValues = new boolean[data.getTokenCount()];
+    String retval = "";
+    Lookahead la = null;
+    Token t = null;
+
+    // Iterate over all the conditions.
+    int index = 0;
+    boolean jj2LA = false;
+    while (index < conds.length) {
+
+      la = conds[index];
+      jj2LA = false;
+
+      if ((la.getAmount() == 0) || Semanticize.emptyExpansionExists(la.getLaExpansion())) {
+        // This handles the following cases:
+        // . If syntactic lookahead is not wanted (and hence explicitly specified
+        // as 0).
+        // . If it is possible for the lookahead expansion to recognize the empty
+        // string - in which case the lookahead trivially passes.
+        // . If the lookahead expansion has a JAVACODE production that it directly
+        // expands to - in which case the lookahead trivially passes.
+        if (la.getActionTokens().size() == 0) {
+          // In addition, if there is no semantic lookahead, then the
+          // lookahead trivially succeeds. So break the main loop and
+          // treat this case as the default last action.
+          break;
+        } else {
+          // This case is when there is only semantic lookahead
+          // (without any preceding syntactic lookahead). In this
+          // case, an "if" statement is generated.
+          switch (state) {
+            case NOOPENSTM:
+              retval += "\n" + "if (";
+              indentAmt++;
+              break;
+            case OPENIF:
+              retval += "\u0002\n" + "} else if (";
+              break;
+            case OPENSWITCH:
+              retval += "\u0002\n" + "default:" + "\u0001";
+              if (Options.getErrorReporting()) {
+                retval += "\njj_la1[" + data.getIndex(la) + "] = jj_gen;";
+              }
+              retval += "\n" + "if (";
+              indentAmt++;
+          }
+          genTokenSetup((la.getActionTokens().get(0)));
+          for (Iterator<Token> it = la.getActionTokens().iterator(); it.hasNext();) {
+            t = it.next();
+            retval += getStringToPrint(t);
+          }
+          retval += getTrailingComments(t);
+          retval += ") {\u0001" + actions[index];
+          state = LookaheadState.OPENIF;
+        }
+
+      } else if ((la.getAmount() == 1) && (la.getActionTokens().size() == 0)) {
+        // Special optimal processing when the lookahead is exactly 1, and there
+        // is no semantic lookahead.
+        boolean[] firstSet = new boolean[data.getTokenCount()];
+        for (int i = 0; i < data.getTokenCount(); i++) {
+          firstSet[i] = false;
+        }
+
+        // jj2LA is set to false at the beginning of the containing "if" statement.
+        // It is checked immediately after the end of the same statement to determine
+        // if lookaheads are to be performed using calls to the jj2 methods.
+        jj2LA = genFirstSet(data, la.getLaExpansion(), firstSet, jj2LA);
+        // genFirstSet may find that semantic attributes are appropriate for the next
+        // token. In which case, it sets jj2LA to true.
+        if (!jj2LA) {
+
+          // This case is if there is no applicable semantic lookahead and the lookahead
+          // is one (excluding the earlier cases such as JAVACODE, etc.).
+          switch (state) {
+            case OPENIF:
+              retval += "\u0002\n" + "} else {\u0001";
+              //$FALL-THROUGH$ Control flows through to next case.
+            case NOOPENSTM:
+              retval += "\n" + "switch (";
+              if (Options.getCacheTokens()) {
+                retval += "jj_nt.kind";
+                retval += ") {\u0001";
+              } else {
+                retval += "(jj_ntk==-1)?jj_ntk_f():jj_ntk) {\u0001";
+              }
+              for (int i = 0; i < data.getTokenCount(); i++) {
+                casedValues[i] = false;
+              }
+              indentAmt++;
+              // Don't need to do anything if state is OPENSWITCH.
+            default:
+          }
+          for (int i = 0; i < data.getTokenCount(); i++) {
+            if (firstSet[i] && !casedValues[i]) {
+              casedValues[i] = true;
+              retval += "\u0002\ncase ";
+              String s = data.getNameOfToken(i);
+              if (s == null) {
+                retval += i;
+              } else {
+                retval += s;
+              }
+              retval += ":\u0001";
+            }
+          }
+          retval += "{";
+          retval += actions[index];
+          retval += "\nbreak;\n}";
+          state = LookaheadState.OPENSWITCH;
+
+        }
+
+      } else {
+        // This is the case when lookahead is determined through calls to
+        // jj2 methods. The other case is when lookahead is 1, but semantic
+        // attributes need to be evaluated. Hence this crazy control structure.
+
+        jj2LA = true;
+      }
+
+      if (jj2LA) {
+        // In this case lookahead is determined by the jj2 methods.
+
+        switch (state) {
+          case NOOPENSTM:
+            retval += "\n" + "if (";
+            indentAmt++;
+            break;
+          case OPENIF:
+            retval += "\u0002\n" + "} else if (";
+            break;
+          case OPENSWITCH:
+            retval += "\u0002\n" + "default:" + "\u0001";
+            if (Options.getErrorReporting()) {
+              retval += "\njj_la1[" + data.getIndex(la) + "] = jj_gen;";
+            }
+            retval += "\n" + "if (";
+            indentAmt++;
+        }
+
+        String amount = Integer.toString(la.getAmount());
+        retval += "jj_2" + la.getLaExpansion().internal_name + "(" + amount + ")";
+        if (la.getActionTokens().size() != 0) {
+          // In addition, there is also a semantic lookahead. So concatenate
+          // the semantic check with the syntactic one.
+          retval += " && (";
+          genTokenSetup((la.getActionTokens().get(0)));
+          for (Iterator<Token> it = la.getActionTokens().iterator(); it.hasNext();) {
+            t = it.next();
+            retval += getStringToPrint(t);
+          }
+          retval += getTrailingComments(t);
+          retval += ")";
+        }
+        retval += ") {\u0001" + actions[index];
+        state = LookaheadState.OPENIF;
+      }
+
+      index++;
+    }
+
+    // Generate code for the default case. Note this may not
+    // be the last entry of "actions" if any condition can be
+    // statically determined to be always "true".
+
+    switch (state) {
+      case NOOPENSTM:
+        retval += actions[index];
+        break;
+      case OPENIF:
+        retval += "\u0002\n" + "} else {\u0001" + actions[index];
+        break;
+      case OPENSWITCH:
+        retval += "\u0002\n" + "default:" + "\u0001";
+        if (Options.getErrorReporting()) {
+          retval += "\njj_la1[" + data.getIndex(la) + "] = jj_gen;";
+        }
+        retval += actions[index];
+    }
+    for (int i = 0; i < indentAmt; i++) {
+      retval += "\u0002\n}";
+    }
+    return retval;
+  }
+
+  private final void genHeaderMethod(BNFProduction p, Token t, PrintWriter writer) {
     genTokenSetup(t);
     JavaCCToken.setColumn();
-    genLeadingComments(t);
-    genCode("  final " + (p.getAccessMod() != null ? p.getAccessMod() : "public") + " ");
+    writer.print(getLeadingComments(t));
+    writer.print("  public final ");
     JavaCCToken.set(t);
-    genTokenOnly(t);
+    writer.print(getStringForTokenOnly(t));
     for (int i = 1; i < p.getReturnTypeTokens().size(); i++) {
       t = (p.getReturnTypeTokens().get(i));
-      genToken(t);
+      writer.print(getStringToPrint(t));
     }
-    genTrailingComments(t);
-    genCode(" " + p.getLhs() + "(");
+    writer.print(getTrailingComments(t));
+    writer.print(" " + p.getLhs() + "(");
     if (p.getParameterListTokens().size() != 0) {
       genTokenSetup((p.getParameterListTokens().get(0)));
       for (Iterator<Token> it = p.getParameterListTokens().iterator(); it.hasNext();) {
         t = it.next();
-        genToken(t);
+        writer.print(getStringToPrint(t));
       }
-      genTrailingComments(t);
+      writer.print(getTrailingComments(t));
     }
-    genCode(")");
-    genCode(" throws ParseException");
+    writer.print(") throws ParseException");
 
     for (Iterator<List<Token>> it = p.getThrowsList().iterator(); it.hasNext();) {
-      genCode(", ");
+      writer.print(", ");
       List<Token> name = it.next();
       for (Iterator<Token> it2 = name.iterator(); it2.hasNext();) {
         t = it2.next();
-        genCode(t.image);
+        writer.print(t.image);
       }
     }
-
-    return null;
   }
 
-  @Override
-  protected final void genStackCheck(boolean voidReturn) {
-    if (Options.getDepthLimit() > 0) {
-      genCodeLine("if(++jj_depth > " + Options.getDepthLimit() + ") {");
-      genCodeLine("  jj_consume_token(-1);");
-      genCodeLine("  throw new ParseException();");
-      genCodeLine("}");
-      genCodeLine("try {");
-    }
-  }
-
-  @Override
-  protected final void genJavaCodeProduction(ParserData data, JavaCodeProduction jp) {
+  private final void genCodeProduction(CodeProduction jp, PrintWriter writer) {
     Token t = jp.getReturnTypeTokens().get(0);
     genTokenSetup(t);
     JavaCCToken.setColumn();
-    genLeadingComments(t);
-    genCode("  " + (jp.getAccessMod() != null ? jp.getAccessMod() + " " : ""));
+    writer.print(getLeadingComments(t));
+    writer.print("  ");
     JavaCCToken.set(t);
-    genTokenOnly(t);
+    writer.print(getStringForTokenOnly(t));
     for (int i = 1; i < jp.getReturnTypeTokens().size(); i++) {
       t = (jp.getReturnTypeTokens().get(i));
-      genToken(t);
+      writer.print(getStringToPrint(t));
     }
-    genTrailingComments(t);
-    genCode(" " + jp.getLhs() + "(");
+    writer.print(getTrailingComments(t));
+    writer.print(" " + jp.getLhs() + "(");
     if (jp.getParameterListTokens().size() != 0) {
       genTokenSetup((jp.getParameterListTokens().get(0)));
       for (Iterator<Token> it = jp.getParameterListTokens().iterator(); it.hasNext();) {
         t = it.next();
-        genToken(t);
+        writer.print(getStringToPrint(t));
       }
-      genTrailingComments(t);
+      writer.print(getTrailingComments(t));
     }
-    genCode(")");
-    if (isJavaLanguage()) {
-      genCode(" throws ParseException");
-    }
+    writer.print(")");
+    writer.print(" throws ParseException");
     for (Iterator<List<Token>> it = jp.getThrowsList().iterator(); it.hasNext();) {
-      genCode(", ");
+      writer.print(", ");
       List<Token> name = it.next();
       for (Iterator<Token> it2 = name.iterator(); it2.hasNext();) {
         t = it2.next();
-        genCode(t.image);
+        writer.print(t.image);
       }
     }
-    genCode(" {");
+    writer.print(" {");
     if (Options.getDebugParser()) {
-      genCodeLine("");
-      genCodeLine("    trace_call(\"" + Encoding.escapeUnicode(jp.getLhs()) + "\");");
-      genCode("    try {");
+      writer.println();
+      writer.println("    trace_call(\"" + Encoding.escapeUnicode(jp.getLhs()) + "\");");
+      writer.print("    try {");
     }
     if (jp.getCodeTokens().size() != 0) {
       genTokenSetup((jp.getCodeTokens().get(0)));
       JavaCCToken.setRow();
-      printTokenList(jp.getCodeTokens());
-    }
-    genCodeLine("");
-    if (Options.getDebugParser()) {
-      genCodeLine("    } finally {");
-      genCodeLine("      trace_return(\"" + Encoding.escapeUnicode(jp.getLhs()) + "\");");
-      genCodeLine("    }");
-    }
-    genCodeLine("  }");
-    genCodeLine("");
 
+      for (Iterator<Token> it = jp.getCodeTokens().iterator(); it.hasNext();) {
+        t = it.next();
+        writer.print(getStringToPrint(t));
+      }
+
+      if (t != null) {
+        writer.print(getTrailingComments(t));
+      }
+    }
+    writer.println();
+    if (Options.getDebugParser()) {
+      writer.println("    } finally {");
+      writer.println("      trace_return(\"" + Encoding.escapeUnicode(jp.getLhs()) + "\");");
+      writer.println("    }");
+    }
+    writer.println("  }");
+    writer.println();
   }
 
-  private void printTokenList(List<Token> list) {
-    Token t = null;
-    for (Iterator<Token> it = list.iterator(); it.hasNext();) {
-      t = it.next();
-      genToken(t);
+  private void generatePhase2(Expansion e, PrintWriter writer) {
+    writer.println("  private boolean jj_2" + e.internal_name + "(int xla) {");
+    writer.println("    jj_la = xla;");
+    writer.println("    jj_lastpos = jj_scanpos = token;");
+
+    String ret_suffix = (Options.getDepthLimit() > 0) ? " && !jj_depth_error" : "";
+
+    writer.println("    try {");
+    writer.println("      return (!jj_3" + e.internal_name + "()" + ret_suffix + ");");
+    writer.println("    } catch (LookaheadSuccess ls) {");
+    writer.println("      return true;");
+    if (Options.getErrorReporting()) {
+      writer.println("    } finally {");
+      writer.println("      jj_save(" + (Integer.parseInt(e.internal_name.substring(1)) - 1) + ", xla);");
+    }
+    writer.println("    }");
+    writer.println("  }");
+    writer.println();
+  }
+
+  private void generatePhase3Routine(ParserData data, Expansion e, int count, PrintWriter writer) {
+    if (e.internal_name.startsWith("jj_scan_token")) {
+      return;
     }
 
-    if (t != null) {
-      genTrailingComments(t);
+    writer.println("  private boolean jj_3" + e.internal_name + "() {");
+
+    if (Options.getDepthLimit() > 0) {
+      writer.println("if(++jj_depth > " + Options.getDepthLimit() + ") {");
+      writer.println("  jj_consume_token(-1);");
+      writer.println("  throw new ParseException();");
+      writer.println("}");
+      writer.println("try {");
     }
+
+    boolean xsp_declared = false;
+    Expansion jj3_expansion = null;
+    if (Options.getDebugLookahead() && (e.parent instanceof NormalProduction)) {
+      writer.print("    ");
+      if (Options.getErrorReporting()) {
+        writer.print("if (!jj_rescan) ");
+      }
+      writer.println(
+          "trace_call(\"" + Encoding.escapeUnicode(((NormalProduction) e.parent).getLhs()) + "(LOOKING AHEAD...)\");");
+      jj3_expansion = e;
+    }
+
+    buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, e, count, writer);
+
+    writer.println("    " + genReturn(jj3_expansion, false));
+    if (Options.getDepthLimit() > 0) {
+      writer.println(" } finally {");
+      writer.println("   --jj_depth;");
+      writer.println(" }");
+    }
+    writer.println("  }");
+    writer.println();
+  }
+
+  private boolean buildPhase3RoutineRecursive(ParserData data, Expansion jj3_expansion, boolean xsp_declared,
+      Expansion e, int count, PrintWriter writer) {
+    if (e.internal_name.startsWith("jj_scan_token")) {
+      return xsp_declared;
+    }
+
+    if (e instanceof RegularExpression) {
+      RegularExpression e_nrw = (RegularExpression) e;
+      writer.print("    if (jj_scan_token(");
+      if (e_nrw.label.equals("")) {
+        Object label = data.getNameOfToken(e_nrw.ordinal);
+        writer.print((label == null) ? e_nrw.ordinal : data.getParserName() + "Constants." + label);
+      } else {
+        writer.print(data.getParserName() + "Constants." + e_nrw.label);
+      }
+      writer.println("))");
+      writer.println("      " + genReturn(jj3_expansion, true));
+    } else if (e instanceof NonTerminal) {
+      // All expansions of non-terminals have the "name" fields set. So
+      // there's no need to check it below for "e_nrw" and "ntexp". In
+      // fact, we rely here on the fact that the "name" fields of both these
+      // variables are the same.
+      NonTerminal e_nrw = (NonTerminal) e;
+      NormalProduction ntprod = data.getProduction(e_nrw.getName());
+      Expansion ntexp = ntprod.getExpansion();
+      writer.println("    if (" + genjj_3Call(ntexp) + ")");
+      writer.println("      " + genReturn(jj3_expansion, true));
+    } else if (e instanceof Choice) {
+      Sequence nested_seq;
+      Choice e_nrw = (Choice) e;
+      if (e_nrw.getChoices().size() != 1) {
+        if (!xsp_declared) {
+          xsp_declared = true;
+          writer.println("    Token xsp;");
+        }
+        writer.println("    xsp = jj_scanpos;");
+      }
+
+      Token t = null;
+      for (int i = 0; i < e_nrw.getChoices().size(); i++) {
+        nested_seq = (Sequence) (e_nrw.getChoices().get(i));
+        Lookahead la = (Lookahead) (nested_seq.units.get(0));
+        if (la.getActionTokens().size() != 0) {
+          writer.println("    jj_lookingAhead = true;");
+          writer.print("    jj_semLA = ");
+          genTokenSetup((la.getActionTokens().get(0)));
+          for (Iterator<Token> it = la.getActionTokens().iterator(); it.hasNext();) {
+            t = it.next();
+            writer.print(getStringToPrint(t));
+          }
+          writer.print(getTrailingComments(t));
+          writer.println(";");
+          writer.println("    jj_lookingAhead = false;");
+        }
+        writer.print("    if (");
+        if (la.getActionTokens().size() != 0) {
+          writer.print("!jj_semLA || ");
+        }
+        if (i != (e_nrw.getChoices().size() - 1)) {
+          writer.println(genjj_3Call(nested_seq) + ") {");
+          writer.println("      jj_scanpos = xsp;");
+        } else {
+          writer.println(genjj_3Call(nested_seq) + ")");
+          writer.println("      " + genReturn(jj3_expansion, true));
+        }
+      }
+      for (int i = 1; i < e_nrw.getChoices().size(); i++) {
+        writer.println("    }");
+      }
+    } else if (e instanceof Sequence) {
+      Sequence e_nrw = (Sequence) e;
+      // We skip the first element in the following iteration since it is the
+      // Lookahead object.
+      int cnt = count;
+      for (int i = 1; i < e_nrw.units.size(); i++) {
+        Expansion eseq = (Expansion) (e_nrw.units.get(i));
+        xsp_declared = buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, eseq, cnt, writer);
+        cnt -= ParserGenerator.minimumSize(data, eseq);
+        if (cnt <= 0) {
+          break;
+        }
+      }
+    } else if (e instanceof TryBlock) {
+      TryBlock e_nrw = (TryBlock) e;
+      xsp_declared = buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, e_nrw.exp, count, writer);
+    } else if (e instanceof OneOrMore) {
+      if (!xsp_declared) {
+        xsp_declared = true;
+        writer.println("    Token xsp;");
+      }
+      OneOrMore e_nrw = (OneOrMore) e;
+      Expansion nested_e = e_nrw.expansion;
+      writer.println("    if (" + genjj_3Call(nested_e) + ") " + genReturn(jj3_expansion, true));
+      writer.println("    while (true) {");
+      writer.println("      xsp = jj_scanpos;");
+      writer.println("      if (" + genjj_3Call(nested_e) + ") { jj_scanpos = xsp; break; }");
+      writer.println("    }");
+    } else if (e instanceof ZeroOrMore) {
+      if (!xsp_declared) {
+        xsp_declared = true;
+        writer.println("    Token xsp;");
+      }
+      ZeroOrMore e_nrw = (ZeroOrMore) e;
+      Expansion nested_e = e_nrw.expansion;
+      writer.println("    while (true) {");
+      writer.println("      xsp = jj_scanpos;");
+      writer.println("      if (" + genjj_3Call(nested_e) + ") { jj_scanpos = xsp; break; }");
+      writer.println("    }");
+    } else if (e instanceof ZeroOrOne) {
+      if (!xsp_declared) {
+        xsp_declared = true;
+        writer.println("    Token xsp;");
+      }
+      ZeroOrOne e_nrw = (ZeroOrOne) e;
+      Expansion nested_e = e_nrw.expansion;
+      writer.println("      xsp = jj_scanpos;");
+      writer.println("    if (" + genjj_3Call(nested_e) + ") jj_scanpos = xsp;");
+    }
+    return xsp_declared;
+  }
+
+
+  private String genReturn(Expansion expansion, boolean value) {
+    String retval = value ? "true" : "false";
+    if (Options.getDebugLookahead() && (expansion != null)) {
+      String tracecode = "trace_return(\"" + Encoding.escapeUnicode(((NormalProduction) expansion.parent).getLhs())
+          + "(LOOKAHEAD " + (value ? "FAILED" : "SUCCEEDED") + ")\");";
+      if (Options.getErrorReporting()) {
+        tracecode = "if (!jj_rescan) " + tracecode;
+      }
+      return "{ " + tracecode + " return " + retval + "; }";
+    } else {
+      return "return " + retval + ";";
+    }
+  }
+
+  private String genjj_3Call(Expansion e) {
+    return e.internal_name.startsWith("jj_scan_token") ? e.internal_name : "jj_3" + e.internal_name + "()";
   }
 }

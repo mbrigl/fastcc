@@ -49,11 +49,6 @@ public class NormalProduction {
   private final List<Object> parents               = new ArrayList<>();
 
   /**
-   * The access modifier of this production.
-   */
-  private String             accessMod;
-
-  /**
    * The name of the non-terminal of this production.
    */
   private String             lhs;
@@ -140,20 +135,6 @@ public class NormalProduction {
    */
   public List<? super Object> getParents() {
     return this.parents;
-  }
-
-  /**
-   * @param accessMod the accessMod to set
-   */
-  public void setAccessMod(String accessMod) {
-    this.accessMod = accessMod;
-  }
-
-  /**
-   * @return the accessMod
-   */
-  public String getAccessMod() {
-    return this.accessMod;
   }
 
   /**
