@@ -4,12 +4,11 @@
 	<property name="resources-src" value="src/main/resources" />
 	<property name="generated-src" value="src/main/generated-sources" />
 	<property name="parser-generated-src" value="${generated-src}/org/javacc/parser" />
-	<property name="utils-generated-src" value="${generated-src}/org/javacc/utils" />
 	<property name="jjtree-generated-src" value="${generated-src}/org/javacc/jjtree" />
 
 	<property name="bootstrap-jar" value="bootstrap/javacc.jar" />
-	<property name="jjtree-class-name" value="org.javacc.jjtree.Main" />
-	<property name="javacc-class-name" value="org.javacc.parser.Main" />
+	<property name="jjtree-class-name" value="org.javacc.JJTree" />
+	<property name="javacc-class-name" value="org.javacc.JJParser" />
 
 	<property name="target-folder" value="target" />
 
@@ -158,16 +157,6 @@
 		<delete file="${jjtree-generated-src}/ASTOptionBinding.java" />
 		<delete file="${jjtree-generated-src}/JJTreeParserDefaultVisitor.java" />
 		<delete file="${jjtree-generated-src}/Token.java" />
-
-		<!-- ReGenerate the Condition Parser with the new jar -->
-		<java classname="${javacc-class-name}"
-		      classpath="${param-jar}"
-		      dir="${basedir}/src/main/javacc"
-		      fork="true"
-		>
-			<arg value="-OUTPUT_DIRECTORY=${basedir}/${utils-generated-src}" />
-			<arg value="ConditionParser.jj" />
-		</java>
 
 		<mkdir dir="classes" />
 

@@ -27,6 +27,8 @@
  */
 package org.javacc.parser;
 
+import org.javacc.generator.LexerData;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,9 +47,8 @@ public class RRepetitionRange extends RegularExpression {
   public boolean           hasMax;
 
   @Override
-  public Nfa GenerateNfa(boolean ignoreCase)
-  {
-     List<? super Object> units = new ArrayList<>();
+  public Nfa GenerateNfa(LexerData data, boolean ignoreCase) {
+    List<? super Object> units = new ArrayList<>();
     RSequence seq;
     int i;
 
@@ -68,6 +69,6 @@ public class RRepetitionRange extends RegularExpression {
       units.add(zoo);
     }
     seq = new RSequence(units);
-     return seq.GenerateNfa(ignoreCase);
+    return seq.GenerateNfa(data, ignoreCase);
   }
 }

@@ -1,25 +1,21 @@
-\#ifndef JAVACC_TREE_H
-\#define JAVACC_TREE_H
+#ifndef JAVACC_TREE_H
+#define JAVACC_TREE_H
 
-\#include <vector>
-\#include "JavaCC.h"
-\#include "Token.h"
+#include <vector>
+#include "JavaCC.h"
+#include "Token.h"
 
-#if NODE_INCLUDES
-\#include "${NODE_INCLUDES}"
-#fi
-
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
   // All AST nodes must implement this interface.
   // It provides basic  machinery for constructing the parent and child relationships between nodes.
 
 class Node;
-class ${PARSER_NAME};
-#if VISITOR
-class ${PARSER_NAME}Visitor;
-#fi
+class {{PARSER_NAME}};
+@if VISITOR
+class {{PARSER_NAME}}Visitor;
+@fi
 
 class Tree {
   friend class Node;
@@ -45,10 +41,10 @@ public:
   virtual int     jjtGetNumChildren() const = 0;
   virtual int     getId() const = 0;
 
-#if VISITOR
+@if VISITOR
   // Accept the visitor.
-  virtual ${VISITOR_RETURN_TYPE:-void} jjtAccept(${PARSER_NAME}Visitor *visitor, ${VISITOR_DATA_TYPE:-void *} data) const = 0;
-#fi
+  virtual {{VISITOR_RETURN_TYPE:-void}} jjtAccept({{PARSER_NAME}}Visitor *visitor, {{VISITOR_DATA_TYPE:-void *}} data) const = 0;
+@fi
 
 private: 
   // Clear list of children, and return children that we have before. Used in destructor to do linear destruction of tree.
@@ -59,17 +55,17 @@ public:
   virtual ~Tree() { }
 };
 
-#if NODE_FACTORY
-  class ${NODE_FACTORY};
-  extern ${NODE_FACTORY} *nodeFactory;
+@if NODE_FACTORY
+  class {{NODE_FACTORY}};
+  extern {{NODE_FACTORY}} *nodeFactory;
   
   // Takes ownerhip of the factory
-  void setNodeFactory(${NODE_FACTORY} *factory);
-  ${NODE_FACTORY} *getNodeFactory();
-#fi
+  void setNodeFactory({{NODE_FACTORY}} *factory);
+  {{NODE_FACTORY}} *getNodeFactory();
+@fi
 
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
+@if NAMESPACE
+}
+@fi
 
-\#endif
+#endif

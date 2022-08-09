@@ -28,6 +28,8 @@
 
 package org.javacc.parser;
 
+import org.javacc.generator.LexerData;
+
 /**
  * Describes regular expressions which are referred to just by
  * their name.  This means that a regular expression with this
@@ -42,14 +44,13 @@ public class RJustName extends RegularExpression {
   public RegularExpression regexpr;
 
   @Override
-  public Nfa GenerateNfa(boolean ignoreCase)
-  {
-     return regexpr.GenerateNfa(ignoreCase);
+  public Nfa GenerateNfa(LexerData data, boolean ignoreCase) {
+    return this.regexpr.GenerateNfa(data, ignoreCase);
   }
 
   public RJustName() {}
 
-    public RJustName(Token token, String image) {
+  RJustName(Token token, String image) {
     setLine(token.beginLine);
     setColumn(token.beginColumn);
     this.label = image;

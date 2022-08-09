@@ -38,7 +38,7 @@
  */
 
 options {
-  JAVA_UNICODE_ESCAPE = true;
+  LEGACY = true;
   STATIC=false;
 }
 
@@ -51,194 +51,10 @@ PARSER_BEGIN(JavaCCParser)
 
 package org.javacc.parser;
 
-import static org.javacc.parser.Options.*;
-
 import java.util.List;
 import java.util.ArrayList;
 
-public class JavaCCParser extends JavaCCParserInternals {
-
-  /**
-   * The name of the parser class.
-   */
-  String parser_class_name;
-
-  /**
-   * This flag is set to true when the part between PARSER_BEGIN and
-   * PARSER_END is being parsed.
-   */
-  boolean processing_cu = false;
-
-  /**
-   * The level of class nesting.
-   */
-  int class_nesting = 0;
-
-  /**
-   * This int variable is incremented while parsing local lookaheads.
-   * Hence it keeps track of *syntactic* lookahead nesting.
-   * This is used to provide warnings when actions and nested lookaheads
-   * are used in syntactic lookahead productions.  This is to prevent
-   * typos such as leaving out the comma in LOOKAHEAD( foo(), {check()} ).
-   */
-  int inLocalLA = 0;
-
-  /**
-   * Set to true when the parser is within an action.
-   */
-  boolean inAction = false;
-
-  /**
-   * This flag keeps track of whether or not return and throw
-   * statements have been patched during the parsing of a production.
-   * The value of this flag is assigned the field with the same
-   * name in BNFProduction.java.
-   */
-  boolean jumpPatched = false;
-
-  protected static boolean isJavaLanguage()
-  {
-    return language == Language.java;
-  }
-  protected static boolean isCppLanguage()
-  {
-    return language == Language.cpp;
-  }
-
-  /*
-   * Returns true if the next token is not in the FOLLOW list of "expansion".
-   * It is used to decide when the end of an "expansion" has been reached.
-   */
-  private boolean notTailOfExpansionUnit() {
-    Token t;
-    t = getToken(1);
-    if (t.kind == BIT_OR || t.kind == COMMA || t.kind == RPAREN || t.kind == RBRACE || t.kind == RBRACKET) return false;
-    return true;
-  }
-
-  /*
-   * return true if the token is allowed in a ResultType. Used to  mark a c++
-   * result type as an error for a java grammar
-   */
-  private boolean isAllowed(Token t)  {
-    if (isJavaLanguage() && (t.kind == STAR || t.kind == BIT_AND || t.kind == CONST))
-       return false;
-    else
-       return true;
-  }    
-
-   /**
-    * Class to hold modifiers.
-    */
-   static public final class ModifierSet
-   {
-     /* Definitions of the bits in the modifiers field.  */
-     public static final int PUBLIC = 0x0001;
-     public static final int PROTECTED = 0x0002;
-     public static final int PRIVATE = 0x0004;
-     public static final int ABSTRACT = 0x0008;
-     public static final int STATIC = 0x0010;
-     public static final int FINAL = 0x0020;
-     public static final int SYNCHRONIZED = 0x0040;
-     public static final int NATIVE = 0x0080;
-     public static final int TRANSIENT = 0x0100;
-     public static final int VOLATILE = 0x0200;
-     public static final int STRICTFP = 0x1000;
-
-     /** A set of accessors that indicate whether the specified modifier
-         is in the set. */
-
-     public boolean isPublic(int modifiers)
-     {
-       return (modifiers & PUBLIC) != 0;
-     }
-
-     public boolean isProtected(int modifiers)
-     {
-       return (modifiers & PROTECTED) != 0;
-     }
-
-     public boolean isPrivate(int modifiers)
-     {
-       return (modifiers & PRIVATE) != 0;
-     }
-
-     public boolean isStatic(int modifiers)
-     {
-       return (modifiers & STATIC) != 0;
-     }
-
-     public boolean isAbstract(int modifiers)
-     {
-       return (modifiers & ABSTRACT) != 0;
-     }
-
-     public boolean isFinal(int modifiers)
-     {
-       return (modifiers & FINAL) != 0;
-     }
-
-     public boolean isNative(int modifiers)
-     {
-       return (modifiers & NATIVE) != 0;
-     }
-
-     public boolean isStrictfp(int modifiers)
-     {
-       return (modifiers & STRICTFP) != 0;
-     }
-
-     public boolean isSynchronized(int modifiers)
-     {
-       return (modifiers & SYNCHRONIZED) != 0;
-     }
-
-     public boolean isTransient(int modifiers)
-      {
-       return (modifiers & TRANSIENT) != 0;
-     }
-
-     public boolean isVolatile(int modifiers)
-     {
-       return (modifiers & VOLATILE) != 0;
-     }
-
-     /**
-      * Removes the given modifier.
-      */
-     static int removeModifier(int modifiers, int mod)
-     {
-        return modifiers & ~mod;
-     }
-   }
-
-   private void eatUptoCloseBrace(List<Token> tokens) {
-     int b = 1;
-     Token t;
-     while((t = getToken(1)).kind != RBRACE || --b != 0) {
-       if (tokens != null) {
-         tokens.add(t);
-       }
-       if (t.kind == EOF) break;
-       if (t.kind == LBRACE) b++;
-       getNextToken(); // eat it
-     }
-   }
-   
-
-   private void eatUptoRParen(List<Token> tokens) {
-     int b = 1;
-     Token t;
-     while((t = getToken(1)).kind != RPAREN || --b != 0) {
-       if (tokens != null) {
-         tokens.add(t);
-       }
-       if (t.kind == EOF) break;
-       if (t.kind == LPAREN) b++;
-       getNextToken(); // eat it
-     }
-   }
-
+public class JavaCCParser extends AbstractJavaCCParser {
 }
 
 PARSER_END(JavaCCParser)
@@ -288,7 +104,6 @@ TOKEN :
 | < _PARSER_BEGIN: "PARSER_BEGIN" >
 | < _PARSER_END: "PARSER_END" >
 | < _JAVACODE: "JAVACODE" >
-| < _CPPCODE: "CPPCODE" >
 | < _TOKEN: "TOKEN" >
 | < _SPECIAL_TOKEN: "SPECIAL_TOKEN" >
 | < _MORE: "MORE" >
@@ -419,14 +234,6 @@ TOKEN :
 | < VOID: "void" >
 | < VOLATILE: "volatile" >
 | < WHILE: "while" >
-}
-
-/* C++ RESERVED WORDS AND LITERALS */
-
-TOKEN :
-{
-  < TEMPLATE: "template" >
-| < TYPENAME: "typename" >
 }
 
 /* JAVA LITERALS */
@@ -578,7 +385,6 @@ TOKEN :
 void javacc_input() :
 	{
 	  String id1, id2;
-	  initialize();
 	}
 {
   javacc_options()
@@ -594,11 +400,11 @@ void javacc_input() :
 	  parser_class_name = id1;
 
           if (!isJavaLanguage()) {
-            JavaCCGlobals.otherLanguageDeclTokenBeg = getToken(1);
+            getToken(1);
             while(getToken(1).kind != _PARSER_END) {
               getNextToken();
             }
-            JavaCCGlobals.otherLanguageDeclTokenEnd = getToken(1);
+            getToken(1);
           }
 	}
     CompilationUnit()
@@ -688,14 +494,6 @@ void production() :
 |
   LOOKAHEAD(1)
   /*
-   * Since CPPCODE is both a JavaCC reserved word and a Java identifier,
-   * we need to give preference to "cppcode_production" over
-   * "bnf_production".
-   */
-  cppcode_production()
-|
-  LOOKAHEAD(1)
-  /*
    * Since SKIP, TOKEN, etc. are both JavaCC reserved words and Java
    * identifiers, we need to give preference to "regular_expression_production"
    * over "bnf_production".
@@ -726,48 +524,6 @@ void javacode_production() :
 	}
 {
   "JAVACODE"
-  AccessModifier(p)
-  ResultType(p.getReturnTypeTokens())
-  lhs=identifier()	{ p.setLhs(lhs); }
-  FormalParameters(p.getParameterListTokens())
-  [ "throws"
-	{
-	  excName = new ArrayList<>();
-	}
-    Name(excName)
-	{
-	  p.getThrowsList().add(excName);
-	}
-    (
-	{
-	  excName = new ArrayList<>();
-	}
-      "," Name(excName)
-	{
-	  p.getThrowsList().add(excName);
-	}
-    )*
-  ]
-  Block(p.getCodeTokens())
-	{
-	  p.setLastToken(getToken(0));
-	  addproduction(p);
-	}
-}
-
-void cppcode_production() :
-	{
-	  CppCodeProduction p = new CppCodeProduction();
-	  String lhs;
-	  Token t = getToken(1);
-	  p.setFirstToken(t);
-	  List<Token> excName;
-	  p.setThrowsList(new ArrayList<>());
-	  p.setLine(t.beginLine);
-	  p.setColumn(t.beginColumn);
-	}
-{
-  "CPPCODE"
   AccessModifier(p)
   ResultType(p.getReturnTypeTokens())
   lhs=identifier()	{ p.setLhs(lhs); }
@@ -900,23 +656,16 @@ void regular_expr_production() :
   ]
   regexpr_kind(p)
 	{
-	  if (p.kind != TokenProduction.TOKEN && Options.getUserTokenManager()) {
-	    JavaCCErrors.warning(getToken(0), "Regular expression is being treated as if it were a TOKEN since option USER_TOKEN_MANAGER has been set to true.");
-	  }
 	}
   [
     "[" t="IGNORE_CASE" "]"
 	{
 	  p.ignoreCase = true;
-	  if (Options.getUserTokenManager()) {
-	    JavaCCErrors.warning(t, "Ignoring \"IGNORE_CASE\" specification since option USER_TOKEN_MANAGER has been set to true.");
-	  }
 	}
   ]
   ":"
   "{" regexpr_spec(p) ( "|" regexpr_spec(p) )* t="}"
 	{
-	  p.lastToken = t;
 	  addregexpr(p);
 	}
 }
@@ -985,9 +734,6 @@ void regexpr_spec(TokenProduction p) :
 	}
     Block(act.getActionTokens())
 	{
-	  if (Options.getUserTokenManager()) {
-	    JavaCCErrors.warning(t, "Ignoring action in regular expression specification since option USER_TOKEN_MANAGER has been set to true.");
-	  }
 	  if (res.rexp.private_rexp) {
 	    JavaCCErrors.parse_error(t, "Actions are not permitted on private (#) regular expressions.");
 	  }
@@ -1602,13 +1348,6 @@ Token JavaIdentifier() :
 | "TOKEN_MGR_DECLS"
 | "EOF"
 | "template"
-| "DCL_PARSER_BEGIN"
-| "DCL_PARSER_END"
-| "INC_PARSER_BEGIN"
-| "INC_PARSER_END"
-| "DEF_PARSER_BEGIN"
-| "DEF_PARSER_END"
-
 )
 	{
 	  Token retval = getToken(0);
@@ -1634,7 +1373,7 @@ void CompilationUnit() :
   ( ImportDeclaration() )*
   ( TypeDeclaration() )*
 	{
-          if (Options.isOutputLanguageJava()) {
+          if (isJavaLanguage()) {
 	    insertionpointerrors(getToken(1));
           }
 	}
@@ -2031,7 +1770,7 @@ void TemplateBase():
 void TemplatePack():
 {}
 {
-	( "class" | "typename" )
+	( "class" )
 }
 
 void ClassOrInterfaceType():
@@ -2760,7 +2499,7 @@ void ReturnStatement() :
 	  // from being dead code.
 	  // NB: eclipse now detects 'if (true)' as dead code, so use the more complicated
 	  // 'if ("" != null)'
-	  if (inAction  && (Options.isLegacyExceptionHandling()) ) {
+	  if (inAction  && (Options.isLegacy()) ) {
 	    t.image = "{if (\"\" != null) return";
 	    jumpPatched = true;
 	  }
@@ -2771,7 +2510,7 @@ void ReturnStatement() :
   t=";"
 	{
 	  // Add closing brace for above if statement.
-	  if (inAction && (Options.isLegacyExceptionHandling())) {
+	  if (inAction && (Options.isLegacy())) {
 	    t.image = ";}";
 	  }
 	}

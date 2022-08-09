@@ -77,8 +77,7 @@ public class Token {
   /**
    * Constructs a new token for the specified Image and Kind.
    */
-  public Token(int kind, String image)
-  {
+  private Token(int kind, String image) {
     this.kind = kind;
     this.image = image;
   }
@@ -127,11 +126,10 @@ public class Token {
    * to the following switch statement. Then you can cast matchedToken variable to the appropriate
    * type and use it in your lexical actions.
    */
-  public static final Token newToken(int ofKind, String image)
-  {
-    switch(ofKind)
-    {
-    default : return new Token(ofKind, image);
+  static final Token newToken(int ofKind, String image) {
+    switch (ofKind) {
+      default:
+        return new Token(ofKind, image);
       case JavaCCParserConstants.RUNSIGNEDSHIFT:
       case JavaCCParserConstants.RSIGNEDSHIFT:
       case JavaCCParserConstants.GT:
@@ -139,10 +137,6 @@ public class Token {
     }
   }
 
-  public static final Token newToken(int ofKind)
-  {
-    return newToken(ofKind, null);
-  }
 
   /**
    * Greater than Token.

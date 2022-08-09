@@ -1,12 +1,12 @@
-\#include "TokenManagerError.h"
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
+#include "TokenManagerError.h"
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
 
 
 JJString TokenManagerError::lexicalError(bool EOFSeen, int lexState, int errorLine, int errorColumn, const JJString& errorAfter, JJChar curChar) {
     JJString s;
-\#if (JAVACC_CHAR_TYPE_SIZEOF == 1)
+#if (JAVACC_CHAR_TYPE_SIZEOF == 1)
      s += "Lexical error at line ";
      s += std::to_string(errorLine);
      s += ":";
@@ -17,7 +17,7 @@ JJString TokenManagerError::lexicalError(bool EOFSeen, int lexState, int errorLi
      s += std::to_string((int)curChar);
      s += ") after: ";
      s += errorAfter;
-\#else
+#else
      s += L"Lexical error at line ";
      s += std::to_wstring(errorLine);
      s += L":";
@@ -28,7 +28,7 @@ JJString TokenManagerError::lexicalError(bool EOFSeen, int lexState, int errorLi
      s += std::to_wstring((int)curChar);
      s += L") after: ";
      s += errorAfter;
-\#endif
+#endif
     return s;
   }
 
@@ -48,9 +48,9 @@ TokenManagerError::TokenManagerError(bool EOFSeen, int lexState, int errorLine, 
 }
 TokenManagerError::~TokenManagerError() { 
 }
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
+@if NAMESPACE
+}
+@fi
 
 // i < 16 - guaranteed
 static char hexChar(int i) {
@@ -64,25 +64,25 @@ static char hexChar(int i) {
  * Replaces unprintable characters by their escaped (or unicode escaped)
  * equivalents in the given string
  */
-\#if (JAVACC_CHAR_TYPE_SIZEOF == 1)
-\#define JJB "\\b"
-\#define JJT "\\t"
-\#define JJN "\\n"
-\#define JJF "\\f"
-\#define JJR "\\r"
-\#define JJS "\\\\"
-\#define JJU "\\u"
-\#define JJM 0xff
-\#else
-\#define JJB L"\\b"
-\#define JJT L"\\t"
-\#define JJN L"\\n"
-\#define JJF L"\\f"
-\#define JJR L"\\r"
-\#define JJS L"\\\\"
-\#define JJU L"\\u"
-\#define JJM 0xffff
-\#endif
+#if (JAVACC_CHAR_TYPE_SIZEOF == 1)
+#define JJB "\\b"
+#define JJT "\\t"
+#define JJN "\\n"
+#define JJF "\\f"
+#define JJR "\\r"
+#define JJS "\\\\"
+#define JJU "\\u"
+#define JJM 0xff
+#else
+#define JJB L"\\b"
+#define JJT L"\\t"
+#define JJN L"\\n"
+#define JJF L"\\f"
+#define JJR L"\\r"
+#define JJS L"\\\\"
+#define JJU L"\\u"
+#define JJM 0xffff
+#endif
 JJString addUnicodeEscapes(const JJString& str) {
   JJString retval;
   for (size_t i = 0; i < str.size(); i++) {
@@ -122,12 +122,12 @@ JJString addUnicodeEscapes(const JJString& str) {
   }
   return retval;
 }
-\#undef JJB
-\#undef JJT
-\#undef JJN
-\#undef JJF
-\#undef JJR
-\#undef JJS
-\#undef JJU
-\#undef JJM
+#undef JJB
+#undef JJT
+#undef JJN
+#undef JJF
+#undef JJR
+#undef JJS
+#undef JJU
+#undef JJM
 

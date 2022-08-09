@@ -105,12 +105,7 @@ public class ASTNodeDescriptor extends JJTreeNode {
   }
 
 
-  String getNodeName() {
-    return name;
-  }
-
-
-  String openNode(String nodeVar) {
+  public String openNode(String nodeVar) {
     return "jjtree.openNodeScope(" + nodeVar + ");";
   }
 

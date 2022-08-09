@@ -48,18 +48,6 @@ class ASTOptionBinding extends JJTreeNode {
     }
   }
 
-
-  boolean isSuppressed()
-  {
-    return suppressed;
-  }
-
-  void suppressOption(boolean s)
-  {
-    suppressed = s;
-  }
-
-
   @Override
   public String translateImage(Token t) {
     if (this.suppressed) {

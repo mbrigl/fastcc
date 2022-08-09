@@ -1,5 +1,5 @@
-  ${STATIC?static :}int kindCnt = 0;
-  protected ${STATIC?static :}final String jjKindsForBitVector(int i, long vec)
+  {{STATIC?static :}}int kindCnt = 0;
+  protected {{STATIC?static :}}final String jjKindsForBitVector(int i, long vec)
   {
     String retVal = "";
     if (i == 0)
@@ -19,9 +19,9 @@
   }
 
 
-  protected ${STATIC?static :}final String jjKindsForStateVector(int lexState, int[] vec, int start, int end)
+  protected {{STATIC?static :}}final String jjKindsForStateVector(int lexState, int[] vec, int start, int end)
   {
-    boolean[] kindDone = new boolean[${maxOrdinal}];
+    boolean[] kindDone = new boolean[{{maxOrdinal}}];
     String retVal = "";
     int cnt = 0;
     for (int i = start; i < end; i++)

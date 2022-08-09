@@ -60,36 +60,22 @@ public final class JavaCCErrors {
 
   public static void parse_error(Object node, String mess) {
     System.err.print("Error: ");
-    printLocationInfo(node);
+    JavaCCErrors.printLocationInfo(node);
     System.err.println(mess);
-    parse_error_count++;
-  }
-
-  public static void parse_error(String mess) {
-    System.err.print("Error: ");
-    System.err.println(mess);
-    parse_error_count++;
-  }
-
-  public static int get_parse_error_count() {
-    return parse_error_count;
+    JavaCCErrors.parse_error_count++;
   }
 
   public static void semantic_error(Object node, String mess) {
     System.err.print("Error: ");
-    printLocationInfo(node);
+    JavaCCErrors.printLocationInfo(node);
     System.err.println(mess);
-    semantic_error_count++;
+    JavaCCErrors.semantic_error_count++;
   }
 
   public static void semantic_error(String mess) {
     System.err.print("Error: ");
     System.err.println(mess);
-    semantic_error_count++;
-  }
-
-  public static int get_semantic_error_count() {
-    return semantic_error_count;
+    JavaCCErrors.semantic_error_count++;
   }
 
   public static void warning(Object node, String mess) {
@@ -102,7 +88,15 @@ public final class JavaCCErrors {
   public static void warning(String mess) {
     System.err.print("Warning: ");
     System.err.println(mess);
-    warning_count++;
+    JavaCCErrors.warning_count++;
+  }
+
+  public static boolean hasWarning() {
+    return JavaCCErrors.warning_count > 0;
+  }
+
+  public static boolean hasError() {
+    return (JavaCCErrors.parse_error_count + JavaCCErrors.semantic_error_count) > 0;
   }
 
   public static int get_warning_count() {

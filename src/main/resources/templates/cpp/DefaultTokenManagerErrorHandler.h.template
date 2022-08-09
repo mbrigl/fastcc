@@ -1,13 +1,12 @@
-\#ifndef JAVACC_DEFAULT_TOKEN_MANAGER_ERROR_HANDLER_H
-\#define JAVACC_DEFAULT_TOKEN_MANAGER_ERROR_HANDLER_H
+#ifndef JAVACC_DEFAULT_TOKEN_MANAGER_ERROR_HANDLER_H
+#define JAVACC_DEFAULT_TOKEN_MANAGER_ERROR_HANDLER_H
 
-#if BUILD_TOKEN_MANAGER
-\#include "JavaCC.h"
-\#include "TokenManagerErrorHandler.h"
+#include "JavaCC.h"
+#include "TokenManagerErrorHandler.h"
 
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
 
 class DefaultTokenManagerErrorHandler : public TokenManagerErrorHandler {
 public:
@@ -28,8 +27,7 @@ public:
 };
 
 
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
-#fi
-\#endif
+@if NAMESPACE
+}
+@fi
+#endif

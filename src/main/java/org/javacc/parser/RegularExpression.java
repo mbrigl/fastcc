@@ -27,6 +27,8 @@
  */
 package org.javacc.parser;
 
+import org.javacc.generator.LexerData;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -72,7 +74,7 @@ public abstract class RegularExpression extends Expansion {
    */
   public TokenProduction tpContext    = null;
 
-  public abstract Nfa GenerateNfa(boolean ignoreCase);
+  public abstract Nfa GenerateNfa(LexerData data, boolean ignoreCase);
 
   public boolean CanMatchAnyChar() {
     return false;

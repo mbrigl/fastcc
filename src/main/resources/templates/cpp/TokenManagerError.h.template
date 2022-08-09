@@ -1,11 +1,11 @@
-\#ifndef JAVACC_TOKEN_MANAGER_ERROR_H
-\#define JAVACC_TOKEN_MANAGER_ERROR_H
+#ifndef JAVACC_TOKEN_MANAGER_ERROR_H
+#define JAVACC_TOKEN_MANAGER_ERROR_H
 
-\#include "JavaCC.h"
+#include "JavaCC.h"
 
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
 
 enum LexerErrors {
   LEXICAL_ERROR = 0,			// Lexical error occurred.
@@ -58,8 +58,8 @@ private:
 
 };
 
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
+@if NAMESPACE
+}
+@fi
 
-\#endif
+#endif

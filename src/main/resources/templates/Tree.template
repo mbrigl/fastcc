@@ -2,9 +2,6 @@
    machinery for constructing the parent and child relationships
    between nodes. */
 
-#if SUPPORT_CLASS_VISIBILITY_PUBLIC
-public
-#fi
 interface Tree {
 
   /** This method is called after the node has been made the current
@@ -32,13 +29,13 @@ interface Tree {
   public int jjtGetNumChildren();
 
   public int getId();
-#if VISITOR
+@if VISITOR
 
   /** Accept the visitor. **/
-#if VISITOR_EXCEPTION
-  public ${VISITOR_RETURN_TYPE} jjtAccept(${PARSER_NAME}Visitor visitor, ${VISITOR_DATA_TYPE:-Object} data) throws ${VISITOR_EXCEPTION};
-#else
-  public ${VISITOR_RETURN_TYPE} jjtAccept(${PARSER_NAME}Visitor visitor, ${VISITOR_DATA_TYPE:-Object} data);
-#fi
-#fi
+@if VISITOR_EXCEPTION
+  public {{VISITOR_RETURN_TYPE}} jjtAccept({{PARSER_NAME}}Visitor visitor, {{VISITOR_DATA_TYPE:-Object}} data) throws {{VISITOR_EXCEPTION}};
+@else
+  public {{VISITOR_RETURN_TYPE}} jjtAccept({{PARSER_NAME}}Visitor visitor, {{VISITOR_DATA_TYPE:-Object}} data);
+@fi
+@fi
 }

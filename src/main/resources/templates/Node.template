@@ -1,41 +1,38 @@
-#if SUPPORT_CLASS_VISIBILITY_PUBLIC
-public
-#fi
-#if NODE_EXTENDS
-class Node extends ${NODE_EXTENDS} implements Tree {
-#else
-class Node implements Tree {
-#fi
+@if NODE_EXTENDS
+public class Node extends {{NODE_EXTENDS}} implements Tree {
+@else
+public class Node implements Tree {
+@fi
 
   protected Node parent;
   protected Node[] children;
   protected int id;
   protected Object value;
-  protected ${PARSER_NAME} parser;
-#if TRACK_TOKENS
+  protected {{PARSER_NAME}} parser;
+@if TRACK_TOKENS
   protected Token firstToken;
   protected Token lastToken;
-#fi
+@fi
 
   public Node(int i) {
     id = i;
   }
 
-  public Node(${PARSER_NAME} p, int i) {
+  public Node({{PARSER_NAME}} p, int i) {
     this(i);
     parser = p;
   }
 
-#if NODE_FACTORY
+@if NODE_FACTORY
   public static Node jjtCreate(int id) {
     return new Node(id);
   }
 
-  public static Node jjtCreate(${PARSER_NAME} p, int id) {
+  public static Node jjtCreate({{PARSER_NAME}} p, int id) {
     return new Node(p, id);
   }
 
-#fi
+@fi
   public void jjtOpen() {
   }
 
@@ -67,32 +64,32 @@ class Node implements Tree {
   public void jjtSetValue(Object value) { this.value = value; }
   public Object jjtGetValue() { return value; }
 
-#if TRACK_TOKENS
+@if TRACK_TOKENS
   public Token jjtGetFirstToken() { return firstToken; }
   public void jjtSetFirstToken(Token token) { this.firstToken = token; }
   public Token jjtGetLastToken() { return lastToken; }
   public void jjtSetLastToken(Token token) { this.lastToken = token; }
 
-#fi
-#if VISITOR
+@fi
+@if VISITOR
   /** Accept the visitor. **/
-  public ${VISITOR_RETURN_TYPE} jjtAccept(${PARSER_NAME}Visitor visitor, ${VISITOR_DATA_TYPE:-Object} data)
-#if VISITOR_EXCEPTION
-     throws ${VISITOR_EXCEPTION}
-#fi
+  public {{VISITOR_RETURN_TYPE}} jjtAccept({{PARSER_NAME}}Visitor visitor, {{VISITOR_DATA_TYPE:-Object}} data)
+@if VISITOR_EXCEPTION
+     throws {{VISITOR_EXCEPTION}}
+@fi
 {
-#if VISITOR_RETURN_TYPE_VOID
+@if VISITOR_RETURN_TYPE_VOID
     visitor.visit(this, data);
-#else
+@else
     return visitor.visit(this, data);
-#fi
+@fi
   }
 
   /** Accept the visitor. **/
-  public Object childrenAccept(${PARSER_NAME}Visitor visitor, ${VISITOR_DATA_TYPE:-Object} data)
-#if VISITOR_EXCEPTION
-     throws ${VISITOR_EXCEPTION}
-#fi
+  public Object childrenAccept({{PARSER_NAME}}Visitor visitor, {{VISITOR_DATA_TYPE:-Object}} data)
+@if VISITOR_EXCEPTION
+     throws {{VISITOR_EXCEPTION}}
+@fi
 {
     if (children != null) {
       for (int i = 0; i < children.length; ++i) {
@@ -102,7 +99,7 @@ class Node implements Tree {
     return data;
   }
 
-#fi
+@fi
   /* You can override these two methods in subclasses of Node to
      customize the way the node appears when the tree is dumped.  If
      your output uses more than one line you should override
@@ -110,7 +107,7 @@ class Node implements Tree {
      you need to do. */
 
   public String toString() {
-    return ${PARSER_NAME}TreeConstants.jjtNodeName[id];
+    return {{PARSER_NAME}}TreeConstants.jjtNodeName[id];
   }
   public String toString(String prefix) { return prefix + toString(); }
 

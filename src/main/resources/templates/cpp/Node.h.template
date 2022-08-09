@@ -1,60 +1,60 @@
-\#ifndef JAVACC_NODE_H
-\#define JAVACC_NODE_H
+#ifndef JAVACC_NODE_H
+#define JAVACC_NODE_H
 
-\#include <vector>
-#if LIBRARY
-\#include "ImportExport.h"
-#fi
-\#include "JavaCC.h"
-\#include "Token.h"
-\#include "Tree.h"
-\#include "${PARSER_NAME}TreeConstants.h"
-#if NODE_EXTENDS
-\#include "${NODE_EXTENDS}.h"
-#fi
+#include <vector>
+@if LIBRARY
+#include "ImportExport.h"
+@fi
+#include "JavaCC.h"
+#include "Token.h"
+#include "Tree.h"
+#include "{{PARSER_NAME}}TreeConstants.h"
+@if NODE_EXTENDS
+#include "{{NODE_EXTENDS}}.h"
+@fi
 
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
-#if VISITOR
-class ${PARSER_NAME}Visitor;
-#fi
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
+@if VISITOR
+class {{PARSER_NAME}}Visitor;
+@fi
 
-class ${PARSER_NAME};
+class {{PARSER_NAME}};
 
-#if LIBRARY
-#if NODE_EXTENDS
-class ${PARSER_NAME_UPPER_CASE}_API Node : public ${NODE_EXTENDS}, public Tree {
-#else
-class ${PARSER_NAME_UPPER_CASE}_API Node : public Tree {
-#fi
-#else
-#if NODE_EXTENDS
-class Node : public ${NODE_EXTENDS}, public Tree {
-#else
+@if LIBRARY
+@if NODE_EXTENDS
+class {{PARSER_NAME_UPPER_CASE}}_API Node : public {{NODE_EXTENDS}}, public Tree {
+@else
+class {{PARSER_NAME_UPPER_CASE}}_API Node : public Tree {
+@fi
+@else
+@if NODE_EXTENDS
+class Node : public {{NODE_EXTENDS}}, public Tree {
+@else
 class Node : public Tree {
-#fi
-#fi
+@fi
+@fi
 protected: 
   std::vector<Node*> children;
   Node*              parent;
   void*              value;
-#if TRACK_TOKENS
+@if TRACK_TOKENS
   Token*             firstToken;
   Token*             lastToken;
-#fi
-  ${PARSER_NAME}*    parser;
+@fi
+  {{PARSER_NAME}}*    parser;
   int                id;
 
 public: 
            Node(int id);
-           Node(${PARSER_NAME}* parser, int id);
+           Node({{PARSER_NAME}}* parser, int id);
   virtual ~Node();
 
-//#if !NODE_FACTORY
+//@if !NODE_FACTORY
 //#define jjtCreate(id) new Node(id)
 //#define jjtCreate(p, id) new Node(p, id)
-//#fi
+//@fi
 
   virtual void           jjtOpen() const;
   virtual void           jjtClose() const;
@@ -66,18 +66,18 @@ public:
   virtual void           jjtSetValue(void * value);
   virtual void*          jjtGetValue() const;
 
-#if TRACK_TOKENS
+@if TRACK_TOKENS
   virtual Token*         jjtGetFirstToken() const;
   virtual Token*         jjtGetLastToken() const;
   virtual void           jjtSetFirstToken(Token* token);
   virtual void           jjtSetLastToken(Token* token);
 
-#fi
-#if VISITOR
-  virtual ${VISITOR_RETURN_TYPE:-void}       jjtAccept(${PARSER_NAME}Visitor* visitor, ${VISITOR_DATA_TYPE:-void*} data) const;
-  virtual void           jjtChildrenAccept(${PARSER_NAME}Visitor* visitor, ${VISITOR_DATA_TYPE:-void*} data) const;
-  virtual void           jjtChildAccept(int childNo, ${PARSER_NAME}Visitor* visitor, ${VISITOR_DATA_TYPE:-void*} data) const;
-#fi
+@fi
+@if VISITOR
+  virtual {{VISITOR_RETURN_TYPE:-void}}       jjtAccept({{PARSER_NAME}}Visitor* visitor,{{VISITOR_DATA_TYPE:-void*}} data) const;
+  virtual void           jjtChildrenAccept({{PARSER_NAME}}Visitor* visitor, {{VISITOR_DATA_TYPE:-void*}} data) const;
+  virtual void           jjtChildAccept(int childNo, {{PARSER_NAME}}Visitor* visitor, {{VISITOR_DATA_TYPE:-void*}} data) const;
+@fi
   virtual std::vector<Node*>& jjtChildren();
   
   /* You can override these two methods in subclasses of Node to customize the way the node appears when the tree is dumped.
@@ -91,8 +91,8 @@ public:
   virtual void          dumpToBuffer(const JJString& prefix, const JJString& separator, JJString* sb) const;
   virtual int           getId() const { return id;  }
 };
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
+@if NAMESPACE
+}
+@fi
 
-\#endif
+#endif

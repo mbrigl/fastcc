@@ -37,8 +37,6 @@ class ASTBNF extends ASTProduction {
     this.throws_list.add("RuntimeException");
   }
 
-  Token declBeginLoc;
-
   @Override
   public final Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
     return visitor.visit(this, data);

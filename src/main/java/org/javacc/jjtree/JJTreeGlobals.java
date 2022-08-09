@@ -27,6 +27,8 @@
  */
 package org.javacc.jjtree;
 
+import org.javacc.JavaCC;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,39 +36,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class JJTreeGlobals
-{
-  static void initialize() {
-    toolList = new ArrayList<>();
-    parserName = null;
-    packageName = "";
-    parserImplements = null;
-    parserClassBodyStart = null;
-    parserImports = null;
-    productions = new HashMap<>();
+public class JJTreeGlobals {
 
-    jjtreeOptions = new HashSet<>();
-    jjtreeOptions.add("JJTREE_OUTPUT_DIRECTORY");
-    jjtreeOptions.add("MULTI");
-    jjtreeOptions.add("NODE_PREFIX");
-    jjtreeOptions.add("NODE_PACKAGE");
-    jjtreeOptions.add("NODE_EXTENDS");
-    jjtreeOptions.add("NODE_CLASS");
-    jjtreeOptions.add("NODE_STACK_SIZE");
-    jjtreeOptions.add("NODE_DEFAULT_VOID");
-    jjtreeOptions.add("OUTPUT_FILE");
-    jjtreeOptions.add("CHECK_DEFINITE_NODE");
-    jjtreeOptions.add("NODE_SCOPE_HOOK");
-    jjtreeOptions.add("TRACK_TOKENS");
-    jjtreeOptions.add("NODE_FACTORY");
-    jjtreeOptions.add("NODE_USES_PARSER");
-    jjtreeOptions.add("BUILD_NODE_FILES");
-    jjtreeOptions.add("VISITOR");
-    jjtreeOptions.add("VISITOR_EXCEPTION");
-    jjtreeOptions.add("VISITOR_DATA_TYPE");
-    jjtreeOptions.add("VISITOR_RETURN_TYPE");
-    jjtreeOptions.add("VISITOR_METHOD_NAME_INCLUDES_TYPE_NAME");
-    jjtreeOptions.add("NODE_INCLUDES");
+  public static void initialize() {
+    JJTreeGlobals.toolList = new ArrayList<>();
+    JJTreeGlobals.parserName = null;
+    JJTreeGlobals.packageName = "";
+    JJTreeGlobals.parserImplements = null;
+    JJTreeGlobals.parserClassBodyStart = null;
+    JJTreeGlobals.parserImports = null;
+    JJTreeGlobals.productions = new HashMap<>();
+
+    JJTreeGlobals.jjtreeOptions = new HashSet<>();
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_MULTI);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_NODE_PREFIX);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_NODE_PACKAGE);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_NODE_EXTENDS);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_NODE_CLASS);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_NODE_DEFAULT_VOID);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_OUTPUT_FILE);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_NODE_SCOPE_HOOK);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_TRACK_TOKENS);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_NODE_FACTORY);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_BUILD_NODE_FILES);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_VISITOR);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_VISITOR_EXCEPTION);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_VISITOR_DATA_TYPE);
+    JJTreeGlobals.jjtreeOptions.add(JavaCC.JJTREE_VISITOR_RETURN_TYPE);
   }
 
   static {

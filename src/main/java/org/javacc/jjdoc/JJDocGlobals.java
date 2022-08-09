@@ -28,13 +28,12 @@
 
 package org.javacc.jjdoc;
 
-import org.javacc.parser.JavaCCGlobals;
-
 /**
  * Global variables for JJDoc.
  *
  */
-public class JJDocGlobals extends JavaCCGlobals {
+class JJDocGlobals {
+
   /**
    * The name of the input file.
    */
@@ -50,46 +49,34 @@ public class JJDocGlobals extends JavaCCGlobals {
   static Generator generator;
 
   /**
-   * @param generator
-   *        The generator to set.
-   */
-  public static void setGenerator(Generator generator) {
-    JJDocGlobals.generator = generator;
-  }
-
-  /**
-   * The commandline option is either TEXT or not, but the generator might
-   * have been set to some other Generator using the setGenerator method.
+   * The commandline option is either TEXT or not, but the generator might have been set to some
+   * other Generator using the setGenerator method.
    *
    * @return the generator configured in options or set by setter.
    */
   static Generator getGenerator() {
-    if (generator == null) {
+    if (JJDocGlobals.generator == null) {
       if (JJDocOptions.getText()) {
-        generator = new TextGenerator();
+        JJDocGlobals.generator = new TextGenerator();
       } else if (JJDocOptions.getBNF()) {
-	    generator = new BNFGenerator();
-	  } else if (JJDocOptions.getXText()){
-	      generator = new XTextGenerator();
-	  } else {
-        generator = new HTMLGenerator();
+        JJDocGlobals.generator = new BNFGenerator();
+      } else if (JJDocOptions.getXText()) {
+        JJDocGlobals.generator = new XTextGenerator();
+      } else {
+        JJDocGlobals.generator = new HTMLGenerator();
       }
-    } else {
-      if (JJDocOptions.getText()) {
-        if(generator instanceof HTMLGenerator) {
-          generator = new TextGenerator();
-        }
-      } else if (JJDocOptions.getBNF()) {
-		generator = new BNFGenerator();
-      } else if (JJDocOptions.getXText()){
-          generator = new XTextGenerator();
-	  } else {
-        if(generator instanceof TextGenerator) {
-          generator = new HTMLGenerator();
-        }
+    } else if (JJDocOptions.getText()) {
+      if (JJDocGlobals.generator instanceof HTMLGenerator) {
+        JJDocGlobals.generator = new TextGenerator();
       }
+    } else if (JJDocOptions.getBNF()) {
+      JJDocGlobals.generator = new BNFGenerator();
+    } else if (JJDocOptions.getXText()) {
+      JJDocGlobals.generator = new XTextGenerator();
+    } else if (JJDocGlobals.generator instanceof TextGenerator) {
+      JJDocGlobals.generator = new HTMLGenerator();
     }
-    return generator;
+    return JJDocGlobals.generator;
   }
 
   /**
@@ -97,16 +84,8 @@ public class JJDocGlobals extends JavaCCGlobals {
    *
    * @param message the message to log
    */
-  public static void debug(String message) {
-    getGenerator().debug(message);
-  }
-
-  /**
-   * Log informational messages.
-   * @param message the message to log
-   */
-  public static void info(String message) {
-    getGenerator().info(message);
+  static void info(String message) {
+    JJDocGlobals.getGenerator().info(message);
   }
 
   /**

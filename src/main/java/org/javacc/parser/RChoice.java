@@ -26,6 +26,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.javacc.parser;
+
+import org.javacc.generator.LexerData;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,23 +60,22 @@ public class RChoice extends RegularExpression {
   }
 
   @Override
-  public Nfa GenerateNfa(boolean ignoreCase)
-  {
-     CompressCharLists();
+  public Nfa GenerateNfa(LexerData data, boolean ignoreCase) {
+    CompressCharLists();
 
     if (getChoices().size() == 1) {
-        return ((RegularExpression)getChoices().get(0)).GenerateNfa(ignoreCase);
+      return ((RegularExpression) getChoices().get(0)).GenerateNfa(data, ignoreCase);
     }
 
-     Nfa retVal = new Nfa();
-     NfaState startState = retVal.start;
-     NfaState finalState = retVal.end;
+    Nfa retVal = new Nfa(data);
+    NfaState startState = retVal.start;
+    NfaState finalState = retVal.end;
 
     for (Object element : getChoices()) {
       Nfa temp;
       RegularExpression curRE = (RegularExpression) element;
 
-        temp = curRE.GenerateNfa(ignoreCase);
+      temp = curRE.GenerateNfa(data, ignoreCase);
 
       startState.AddMove(temp.start);
       temp.end.AddMove(finalState);
@@ -82,8 +84,7 @@ public class RChoice extends RegularExpression {
     return retVal;
   }
 
-  void CompressCharLists()
-  {
+  private void CompressCharLists() {
     CompressChoices(); // Unroll nested choices
     RegularExpression curRE;
     RCharacterList curCharList = null;
@@ -120,9 +121,8 @@ public class RChoice extends RegularExpression {
     }
   }
 
-  void CompressChoices()
-  {
-     RegularExpression curRE;
+  private void CompressChoices() {
+    RegularExpression curRE;
 
     for (int i = 0; i < getChoices().size(); i++) {
       curRE = (RegularExpression) getChoices().get(i);
@@ -140,27 +140,21 @@ public class RChoice extends RegularExpression {
     }
   }
 
-  public void CheckUnmatchability()
-  {
-     RegularExpression curRE;
-     for (int i = 0; i < getChoices().size(); i++)
-     {
-        if (!(curRE = (RegularExpression)getChoices().get(i)).private_rexp &&
-            //curRE instanceof RJustName &&
-            curRE.ordinal > 0 && curRE.ordinal < ordinal &&
-            LexGen.lexStates[curRE.ordinal] == LexGen.lexStates[ordinal])
-        {
-           if (label != null)
-              JavaCCErrors.warning(this, "Regular Expression choice : " +
-                 curRE.label + " can never be matched as : " + label);
-           else
-              JavaCCErrors.warning(this, "Regular Expression choice : " +
-                 curRE.label + " can never be matched as token of kind : " +
-                                                                      ordinal);
+  public void CheckUnmatchability(LexerData data) {
+    for (Object element : getChoices()) {
+      RegularExpression curRE = (RegularExpression) element;
+      if (!curRE.private_rexp && (// curRE instanceof RJustName &&
+      curRE.ordinal > 0) && (curRE.ordinal < this.ordinal)
+          && (data.getState(curRE.ordinal) == data.getState(this.ordinal))) {
+        if (this.label != null) {
+          JavaCCErrors.warning(this,
+              "Regular Expression choice : " + curRE.label + " can never be matched as : " + this.label);
+        } else {
+          JavaCCErrors.warning(this, "Regular Expression choice : " + curRE.label
+              + " can never be matched as token of kind : " + this.ordinal);
         }
-
-        if (!curRE.private_rexp && curRE instanceof RStringLiteral) {}
-     }
+      }
+    }
   }
 
 }

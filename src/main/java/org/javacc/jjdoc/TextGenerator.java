@@ -29,9 +29,7 @@
 
 package org.javacc.jjdoc;
 
-import org.javacc.parser.CppCodeProduction;
 import org.javacc.parser.Expansion;
-import org.javacc.parser.JavaCodeProduction;
 import org.javacc.parser.NonTerminal;
 import org.javacc.parser.NormalProduction;
 import org.javacc.parser.RegularExpression;
@@ -142,30 +140,7 @@ class TextGenerator implements Generator {
    * @see org.javacc.jjdoc.Generator#tokensEnd()
    */
   @Override
-  public void tokensEnd() {
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.javacc.jjdoc.Generator#javacode(org.javacc.parser.JavaCodeProduction)
-   */
-  @Override
-  public void javacode(JavaCodeProduction jp) {
-    productionStart(jp);
-    text("java code");
-    productionEnd(jp);
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.javacc.jjdoc.Generator#cppcode(org.javacc.parser.CppCodeProduction)
-   */
-  @Override
-  public void cppcode(CppCodeProduction cp) {
-    productionStart(cp);
-    text("c++ code");
-    productionEnd(cp);
-  }
+  public void tokensEnd() {}
 
   /**
    * {@inheritDoc}

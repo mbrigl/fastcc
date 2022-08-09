@@ -29,9 +29,7 @@
 
 package org.javacc.jjdoc;
 
-import org.javacc.parser.CppCodeProduction;
 import org.javacc.parser.Expansion;
-import org.javacc.parser.JavaCodeProduction;
 import org.javacc.parser.NonTerminal;
 import org.javacc.parser.NormalProduction;
 import org.javacc.parser.RegularExpression;
@@ -99,18 +97,6 @@ interface Generator {
    * Output end of tokens.
    */
   void tokensEnd();
-
-  /**
-   * Output comment from a production.
-   * @param jp the JavaCodeProduction to output
-   */
-  void javacode(JavaCodeProduction jp);
-
-  /**
-   * Output comment from a production.
-   * @param cp the CppCodeProduction to output
-   */
-  void cppcode(CppCodeProduction cp);
 
   /**
    * Output start of a normal production.

@@ -59,17 +59,8 @@ public class Expansion {
   /**
    * An internal name for this expansion. This is used to generate parser routines.
    */
-  String internal_name = "";
-  int internal_index = -1;
+  public String internal_name = "";
 
-  /**
-   * The parser routines are generated in three phases.  The generation
-   * of the second and third phase are on demand only, and the third phase
-   * can be recursive.  This variable is used to keep track of the
-   * expansions for which phase 3 generations have been already added to
-   * a list so that the recursion can be terminated.
-   */
-  boolean phase3done = false;
 
   /**
    * The parent of this expansion node. In case this is the top level expansion of the production it
@@ -89,18 +80,12 @@ public class Expansion {
    * New generations are obtained by incrementing the static counter below, and the current
    * generation is stored in the non-static variable below.
    */
-  public static long nextGenerationIndex = 1;
-  public long myGeneration = 0;
+  public long    myGeneration  = 0;
 
   /**
    * This flag is used for bookkeeping by the minimumSize method in class ParseEngine.
    */
   public boolean inMinimumSize = false;
-
-   public static void reInit()
-   {
-      nextGenerationIndex = 1;
-   }
 
   private String getSimpleName() {
     String name = getClass().getName();

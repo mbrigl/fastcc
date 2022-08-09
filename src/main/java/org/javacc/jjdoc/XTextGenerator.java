@@ -28,29 +28,19 @@
 
 package org.javacc.jjdoc;
 
-import org.javacc.parser.CppCodeProduction;
 import org.javacc.parser.Expansion;
-import org.javacc.parser.JavaCodeProduction;
 import org.javacc.parser.NonTerminal;
 import org.javacc.parser.NormalProduction;
 import org.javacc.parser.RegExprSpec;
 import org.javacc.parser.RegularExpression;
 import org.javacc.parser.TokenProduction;
 
-import java.util.Hashtable;
-import java.util.Iterator;
-
 /**
  * Output BNF in HTML 3.2 format.
  */
 class XTextGenerator extends TextGenerator {
-  private final Hashtable<String, String> id_map = new Hashtable<>();
-  private int id = 1;
 
-  static final String sep = "\n";
-
-  public XTextGenerator() {
-  }
+  public XTextGenerator() {}
 
   @Override
   public void handleTokenProduction(TokenProduction tp) {
@@ -71,16 +61,7 @@ class XTextGenerator extends TextGenerator {
       // }
     }
 
-      //text(sb.toString());
-  }
-
-  protected String get_id(String nt) {
-    String i = id_map.get(nt);
-    if (i == null) {
-      i = "prod" + id++;
-      id_map.put(nt, i);
-    }
-    return i;
+    // text(sb.toString());
   }
 
   private void println(String s) {
@@ -129,41 +110,14 @@ class XTextGenerator extends TextGenerator {
   public void nonterminalsEnd() {}
 
   @Override
-  public void tokensStart() {
-//    println("<H2 ALIGN=CENTER>TOKENS</H2>");
-//    println("<TABLE>");
-  }
-  @Override
-  public void tokensEnd() {
-//    println("</TABLE>");
-  }
+  public void tokensStart() {}
 
   @Override
-  public void javacode(JavaCodeProduction jp) {
-//    productionStart(jp);
-//    println("<I>java code</I></TD></TR>");
-//    productionEnd(jp);
-  }
+  public void tokensEnd() {}
 
   @Override
-  public void cppcode(CppCodeProduction cp) {
-//    productionStart(cp);
-//    println("<I>c++ code</I></TD></TR>");
-//    productionEnd(cp);
-  }
+  public void productionStart(NormalProduction np) {}
 
-  @Override
-  public void productionStart(NormalProduction np) {
-//    if (!JJDocOptions.getOneTable()) {
-//      println("");
-//      println("<TABLE ALIGN=CENTER>");
-//      println("<CAPTION><STRONG>" + np.getLhs() + "</STRONG></CAPTION>");
-//    }
-//    println("<TR>");
-//    println("<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME=\"" + get_id(np.getLhs()) + "\">" + np.getLhs() + "</A></TD>");
-//    println("<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>");
-//    print("<TD ALIGN=LEFT VALIGN=BASELINE>");
-  }
   @Override
   public void productionEnd(NormalProduction np) {}
 

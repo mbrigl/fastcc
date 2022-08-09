@@ -1,19 +1,18 @@
-\#include "DefaultParserErrorHandler.h"
-#if BUILD_PARSER
+#include "DefaultParserErrorHandler.h"
       
-\#if (JAVACC_CHAR_TYPE_SIZEOF != 1)
-\#include <codecvt>
-\#include <locale>
-\#endif
-\#include "JavaCC.h"
-\#include "Token.h"
-\#include "DefaultParserErrorHandler.h"
+#if (JAVACC_CHAR_TYPE_SIZEOF != 1)
+#include <codecvt>
+#include <locale>
+#endif
+#include "JavaCC.h"
+#include "Token.h"
+#include "DefaultParserErrorHandler.h"
 
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
 
-\#if (JAVACC_CHAR_TYPE_SIZEOF != 1)
+#if (JAVACC_CHAR_TYPE_SIZEOF != 1)
 using convert_t = std::codecvt_utf8<wchar_t>;
 static std::wstring_convert<convert_t, wchar_t> strconverter;
 
@@ -26,7 +25,7 @@ static std::wstring to_wstring(const std::string& str)
 {
     return strconverter.from_bytes(str);
 }
-\#endif
+#endif
 
 void DefaultParserErrorHandler::unexpectedToken(const JJString& expectedImage, const JJString& expectedLabel, const JJString& actualImage, const JJString& actualLabel, const Token* actualToken) {
 	error_count++;
@@ -39,11 +38,11 @@ void DefaultParserErrorHandler::unexpectedToken(const JJString& expectedImage, c
       
 void DefaultParserErrorHandler::parseError(const Token* last, const Token* unexpected, const JJSimpleString& production) {
     error_count++;
-\#if (JAVACC_CHAR_TYPE_SIZEOF == 1)
+#if (JAVACC_CHAR_TYPE_SIZEOF == 1)
     const JJString& work = production;
-\#else
+#else
     const JJString& work = to_wstring(production);
-\#endif
+#endif
     JJLOG 
         << JJWIDE(Encountered:) << JJSPACE << JJQUOTE << addUnicodeEscapes(unexpected->image()) << JJQUOTE << JJSPACE 
         << JJWIDE(at) << JJSPACE << unexpected->beginLine() << JJWIDE(:) << unexpected->beginColumn()  << JJSPACE 
@@ -55,7 +54,6 @@ void DefaultParserErrorHandler::otherError(const JJString& message) {
 }
 
 
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
-#fi
+@if NAMESPACE
+}
+@fi

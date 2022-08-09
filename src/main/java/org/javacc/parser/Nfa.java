@@ -27,22 +27,22 @@
  */
 package org.javacc.parser;
 
+import org.javacc.generator.LexerData;
+
 /**
  * A Non-deterministic Finite Automaton.
  */
 public class Nfa {
-   NfaState start;
-   NfaState end;
 
-   public Nfa()
-   {
-      start = new NfaState();
-      end = new NfaState();
-   }
+  public NfaState start;
+  public NfaState end;
 
-   public Nfa(NfaState startGiven, NfaState finalGiven)
-   {
-      start = startGiven;
-      end = finalGiven;
+  Nfa(LexerData data) {
+    this(new NfaState(data), new NfaState(data));
+  }
+
+  Nfa(NfaState startGiven, NfaState finalGiven) {
+    this.start = startGiven;
+    this.end = finalGiven;
   }
 }

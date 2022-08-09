@@ -27,9 +27,7 @@
  */
 package org.javacc.jjdoc;
 
-import org.javacc.parser.CppCodeProduction;
 import org.javacc.parser.Expansion;
-import org.javacc.parser.JavaCodeProduction;
 import org.javacc.parser.NonTerminal;
 import org.javacc.parser.NormalProduction;
 import org.javacc.parser.RCharacterList;
@@ -38,22 +36,11 @@ import org.javacc.parser.RegularExpression;
 import org.javacc.parser.TokenProduction;
 
 import java.io.PrintWriter;
-import java.util.Hashtable;
 
-public class BNFGenerator implements Generator {
-  private final Hashtable<String, String> id_map = new Hashtable<>();
-  private int id = 1;
-  protected PrintWriter ostr;
-  private boolean printing = true;
+class BNFGenerator implements Generator {
 
-  protected String get_id(String nt) {
-    String i = id_map.get(nt);
-    if (i == null) {
-      i = "prod" + id++;
-      id_map.put(nt, i);
-    }
-    return i;
-  }
+  private PrintWriter ostr;
+  private boolean     printing = true;
 
   private PrintWriter create_output_stream() {
 
@@ -121,13 +108,14 @@ public class BNFGenerator implements Generator {
   public void nonterminalsStart() {}
 
   @Override
-  public void nonterminalsEnd() { }
-  @Override public void tokensStart() {}
-  @Override public void tokensEnd() {}
+  public void nonterminalsEnd() {}
+
   @Override
-  public void javacode(JavaCodeProduction jp) { }
+  public void tokensStart() {}
+
   @Override
-  public void cppcode(CppCodeProduction cp) { }
+  public void tokensEnd() {}
+
   @Override
   public void expansionEnd(Expansion e, boolean first) {}
 

@@ -13,9 +13,6 @@
  * operation.
  */
 
-#if SUPPORT_CLASS_VISIBILITY_PUBLIC
-public
-#fi
 interface CharStream {
 
   /**
@@ -25,9 +22,6 @@ interface CharStream {
    */
   char readChar() throws java.io.IOException;
 
-#if GENERATE_ANNOTATIONS
-  @Deprecated
-#fi
   /**
    * Returns the column position of the character last read.
    * @deprecated
@@ -35,9 +29,6 @@ interface CharStream {
    */
   int getColumn();
 
-#if GENERATE_ANNOTATIONS
-  @Deprecated
-#fi
   /**
    * Returns the line number of the character last read.
    * @deprecated

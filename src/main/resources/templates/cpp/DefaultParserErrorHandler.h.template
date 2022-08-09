@@ -1,13 +1,12 @@
-\#ifndef JAVACC_DEFAULT_PARSER_ERROR_HANDLER_H
-\#define JAVACC_DEFAULT_PARSER_ERROR_HANDLER_H
+#ifndef JAVACC_DEFAULT_PARSER_ERROR_HANDLER_H
+#define JAVACC_DEFAULT_PARSER_ERROR_HANDLER_H
 
-#if BUILD_PARSER
-\#include "JavaCC.h"
-\#include "ParserErrorHandler.h"
+#include "JavaCC.h"
+#include "ParserErrorHandler.h"
 
-#if NAMESPACE
-namespace ${NAMESPACE_OPEN}
-#fi
+@if NAMESPACE
+namespace {{NAMESPACE}} {
+@fi
 
 class DefaultParserErrorHandler : public ParserErrorHandler {
 public:
@@ -30,9 +29,8 @@ public:
 };
 
 
-#if NAMESPACE
-${NAMESPACE_CLOSE}
-#fi
-#fi
+@if NAMESPACE
+}
+@fi
 
-\#endif
+#endif

@@ -27,6 +27,8 @@
  */
 package org.javacc.parser;
 
+import org.javacc.generator.LexerData;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -263,62 +265,15 @@ public class RCharacterList extends RegularExpression {
     }
   }
 
-  boolean transformed = false;
+  private boolean transformed = false;
+
   @Override
-  public Nfa GenerateNfa(boolean ignoreCase)
-  {
-     if (!transformed)
-     {
-        if (Options.getIgnoreCase() || ignoreCase)
-        {
-/*
-           int i;
-           System.out.println("Before:");
-           for (i = 0; i < descriptors.size(); i++)
-           {
-              if (descriptors.get(i) instanceof SingleCharacter)
-              {
-                 char c = ((SingleCharacter)descriptors.get(i)).ch;
-                 System.out.print((int)c + " ");
-              }
-              else
-              {
-                 char l = ((CharacterRange)descriptors.get(i)).left;
-                 char r = ((CharacterRange)descriptors.get(i)).right;
-
-                 System.out.print((int)l + "-" + (int)r + " ");
-              }
-              if ((i + 1) % 6 == 0)
-                 System.out.println("");
-           }
-           System.out.println("");
-*/
-
-           ToCaseNeutral();
-           SortDescriptors();
-
-/*
-           System.out.println("After:");
-           for (i = 0; i < descriptors.size(); i++)
-           {
-              if (descriptors.get(i) instanceof SingleCharacter)
-              {
-                 char c = ((SingleCharacter)descriptors.get(i)).ch;
-                 System.out.print((int)c + " ");
-              }
-              else
-              {
-                 char l = ((CharacterRange)descriptors.get(i)).left;
-                 char r = ((CharacterRange)descriptors.get(i)).right;
-
-                 System.out.print((int)l + "-" + (int)r + " ");
-              }
-              if ((i + 1) % 6 == 0)
-                 System.out.println("");
-           }
-           System.out.println("");
-*/
-        }
+  public Nfa GenerateNfa(LexerData data, boolean ignoreCase) {
+    if (!this.transformed) {
+      if (data.ignoreCase() || ignoreCase) {
+        ToCaseNeutral();
+        SortDescriptors();
+      }
 
       if (this.negated_list) {
         RemoveNegation(); // This also sorts the list
@@ -327,32 +282,31 @@ public class RCharacterList extends RegularExpression {
       }
     }
 
-     if (descriptors.size() == 0 && !negated_list)
-     {
-        JavaCCErrors.semantic_error(this, "Empty character set is not allowed as it will not match any character.");
-        return new Nfa();
-     }
+    if ((this.descriptors.size() == 0) && !this.negated_list) {
+      JavaCCErrors.semantic_error(this, "Empty character set is not allowed as it will not match any character.");
+      return new Nfa(data);
+    }
 
-     transformed = true;
-     Nfa retVal = new Nfa();
-     NfaState startState = retVal.start;
-     NfaState finalState = retVal.end;
-     int i;
+    this.transformed = true;
+    Nfa retVal = new Nfa(data);
+    NfaState startState = retVal.start;
+    NfaState finalState = retVal.end;
+    int i;
 
-     for (i = 0; i < descriptors.size(); i++)
-     {
-        if (descriptors.get(i) instanceof SingleCharacter)
-           startState.AddChar(((SingleCharacter)descriptors.get(i)).ch);
-        else // if (descriptors.get(i) instanceof CharacterRange)
-        {
-           CharacterRange cr = (CharacterRange)descriptors.get(i);
+    for (i = 0; i < this.descriptors.size(); i++) {
+      if (this.descriptors.get(i) instanceof SingleCharacter) {
+        startState.AddChar(((SingleCharacter) this.descriptors.get(i)).ch);
+      } else // if (descriptors.get(i) instanceof CharacterRange)
+      {
+        CharacterRange cr = (CharacterRange) this.descriptors.get(i);
 
-           if (cr.getLeft() == cr.getRight())
-              startState.AddChar(cr.getLeft());
-           else
-              startState.AddRange(cr.getLeft(), cr.getRight());
+        if (cr.getLeft() == cr.getRight()) {
+          startState.AddChar(cr.getLeft());
+        } else {
+          startState.AddRange(cr.getLeft(), cr.getRight());
         }
-     }
+      }
+    }
 
     startState.next = finalState;
 

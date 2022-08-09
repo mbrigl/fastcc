@@ -28,9 +28,7 @@
 
 package org.javacc.jjdoc;
 
-import org.javacc.parser.CppCodeProduction;
 import org.javacc.parser.Expansion;
-import org.javacc.parser.JavaCodeProduction;
 import org.javacc.parser.NonTerminal;
 import org.javacc.parser.NormalProduction;
 import org.javacc.parser.RegularExpression;
@@ -166,20 +164,6 @@ class HTMLGenerator extends TextGenerator {
   public void tokensEnd() {
     println("</TABLE>");
   }
-
-  @Override
-  public void javacode(JavaCodeProduction jp) {
-	    productionStart(jp);
-	    println("<I>java code</I></TD></TR>");
-	    productionEnd(jp);
-	  }
-
-  @Override
-  public void cppcode(CppCodeProduction cp) {
-	    productionStart(cp);
-	    println("<I>cpp code</I></TD></TR>");
-	    productionEnd(cp);
-	  }
 
   @Override
   public void productionStart(NormalProduction np) {
