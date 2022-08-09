@@ -32,6 +32,7 @@
 package org.javacc.jjtree;
 
 import org.javacc.parser.JavaCCGlobals;
+import org.javacc.parser.Options;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -171,7 +172,18 @@ public class JJTree {
           p("Error setting output: " + ioe.getMessage());
           return 1;
         }
-        root.generate(io);
+        
+        System.out.println("opt:" + JJTreeOptions.getOutputLanguage());
+        // TODO :: CBA --  Require Unification of output language specific processing into a single Enum class
+        if (JJTreeOptions.isOutputLanguageJava()) {
+          new JavaCodeGenerator().visit(root, io);
+        } else if (JJTreeOptions.getOutputLanguage().equals(Options.OUTPUT_LANGUAGE__CPP)) {
+          new CPPCodeGenerator().visit(root, io);
+          CPPNodeFiles.generateTreeClasses();
+        } else {
+          // Catch all to ensure we don't accidentally do nothing
+          throw new RuntimeException("Language type not supported for JJTree : " + JJTreeOptions.getOutputLanguage());
+        }
         io.getOut().close();
 
         String outputLanguage = JJTreeOptions.getOutputLanguage();

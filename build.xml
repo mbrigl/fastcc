@@ -150,16 +150,12 @@
 		<delete file="${jjtree-generated-src}/ASTBNFAction.java" />
 		<delete file="${jjtree-generated-src}/ASTBNFDeclaration.java" />
 		<delete file="${jjtree-generated-src}/ASTBNFNodeScope.java" />
-		<delete file="${jjtree-generated-src}/ASTCompilationUnit.java" />
 		<delete file="${jjtree-generated-src}/ASTExpansionNodeScope.java" />
-		<delete file="${jjtree-generated-src}/ASTGrammar.java" />
 		<delete file="${jjtree-generated-src}/ASTJavacode.java" />
 		<delete file="${jjtree-generated-src}/ASTJavacodeBody.java" />
 		<delete file="${jjtree-generated-src}/ASTNodeDescriptor.java" />
 		<delete file="${jjtree-generated-src}/ASTNodeDescriptorExpression.java" />
 		<delete file="${jjtree-generated-src}/ASTOptionBinding.java" />
-		<delete file="${jjtree-generated-src}/ASTOptions.java" />
-		<delete file="${jjtree-generated-src}/JJTreeParserVisitor.java" />
 		<delete file="${jjtree-generated-src}/JJTreeParserDefaultVisitor.java" />
 		<delete file="${jjtree-generated-src}/Token.java" />
 
