@@ -50,38 +50,34 @@ public class RSequence extends RegularExpression {
         return ((RegularExpression)units.get(0)).GenerateNfa(ignoreCase);
 
      Nfa retVal = new Nfa();
-     NfaState startState = retVal.start;
-     NfaState finalState = retVal.end;
-     Nfa temp1;
-     Nfa temp2 = null;
+    NfaState startState = retVal.start;
+    NfaState finalState = retVal.end;
+    Nfa temp1;
+    Nfa temp2 = null;
 
-     RegularExpression curRE;
+    RegularExpression curRE;
 
-     curRE = (RegularExpression)units.get(0);
+    curRE = (RegularExpression) this.units.get(0);
      temp1 = curRE.GenerateNfa(ignoreCase);
-     startState.AddMove(temp1.start);
+    startState.AddMove(temp1.start);
 
-     for (int i = 1; i < units.size(); i++)
-     {
-        curRE = (RegularExpression)units.get(i);
+    for (int i = 1; i < this.units.size(); i++) {
+      curRE = (RegularExpression) this.units.get(i);
 
         temp2 = curRE.GenerateNfa(ignoreCase);
-        temp1.end.AddMove(temp2.start);
-        temp1 = temp2;
-     }
+      temp1.end.AddMove(temp2.start);
+      temp1 = temp2;
+    }
 
-     temp2.end.AddMove(finalState);
+    temp2.end.AddMove(finalState);
 
-     return retVal;
+    return retVal;
   }
 
-  RSequence()
-  {
-  }
+  RSequence() {}
 
-  RSequence(List<? super Object> seq)
-  {
-     ordinal = Integer.MAX_VALUE;
-     units = seq;
+  RSequence(List<? super Object> seq) {
+    this.ordinal = Integer.MAX_VALUE;
+    this.units = seq;
   }
 }

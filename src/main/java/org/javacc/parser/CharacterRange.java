@@ -37,9 +37,9 @@ public class CharacterRange {
    * The line and column number of the construct that corresponds
    * most closely to this node.
    */
-  private int column;
+  private int  column;
 
-  private int line;
+  private int  line;
 
   /**
    * The leftmost and the rightmost characters in this character range.
@@ -48,16 +48,16 @@ public class CharacterRange {
 
   private char left;
 
-  CharacterRange() { }
+  CharacterRange() {}
 
-  CharacterRange(char l, char r)
-  {
-     if (l > r)
-        JavaCCErrors.semantic_error(this, "Invalid range : \"" + (int)l + "\" - \""
-              + (int)r + "\". First character should be less than or equal to the second one in a range.");
+  CharacterRange(char l, char r) {
+    if (l > r) {
+      JavaCCErrors.semantic_error(this, "Invalid range : \"" + (int) l + "\" - \"" + (int) r
+          + "\". First character should be less than or equal to the second one in a range.");
+    }
 
-     setLeft(l);
-     setRight(r);
+    setLeft(l);
+    setRight(r);
   }
 
   /**
@@ -71,7 +71,7 @@ public class CharacterRange {
    * @return the line
    */
   int getLine() {
-    return line;
+    return this.line;
   }
 
   /**
@@ -85,7 +85,7 @@ public class CharacterRange {
    * @return the column
    */
   int getColumn() {
-    return column;
+    return this.column;
   }
 
   /**
@@ -99,7 +99,7 @@ public class CharacterRange {
    * @return the left
    */
   public char getLeft() {
-    return left;
+    return this.left;
   }
 
   /**
@@ -113,6 +113,6 @@ public class CharacterRange {
    * @return the right
    */
   public char getRight() {
-    return right;
+    return this.right;
   }
 }

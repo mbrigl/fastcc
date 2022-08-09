@@ -55,13 +55,11 @@ public class BNFGenerator implements Generator {
     return i;
   }
 
-  protected PrintWriter create_output_stream() {
+  private PrintWriter create_output_stream() {
 
     if (JJDocOptions.getOutputFile().equals("")) {
       if (JJDocGlobals.input_file.equals("standard input")) {
-        return new java.io.PrintWriter(
-                                       new java.io.OutputStreamWriter(
-                                                                      System.out));
+        return new java.io.PrintWriter(new java.io.OutputStreamWriter(System.out));
       } else {
         String ext = ".bnf";
         int i = JJDocGlobals.input_file.lastIndexOf('.');
@@ -72,8 +70,7 @@ public class BNFGenerator implements Generator {
           if (suffix.equals(ext)) {
             JJDocGlobals.output_file = JJDocGlobals.input_file + ext;
           } else {
-            JJDocGlobals.output_file = JJDocGlobals.input_file.substring(0, i)
-                + ext;
+            JJDocGlobals.output_file = JJDocGlobals.input_file.substring(0, i) + ext;
           }
         }
       }
@@ -81,16 +78,13 @@ public class BNFGenerator implements Generator {
       JJDocGlobals.output_file = JJDocOptions.getOutputFile();
     }
     try {
-      ostr = new java.io.PrintWriter(
-                                     new java.io.FileWriter(
-                                                            JJDocGlobals.output_file));
+      this.ostr = new java.io.PrintWriter(new java.io.FileWriter(JJDocGlobals.output_file));
     } catch (java.io.IOException e) {
-      error("JJDoc: can't open output stream on file "
-          + JJDocGlobals.output_file + ".  Using standard output.");
-      ostr = new java.io.PrintWriter(new java.io.OutputStreamWriter(System.out));
+      error("JJDoc: can't open output stream on file " + JJDocGlobals.output_file + ".  Using standard output.");
+      this.ostr = new java.io.PrintWriter(new java.io.OutputStreamWriter(System.out));
     }
 
-    return ostr;
+    return this.ostr;
   }
 
   private void println(String s) {
@@ -99,34 +93,33 @@ public class BNFGenerator implements Generator {
 
   @Override
   public void text(String s) {
-    if (printing && !(s.length() == 1 && (s.charAt(0) == '\n' || s.charAt(0) == '\r'))) {
+    if (this.printing && !((s.length() == 1) && ((s.charAt(0) == '\n') || (s.charAt(0) == '\r')))) {
       print(s);
     }
   }
+
   @Override
   public void print(String s) {
-    ostr.print(s);
+    this.ostr.print(s);
   }
 
   @Override
   public void documentStart() {
-    ostr = create_output_stream();
+    this.ostr = create_output_stream();
   }
+
   @Override
   public void documentEnd() {
-    ostr.close();
+    this.ostr.close();
   }
+
   @Override
-  public void specialTokens(String s) {
-  }
-//  public void tokenStart(TokenProduction tp) {
-//    printing = false;
-//  }
-//  public void tokenEnd(TokenProduction tp) {
-//    printing = true;
-//  }
+  public void specialTokens(String s) {}
+
+
   @Override
-  public void nonterminalsStart() { }
+  public void nonterminalsStart() {}
+
   @Override
   public void nonterminalsEnd() { }
   @Override public void tokensStart() {}
@@ -136,54 +129,71 @@ public class BNFGenerator implements Generator {
   @Override
   public void cppcode(CppCodeProduction cp) { }
   @Override
-  public void expansionEnd(Expansion e, boolean first) { }
+  public void expansionEnd(Expansion e, boolean first) {}
+
   @Override
-  public void nonTerminalStart(NonTerminal nt) { }
+  public void nonTerminalStart(NonTerminal nt) {}
+
   @Override
-  public void nonTerminalEnd(NonTerminal nt) { }
+  public void nonTerminalEnd(NonTerminal nt) {}
+
   @Override
   public void productionStart(NormalProduction np) {
-	  println("");
+    println("");
     print(np.getLhs() + " ::= ");
   }
+
   @Override
   public void productionEnd(NormalProduction np) {
-	  println("");
+    println("");
   }
+
   @Override
   public void expansionStart(Expansion e, boolean first) {
     if (!first) {
       print(" | ");
     }
   }
+
   @Override
   public void reStart(RegularExpression r) {
     if (r.getClass().equals(RJustName.class) || r.getClass().equals(RCharacterList.class)) {
-      printing = false;
+      this.printing = false;
     }
   }
+
   @Override
   public void reEnd(RegularExpression r) {
-    printing = true;
+    this.printing = true;
   }
 
   @Override
-  public void debug(String message) { System.err.println(message); }
-  @Override
-  public void info(String message) { System.err.println(message); }
-  @Override
-  public void warn(String message) { System.err.println(message); }
-  @Override
-  public void error(String message) { System.err.println(message); }
+  public void debug(String message) {
+    System.err.println(message);
+  }
 
-@Override
-public void handleTokenProduction(TokenProduction tp) {
-    printing = false;
+  @Override
+  public void info(String message) {
+    System.err.println(message);
+  }
+
+  @Override
+  public void warn(String message) {
+    System.err.println(message);
+  }
+
+  @Override
+  public void error(String message) {
+    System.err.println(message);
+  }
+
+  @Override
+  public void handleTokenProduction(TokenProduction tp) {
+    this.printing = false;
     String text = JJDoc.getStandardTokenProductionText(tp);
     text(text);
-    printing = true;
-}
-
+    this.printing = true;
+  }
 
 
 }

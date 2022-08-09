@@ -42,14 +42,15 @@ import java.io.PrintWriter;
 /**
  * Output BNF in text format.
  */
-public class TextGenerator implements Generator {
+class TextGenerator implements Generator {
+
   protected PrintWriter ostr;
 
-  public TextGenerator() {
-  }
+  public TextGenerator() {}
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#text(java.lang.String)
    */
   @Override
@@ -59,60 +60,68 @@ public class TextGenerator implements Generator {
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#print(java.lang.String)
    */
   @Override
   public void print(String s) {
-    ostr.print(s);
+    this.ostr.print(s);
   }
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#documentStart()
    */
   @Override
   public void documentStart() {
-    ostr = create_output_stream();
-    ostr.print("\nDOCUMENT START\n");
+    this.ostr = create_output_stream();
+    this.ostr.print("\nDOCUMENT START\n");
   }
+
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#documentEnd()
    */
   @Override
   public void documentEnd() {
-    ostr.print("\nDOCUMENT END\n");
-    ostr.close();
+    this.ostr.print("\nDOCUMENT END\n");
+    this.ostr.close();
   }
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#specialTokens(java.lang.String)
    */
   @Override
   public void specialTokens(String s) {
-    ostr.print(s);
+    this.ostr.print(s);
   }
 
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#nonterminalsStart()
    */
   @Override
   public void nonterminalsStart() {
     text("NON-TERMINALS\n");
   }
-  /**
-   * {@inheritDoc}
-   * @see org.javacc.jjdoc.Generator#nonterminalsEnd()
-   */
-  @Override
-  public void nonterminalsEnd() {
-  }
 
   /**
    * {@inheritDoc}
+   *
+   * @see org.javacc.jjdoc.Generator#nonterminalsEnd()
+   */
+  @Override
+  public void nonterminalsEnd() {}
+
+  /**
+   * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#tokensStart()
    */
   @Override
@@ -122,13 +131,14 @@ public class TextGenerator implements Generator {
 
   @Override
   public void handleTokenProduction(TokenProduction tp) {
-      String text = JJDoc.getStandardTokenProductionText(tp);
-      text(text);
+    String text = JJDoc.getStandardTokenProductionText(tp);
+    text(text);
   }
 
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#tokensEnd()
    */
   @Override
@@ -159,88 +169,92 @@ public class TextGenerator implements Generator {
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#productionStart(org.javacc.parser.NormalProduction)
    */
   @Override
   public void productionStart(NormalProduction np) {
-    ostr.print("\t" + np.getLhs() + "\t:=\t");
-  }
-  /**
-   * {@inheritDoc}
-   * @see org.javacc.jjdoc.Generator#productionEnd(org.javacc.parser.NormalProduction)
-   */
-  @Override
-  public void productionEnd(NormalProduction np) {
-    ostr.print("\n");
+    this.ostr.print("\t" + np.getLhs() + "\t:=\t");
   }
 
   /**
    * {@inheritDoc}
+   *
+   * @see org.javacc.jjdoc.Generator#productionEnd(org.javacc.parser.NormalProduction)
+   */
+  @Override
+  public void productionEnd(NormalProduction np) {
+    this.ostr.print("\n");
+  }
+
+  /**
+   * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#expansionStart(org.javacc.parser.Expansion, boolean)
    */
   @Override
   public void expansionStart(Expansion e, boolean first) {
     if (!first) {
-      ostr.print("\n\t\t|\t");
+      this.ostr.print("\n\t\t|\t");
     }
   }
+
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#expansionEnd(org.javacc.parser.Expansion, boolean)
    */
   @Override
-  public void expansionEnd(Expansion e, boolean first) {
-  }
+  public void expansionEnd(Expansion e, boolean first) {}
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#nonTerminalStart(org.javacc.parser.NonTerminal)
    */
   @Override
-  public void nonTerminalStart(NonTerminal nt) {
-  }
+  public void nonTerminalStart(NonTerminal nt) {}
+
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#nonTerminalEnd(org.javacc.parser.NonTerminal)
    */
   @Override
-  public void nonTerminalEnd(NonTerminal nt) {
-  }
+  public void nonTerminalEnd(NonTerminal nt) {}
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#reStart(org.javacc.parser.RegularExpression)
    */
   @Override
-  public void reStart(RegularExpression r) {
-  }
+  public void reStart(RegularExpression r) {}
+
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#reEnd(org.javacc.parser.RegularExpression)
    */
   @Override
-  public void reEnd(RegularExpression r) {
-  }
+  public void reEnd(RegularExpression r) {}
 
   /**
-   * Create an output stream for the generated Jack code. Try to open a file
-   * based on the name of the parser, but if that fails use the standard output
-   * stream.
+   * Create an output stream for the generated Jack code. Try to open a file based on the name of
+   * the parser, but if that fails use the standard output stream.
    */
   protected PrintWriter create_output_stream() {
 
     if (JJDocOptions.getOutputFile().equals("")) {
       if (JJDocGlobals.input_file.equals("standard input")) {
-        return new java.io.PrintWriter(
-                                       new java.io.OutputStreamWriter(
-                                                                      System.out));
+        return new java.io.PrintWriter(new java.io.OutputStreamWriter(System.out));
       } else {
         String ext = ".html";
 
         if (JJDocOptions.getText()) {
           ext = ".txt";
         } else if (JJDocOptions.getXText()) {
-            ext = ".xtext";
+          ext = ".xtext";
         }
 
         int i = JJDocGlobals.input_file.lastIndexOf('.');
@@ -251,8 +265,7 @@ public class TextGenerator implements Generator {
           if (suffix.equals(ext)) {
             JJDocGlobals.output_file = JJDocGlobals.input_file + ext;
           } else {
-            JJDocGlobals.output_file = JJDocGlobals.input_file.substring(0, i)
-                + ext;
+            JJDocGlobals.output_file = JJDocGlobals.input_file.substring(0, i) + ext;
           }
         }
       }
@@ -261,20 +274,18 @@ public class TextGenerator implements Generator {
     }
 
     try {
-      ostr = new java.io.PrintWriter(
-                                     new java.io.FileWriter(
-                                                            JJDocGlobals.output_file));
+      this.ostr = new java.io.PrintWriter(new java.io.FileWriter(JJDocGlobals.output_file));
     } catch (java.io.IOException e) {
-      error("JJDoc: can't open output stream on file "
-          + JJDocGlobals.output_file + ".  Using standard output.");
-      ostr = new java.io.PrintWriter(new java.io.OutputStreamWriter(System.out));
+      error("JJDoc: can't open output stream on file " + JJDocGlobals.output_file + ".  Using standard output.");
+      this.ostr = new java.io.PrintWriter(new java.io.OutputStreamWriter(System.out));
     }
 
-    return ostr;
+    return this.ostr;
   }
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#debug(java.lang.String)
    */
   @Override
@@ -284,6 +295,7 @@ public class TextGenerator implements Generator {
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#info(java.lang.String)
    */
   @Override
@@ -293,6 +305,7 @@ public class TextGenerator implements Generator {
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#warn(java.lang.String)
    */
   @Override
@@ -302,17 +315,13 @@ public class TextGenerator implements Generator {
 
   /**
    * {@inheritDoc}
+   *
    * @see org.javacc.jjdoc.Generator#error(java.lang.String)
    */
   @Override
   public void error(String message) {
     System.err.println(message);
   }
-
-
-
-
-
 
 
 }

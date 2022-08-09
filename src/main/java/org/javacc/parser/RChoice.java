@@ -53,7 +53,7 @@ public class RChoice extends RegularExpression {
    * @return the choices
    */
   public List<? super Object> getChoices() {
-    return choices;
+    return this.choices;
   }
 
   @Override
@@ -61,82 +61,83 @@ public class RChoice extends RegularExpression {
   {
      CompressCharLists();
 
-     if (getChoices().size() == 1)
+    if (getChoices().size() == 1) {
         return ((RegularExpression)getChoices().get(0)).GenerateNfa(ignoreCase);
+    }
 
      Nfa retVal = new Nfa();
      NfaState startState = retVal.start;
      NfaState finalState = retVal.end;
 
-     for (int i = 0; i < getChoices().size(); i++)
-     {
-        Nfa temp;
-        RegularExpression curRE = (RegularExpression)getChoices().get(i);
+    for (Object element : getChoices()) {
+      Nfa temp;
+      RegularExpression curRE = (RegularExpression) element;
 
         temp = curRE.GenerateNfa(ignoreCase);
 
-        startState.AddMove(temp.start);
-        temp.end.AddMove(finalState);
-     }
+      startState.AddMove(temp.start);
+      temp.end.AddMove(finalState);
+    }
 
-     return retVal;
+    return retVal;
   }
 
   void CompressCharLists()
   {
-     CompressChoices(); // Unroll nested choices
-     RegularExpression curRE;
-     RCharacterList curCharList = null;
+    CompressChoices(); // Unroll nested choices
+    RegularExpression curRE;
+    RCharacterList curCharList = null;
 
-     for (int i = 0; i < getChoices().size(); i++)
-     {
-        curRE = (RegularExpression)getChoices().get(i);
+    for (int i = 0; i < getChoices().size(); i++) {
+      curRE = (RegularExpression) getChoices().get(i);
 
-        while (curRE instanceof RJustName)
-           curRE = ((RJustName)curRE).regexpr;
+      while (curRE instanceof RJustName) {
+        curRE = ((RJustName) curRE).regexpr;
+      }
 
-        if (curRE instanceof RStringLiteral &&
-            ((RStringLiteral)curRE).image.length() == 1)
-           getChoices().set(i, curRE = new RCharacterList(
-                      ((RStringLiteral)curRE).image.charAt(0)));
+      if ((curRE instanceof RStringLiteral) && (((RStringLiteral) curRE).image.length() == 1)) {
+        getChoices().set(i, curRE = new RCharacterList(((RStringLiteral) curRE).image.charAt(0)));
+      }
 
-        if (curRE instanceof RCharacterList)
-        {
-           if (((RCharacterList)curRE).negated_list)
-              ((RCharacterList)curRE).RemoveNegation();
+      if (curRE instanceof RCharacterList) {
+        if (((RCharacterList) curRE).negated_list) {
+          ((RCharacterList) curRE).RemoveNegation();
+        }
 
-           List<Object> tmp = ((RCharacterList)curRE).descriptors;
+        List<Object> tmp = ((RCharacterList) curRE).descriptors;
 
-           if (curCharList == null)
-              getChoices().set(i, curRE = curCharList = new RCharacterList());
-           else
-              getChoices().remove(i--);
+        if (curCharList == null) {
+          getChoices().set(i, curRE = curCharList = new RCharacterList());
+        } else {
+          getChoices().remove(i--);
+        }
 
-           for (int j = tmp.size(); j-- > 0;)
-              curCharList.descriptors.add(tmp.get(j));
-         }
+        for (int j = tmp.size(); j-- > 0;) {
+          curCharList.descriptors.add(tmp.get(j));
+        }
+      }
 
-     }
+    }
   }
 
   void CompressChoices()
   {
      RegularExpression curRE;
 
-     for (int i = 0; i < getChoices().size(); i++)
-     {
-        curRE = (RegularExpression)getChoices().get(i);
+    for (int i = 0; i < getChoices().size(); i++) {
+      curRE = (RegularExpression) getChoices().get(i);
 
-        while (curRE instanceof RJustName)
-           curRE = ((RJustName)curRE).regexpr;
+      while (curRE instanceof RJustName) {
+        curRE = ((RJustName) curRE).regexpr;
+      }
 
-        if (curRE instanceof RChoice)
-        {
-           getChoices().remove(i--);
-           for (int j = ((RChoice)curRE).getChoices().size(); j-- > 0;)
-              getChoices().add(((RChoice)curRE).getChoices().get(j));
+      if (curRE instanceof RChoice) {
+        getChoices().remove(i--);
+        for (int j = ((RChoice) curRE).getChoices().size(); j-- > 0;) {
+          getChoices().add(((RChoice) curRE).getChoices().get(j));
         }
-     }
+      }
+    }
   }
 
   public void CheckUnmatchability()

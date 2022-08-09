@@ -130,29 +130,30 @@ public class NfaState
    {
       NfaState retVal = new NfaState();
 
-      retVal.isFinal = isFinal;
-      retVal.kind = kind;
-      retVal.lookingFor = lookingFor;
-      retVal.lexState = lexState;
-      retVal.inNextOf = inNextOf;
+    retVal.isFinal = this.isFinal;
+    retVal.kind = this.kind;
+    retVal.lookingFor = this.lookingFor;
+    retVal.lexState = this.lexState;
+    retVal.inNextOf = this.inNextOf;
 
-      retVal.MergeMoves(this);
+    retVal.MergeMoves(this);
 
-      return retVal;
-   }
+    return retVal;
+  }
 
-   static void InsertInOrder(List<NfaState> v, NfaState s)
-   {
-      int j;
+  private static void InsertInOrder(List<NfaState> v, NfaState s) {
+    int j;
 
-      for (j = 0; j < v.size(); j++)
-         if (v.get(j).id > s.id)
-            break;
-         else if (v.get(j).id  == s.id)
-            return;
+    for (j = 0; j < v.size(); j++) {
+      if (v.get(j).id > s.id) {
+        break;
+      } else if (v.get(j).id == s.id) {
+        return;
+      }
+    }
 
-      v.add(j, s);
-   }
+    v.add(j, s);
+  }
 
    private static char[] ExpandCharArr(char[] oldArr, int incr)
    {
@@ -180,22 +181,22 @@ public class NfaState
       char temp;
       char temp1;
 
-      if ((int)c < 128) // ASCII char
-      {
-         AddASCIIMove(c);
-         return;
-      }
+    if (c < 128) // ASCII char
+    {
+      AddASCIIMove(c);
+      return;
+    }
 
-      if (charMoves == null)
-         charMoves = new char[10];
+    if (this.charMoves == null) {
+      this.charMoves = new char[10];
+    }
 
-      int len = charMoves.length;
+    int len = this.charMoves.length;
 
-      if (charMoves[len - 1] != 0)
-      {
-         charMoves = ExpandCharArr(charMoves, 10);
-         len += 10;
-      }
+    if (this.charMoves[len - 1] != 0) {
+      this.charMoves = NfaState.ExpandCharArr(this.charMoves, 10);
+      len += 10;
+    }
 
       for (i = 0; i < len; i++)
          if (charMoves[i] == 0 || charMoves[i] > c)
@@ -211,39 +212,38 @@ public class NfaState
               "one that can handle your character set.");
       }
 
-      temp = charMoves[i];
-      charMoves[i] = c;
+    temp = this.charMoves[i];
+    this.charMoves[i] = c;
 
-      for (i++; i < len; i++)
-      {
-         if (temp == 0)
-            break;
-
-         temp1 = charMoves[i];
-         charMoves[i] = temp;
-         temp = temp1;
+    for (i++; i < len; i++) {
+      if (temp == 0) {
+        break;
       }
-   }
 
-   void AddRange(char left, char right)
-   {
-      onlyChar = 2;
-      int i;
-      char tempLeft1, tempLeft2, tempRight1, tempRight2;
+      temp1 = this.charMoves[i];
+      this.charMoves[i] = temp;
+      temp = temp1;
+    }
+  }
 
-      if (left < 128)
-      {
-         if (right < 128)
-         {
-            for (; left <= right; left++)
-               AddASCIIMove(left);
+  void AddRange(char left, char right) {
+    this.onlyChar = 2;
+    int i;
+    char tempLeft1, tempLeft2, tempRight1, tempRight2;
 
-            return;
-         }
+    if (left < 128) {
+      if (right < 128) {
+        for (; left <= right; left++) {
+          AddASCIIMove(left);
+        }
 
-         for (; left < 128; left++)
-            AddASCIIMove(left);
+        return;
       }
+
+      for (; left < 128; left++) {
+        AddASCIIMove(left);
+      }
+    }
 
       if (!unicodeWarningGiven && (left > 0xff || right > 0xff) &&
           !Options.getJavaUnicodeEscape() &&

@@ -46,13 +46,13 @@ public class BNFProduction extends NormalProduction {
    * statements have been patched within this production's actions to
    * include a preceding "if (true)".
    */
-  private boolean jumpPatched;
+  private boolean           jumpPatched;
 
   /**
    * @return the declaration_tokens
    */
   public List<Token> getDeclarationTokens() {
-    return declaration_tokens;
+    return this.declaration_tokens;
   }
 
   /**
@@ -66,7 +66,7 @@ public class BNFProduction extends NormalProduction {
    * @return the jumpPatched
    */
   public boolean isJumpPatched() {
-    return jumpPatched;
+    return this.jumpPatched;
   }
 
 }

@@ -65,7 +65,7 @@ import java.util.List;
 /**
  * The main entry point for JJDoc.
  */
-public class JJDoc extends JJDocGlobals {
+class JJDoc extends JJDocGlobals {
 
   static void start() {
     generator = getGenerator();
@@ -74,6 +74,7 @@ public class JJDoc extends JJDocGlobals {
     emitNormalProductions(generator, bnfproductions);
     generator.documentEnd();
   }
+
   private static Token getPrecedingSpecialToken(Token tok) {
     Token t = tok;
     while (t.specialToken != null) {
@@ -81,6 +82,7 @@ public class JJDoc extends JJDocGlobals {
     }
     return (t != tok) ? t : null;
   }
+
   private static void emitTopLevelSpecialTokens(Token tok, Generator gen) {
     if (tok == null) {
       // Strange ...
@@ -96,21 +98,17 @@ public class JJDoc extends JJDocGlobals {
         tok = tok.next;
       }
     }
-    if (!s.equals(""))
+    if (!s.equals("")) {
       gen.specialTokens(s);
+    }
   }
 
   /*
-  private static boolean toplevelExpansion(Expansion exp) {
-    return exp.parent != null
-      && ( (exp.parent instanceof NormalProduction)
-         ||
-         (exp.parent instanceof TokenProduction)
-         );
-  }
-  */
+   * private static boolean toplevelExpansion(Expansion exp) { return exp.parent != null && (
+   * (exp.parent instanceof NormalProduction) || (exp.parent instanceof TokenProduction) ); }
+   */
 
-  private static void emitTokenProductions(Generator gen, List<TokenProduction> prods) {
+  private static void emitTokenProductions(Generator gen, Iterable<TokenProduction> prods) {
     gen.tokensStart();
     // FIXME there are many empty productions here
     for (Iterator<TokenProduction> it = prods.iterator(); it.hasNext();) {
@@ -121,55 +119,56 @@ public class JJDoc extends JJDocGlobals {
 
       gen.handleTokenProduction(tp);
 
-//      if (!token.equals("")) {
-//        gen.tokenStart(tp);
-//        String token = getStandardTokenProductionText(tp);
-//          gen.text(token);
-//        gen.tokenEnd(tp);
-//      }
+      // if (!token.equals("")) {
+      // gen.tokenStart(tp);
+      // String token = getStandardTokenProductionText(tp);
+      // gen.text(token);
+      // gen.tokenEnd(tp);
+      // }
     }
     gen.tokensEnd();
   }
-public static String getStandardTokenProductionText(TokenProduction tp) {
+
+  static String getStandardTokenProductionText(TokenProduction tp) {
     String token = "";
-      if (tp.isExplicit) {
-        if (tp.lexStates == null) {
-         token += "<*> ";
-        } else {
-          token += "<";
-          for (int i = 0; i < tp.lexStates.length; ++i) {
-            token += tp.lexStates[i];
-            if (i < tp.lexStates.length - 1) {
-              token += ",";
-            }
-          }
-          token += "> ";
-        }
-        token += TokenProduction.kindImage[tp.kind];
-        if (tp.ignoreCase) {
-          token += " [IGNORE_CASE]";
-        }
-        token += " : {\n";
-        for (Iterator<RegExprSpec> it2 = tp.respecs.iterator(); it2.hasNext();) {
-          RegExprSpec res = it2.next();
-
-          token += emitRE(res.rexp);
-
-          if (res.nsTok != null) {
-            token += " : " + res.nsTok.image;
-          }
-
-          token += "\n";
-          if (it2.hasNext()) {
-            token += "| ";
+    if (tp.isExplicit) {
+      if (tp.lexStates == null) {
+        token += "<*> ";
+      } else {
+        token += "<";
+        for (int i = 0; i < tp.lexStates.length; ++i) {
+          token += tp.lexStates[i];
+          if (i < (tp.lexStates.length - 1)) {
+            token += ",";
           }
         }
-        token += "}\n\n";
+        token += "> ";
       }
-    return token;
-}
+      token += TokenProduction.kindImage[tp.kind];
+      if (tp.ignoreCase) {
+        token += " [IGNORE_CASE]";
+      }
+      token += " : {\n";
+      for (Iterator<RegExprSpec> it2 = tp.respecs.iterator(); it2.hasNext();) {
+        RegExprSpec res = it2.next();
 
-  private static void emitNormalProductions(Generator gen, List<NormalProduction> prods) {
+        token += JJDoc.emitRE(res.rexp);
+
+        if (res.nsTok != null) {
+          token += " : " + res.nsTok.image;
+        }
+
+        token += "\n";
+        if (it2.hasNext()) {
+          token += "| ";
+        }
+      }
+      token += "}\n\n";
+    }
+    return token;
+  }
+
+  private static void emitNormalProductions(Generator gen, Iterable<NormalProduction> prods) {
     gen.nonterminalsStart();
     for (Iterator<NormalProduction> it = prods.iterator(); it.hasNext();) {
       NormalProduction np = it.next();
@@ -178,7 +177,7 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
         gen.productionStart(np);
         if (np.getExpansion() instanceof Choice) {
           boolean first = true;
-          Choice c = (Choice)np.getExpansion();
+          Choice c = (Choice) np.getExpansion();
           for (Iterator expansionsIterator = c.getChoices().iterator(); expansionsIterator.hasNext();) {
             Expansion e = (Expansion)(expansionsIterator.next());
             gen.expansionStart(e, first);
@@ -200,8 +199,9 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
     }
     gen.nonterminalsEnd();
   }
+
   private static void emitExpansionTree(Expansion exp, Generator gen) {
-//     gen.text("[->" + exp.getClass().getName() + "]");
+    // gen.text("[->" + exp.getClass().getName() + "]");
     if (exp instanceof Action) {
       emitExpansionAction((Action)exp, gen);
     } else if (exp instanceof Choice) {
@@ -225,33 +225,36 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
     } else {
       error("Oops: Unknown expansion type.");
     }
-//     gen.text("[<-" + exp.getClass().getName() + "]");
+    // gen.text("[<-" + exp.getClass().getName() + "]");
   }
-  private static void emitExpansionAction(Action a, Generator gen) {
-  }
+
+  private static void emitExpansionAction(Action a, Generator gen) {}
+
   private static void emitExpansionChoice(Choice c, Generator gen) {
     for (Iterator it = c.getChoices().iterator(); it.hasNext();) {
-      Expansion e = (Expansion)(it.next());
+      Expansion e = (Expansion) (it.next());
       emitExpansionTree(e, gen);
       if (it.hasNext()) {
         gen.text(" | ");
       }
     }
   }
-  private static void emitExpansionLookahead(Lookahead l, Generator gen) {
-  }
+
+  private static void emitExpansionLookahead(Lookahead l, Generator gen) {}
+
   private static void emitExpansionNonTerminal(NonTerminal nt, Generator gen) {
     gen.nonTerminalStart(nt);
     gen.text(nt.getName());
     gen.nonTerminalEnd(nt);
   }
+
   private static void emitExpansionOneOrMore(OneOrMore o, Generator gen) {
     gen.text("( ");
     emitExpansionTree(o.expansion, gen);
     gen.text(" )+");
   }
-  private static void emitExpansionRegularExpression(RegularExpression r,
-      Generator gen) {
+
+  private static void emitExpansionRegularExpression(RegularExpression r, Generator gen) {
     String reRendered = emitRE(r);
     if (!reRendered.equals("")) {
       gen.reStart(r);
@@ -259,11 +262,12 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
       gen.reEnd(r);
     }
   }
+
   private static void emitExpansionSequence(Sequence s, Generator gen) {
     boolean firstUnit = true;
-    for (Iterator it = s.units.iterator(); it.hasNext();) {
-      Expansion e = (Expansion)it.next();
-      if (e instanceof Lookahead || e instanceof Action) {
+    for (Object unit : s.units) {
+      Expansion e = (Expansion) unit;
+      if ((e instanceof Lookahead) || (e instanceof Action)) {
         continue;
       }
       if (!firstUnit) {
@@ -280,6 +284,7 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
       firstUnit = false;
     }
   }
+
   private static void emitExpansionTryBlock(TryBlock t, Generator gen) {
     boolean needParens = t.exp instanceof Choice;
     if (needParens) {
@@ -290,25 +295,27 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
       gen.text(" )");
     }
   }
+
   private static void emitExpansionZeroOrMore(ZeroOrMore z, Generator gen) {
     gen.text("( ");
     emitExpansionTree(z.expansion, gen);
     gen.text(" )*");
   }
+
   private static void emitExpansionZeroOrOne(ZeroOrOne z, Generator gen) {
     gen.text("( ");
     emitExpansionTree(z.expansion, gen);
     gen.text(" )?");
   }
-  public static String emitRE(RegularExpression re) {
+
+  static String emitRE(RegularExpression re) {
     String returnString = "";
     boolean hasLabel = !re.label.equals("");
     boolean justName = re instanceof RJustName;
     boolean eof = re instanceof REndOfFile;
     boolean isString = re instanceof RStringLiteral;
     boolean toplevelRE = (re.tpContext != null);
-    boolean needBrackets
-      = justName || eof || hasLabel || (!isString && toplevelRE);
+    boolean needBrackets = justName || eof || hasLabel || (!isString && toplevelRE);
     if (needBrackets) {
       returnString += "<";
       if (!justName) {
@@ -322,7 +329,7 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
       }
     }
     if (re instanceof RCharacterList) {
-      RCharacterList cl = (RCharacterList)re;
+      RCharacterList cl = (RCharacterList) re;
       if (cl.negated_list) {
         returnString += "~";
       }
@@ -331,15 +338,15 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
         Object o = it.next();
         if (o instanceof SingleCharacter) {
           returnString += "\"";
-          char s[] = { ((SingleCharacter)o).ch };
+          char s[] = { ((SingleCharacter) o).ch };
           returnString += add_escapes(new String(s));
           returnString += "\"";
         } else if (o instanceof CharacterRange) {
           returnString += "\"";
-          char s[] = { ((CharacterRange)o).getLeft() };
+          char s[] = { ((CharacterRange) o).getLeft() };
           returnString += add_escapes(new String(s));
           returnString += "\"-\"";
-          s[0] = ((CharacterRange)o).getRight();
+          s[0] = ((CharacterRange) o).getRight();
           returnString += add_escapes(new String(s));
           returnString += "\"";
         } else {
@@ -351,9 +358,9 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
       }
       returnString += "]";
     } else if (re instanceof RChoice) {
-      RChoice c = (RChoice)re;
+      RChoice c = (RChoice) re;
       for (Iterator it = c.getChoices().iterator(); it.hasNext();) {
-        RegularExpression sub = (RegularExpression)(it.next());
+        RegularExpression sub = (RegularExpression) (it.next());
         returnString += emitRE(sub);
         if (it.hasNext()) {
           returnString += " | ";
@@ -362,17 +369,17 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
     } else if (re instanceof REndOfFile) {
       returnString += "EOF";
     } else if (re instanceof RJustName) {
-      RJustName jn = (RJustName)re;
+      RJustName jn = (RJustName) re;
       returnString += jn.label;
     } else if (re instanceof ROneOrMore) {
-      ROneOrMore om = (ROneOrMore)re;
+      ROneOrMore om = (ROneOrMore) re;
       returnString += "(";
-      returnString += emitRE(om.regexpr);
+      returnString += JJDoc.emitRE(om.regexpr);
       returnString += ")+";
     } else if (re instanceof RSequence) {
-      RSequence s = (RSequence)re;
+      RSequence s = (RSequence) re;
       for (Iterator it = s.units.iterator(); it.hasNext();) {
-        RegularExpression sub = (RegularExpression)(it.next());
+        RegularExpression sub = (RegularExpression) (it.next());
         boolean needParens = false;
         if (sub instanceof RChoice) {
           needParens = true;
@@ -389,32 +396,32 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
         }
       }
     } else if (re instanceof RStringLiteral) {
-      RStringLiteral sl = (RStringLiteral)re;
+      RStringLiteral sl = (RStringLiteral) re;
       returnString += ("\"" + JavaCCParserInternals.add_escapes(sl.image) + "\"");
     } else if (re instanceof RZeroOrMore) {
-      RZeroOrMore zm = (RZeroOrMore)re;
+      RZeroOrMore zm = (RZeroOrMore) re;
       returnString += "(";
       returnString += emitRE(zm.regexpr);
       returnString += ")*";
     } else if (re instanceof RZeroOrOne) {
-      RZeroOrOne zo = (RZeroOrOne)re;
+      RZeroOrOne zo = (RZeroOrOne) re;
       returnString += "(";
       returnString += emitRE(zo.regexpr);
       returnString += ")?";
-	} else if (re instanceof RRepetitionRange) {
-	  RRepetitionRange zo = (RRepetitionRange)re;
-	  returnString += "(";
+    } else if (re instanceof RRepetitionRange) {
+      RRepetitionRange zo = (RRepetitionRange) re;
+      returnString += "(";
 	  returnString += emitRE(zo.regexpr);
-	  returnString += ")";
-	  returnString += "{";
-	  if (zo.hasMax) {
-		returnString += zo.min;
-		returnString += ",";
-		returnString += zo.max;
-	  } else {
-	    returnString += zo.min;
-	  }
-	  returnString += "}";
+      returnString += ")";
+      returnString += "{";
+      if (zo.hasMax) {
+        returnString += zo.min;
+        returnString += ",";
+        returnString += zo.max;
+      } else {
+        returnString += zo.min;
+      }
+      returnString += "}";
     } else {
       error("Oops: Unknown regular expression type.");
     }
@@ -423,46 +430,4 @@ public static String getStandardTokenProductionText(TokenProduction tp) {
     }
     return returnString;
   }
-
-  /*
-  private static String v2s(Vector v, boolean newLine) {
-    String s = "";
-    boolean firstToken = true;
-    for (Enumeration enumeration = v.elements(); enumeration.hasMoreElements();) {
-      Token tok = (Token)enumeration.nextElement();
-      Token stok = getPrecedingSpecialToken(tok);
-      if (firstToken) {
-        if (stok != null) {
-          cline = stok.beginLine;
-          ccol = stok.beginColumn;
-        } else {
-          cline = tok.beginLine;
-          ccol = tok.beginColumn;
-        }
-        s = ws(ccol - 1);
-        firstToken = false;
-      }
-      while (stok != null) {
-        s += printToken(stok);
-        stok = stok.next;
-      }
-      s += printToken(tok);
-    }
-    return s;
-  }
-  */
-  /**
-   * A utility to produce a string of blanks.
-   */
-
-  /*
-  private static String ws(int len) {
-    String s = "";
-    for (int i = 0; i < len; ++i) {
-      s += " ";
-    }
-    return s;
-  }
-  */
-
 }

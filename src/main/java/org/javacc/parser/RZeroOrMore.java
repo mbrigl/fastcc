@@ -48,20 +48,20 @@ public class RZeroOrMore extends RegularExpression {
 
      Nfa temp = regexpr.GenerateNfa(ignoreCase);
 
-     startState.AddMove(temp.start);
-     startState.AddMove(finalState);
-     temp.end.AddMove(finalState);
-     temp.end.AddMove(temp.start);
+    startState.AddMove(temp.start);
+    startState.AddMove(finalState);
+    temp.end.AddMove(finalState);
+    temp.end.AddMove(temp.start);
 
-     return retVal;
+    return retVal;
   }
 
-    public RZeroOrMore() {}
+  public RZeroOrMore() {}
 
     public RZeroOrMore(Token t, RegularExpression r) {
-        this.setLine(t.beginLine);
-        this.setColumn(t.beginColumn);
-        this.regexpr = r;
-    }
+    setLine(t.beginLine);
+    setColumn(t.beginColumn);
+    this.regexpr = r;
+  }
 
 }

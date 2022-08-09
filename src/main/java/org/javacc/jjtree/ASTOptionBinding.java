@@ -28,23 +28,23 @@
 package org.javacc.jjtree;
 
 
-public class ASTOptionBinding extends JJTreeNode {
+class ASTOptionBinding extends JJTreeNode {
+
   ASTOptionBinding(int id) {
     super(id);
   }
 
   private boolean suppressed = false;
-  private String name;
+  private String  name;
 
-  void initialize(String n, String v)
-  {
-    name = n;
+  void initialize(String n, String v) {
+    this.name = n;
 
     // If an option is specific to JJTree it should not be written out
     // to the output file for JavaCC.
 
-    if (JJTreeGlobals.isOptionJJTreeOnly(name)) {
-      suppressed = true;
+    if (JJTreeGlobals.isOptionJJTreeOnly(this.name)) {
+      this.suppressed = true;
     }
   }
 
@@ -61,21 +61,16 @@ public class ASTOptionBinding extends JJTreeNode {
 
 
   @Override
-  String translateImage(Token t)
-  {
-    if (suppressed) {
+  public String translateImage(Token t) {
+    if (this.suppressed) {
       return whiteOut(t);
     } else {
       return t.image;
     }
   }
 
-  /** Accept the visitor. **/
   @Override
-  public Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
+  public final Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
     return visitor.visit(this, data);
   }
 }
-
-
-/*end*/

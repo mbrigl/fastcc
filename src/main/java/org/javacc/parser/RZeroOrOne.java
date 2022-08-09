@@ -42,16 +42,16 @@ public class RZeroOrOne extends RegularExpression {
   public Nfa GenerateNfa(boolean ignoreCase)
   {
      Nfa retVal = new Nfa();
-     NfaState startState = retVal.start;
-     NfaState finalState = retVal.end;
+    NfaState startState = retVal.start;
+    NfaState finalState = retVal.end;
 
      Nfa temp = regexpr.GenerateNfa(ignoreCase);
 
-     startState.AddMove(temp.start);
-     startState.AddMove(finalState);
-     temp.end.AddMove(finalState);
+    startState.AddMove(temp.start);
+    startState.AddMove(finalState);
+    temp.end.AddMove(finalState);
 
-     return retVal;
+    return retVal;
   }
 
 }

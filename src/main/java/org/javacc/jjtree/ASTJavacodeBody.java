@@ -29,17 +29,15 @@ package org.javacc.jjtree;
 
 
 public class ASTJavacodeBody extends JJTreeNode {
+
   ASTJavacodeBody(int id) {
     super(id);
   }
 
-  NodeScope node_scope;
+  public NodeScope node_scope;
 
-  /** Accept the visitor. **/
   @Override
-  public Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
+  public final Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
     return visitor.visit(this, data);
   }
 }
-
-/*end*/

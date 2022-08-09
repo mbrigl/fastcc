@@ -330,9 +330,6 @@ TOKEN :
 | < ORASSIGN: "|=" >
 | < XORASSIGN: "^=" >
 | < REMASSIGN: "%=" >
-//	| < LSHIFTASSIGN: "<<=" >
-//	| < RSIGNEDSHIFTASSIGN: ">>=" >
-//	| < RUNSIGNEDSHIFTASSIGN: ">>>=" >
 }
 
 
@@ -535,13 +532,6 @@ void bnf_production() #BNF :
 	  prod = jjtThis;
 	}
   AccessModifier() ResultType() t1=identifier() FormalParameters()
-  /*{
-    if (!isJavaLanguage) {
-      while(getToken(1).kind != LBRACE && getToken(1).kind != HASH) {
-        getNextToken();
-      }
-    }
-  }*/
   [
     "throws" n=Name()
         {

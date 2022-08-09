@@ -48,18 +48,18 @@ public class ROneOrMore extends RegularExpression {
 
      Nfa temp = regexpr.GenerateNfa(ignoreCase);
 
-     startState.AddMove(temp.start);
-     temp.end.AddMove(temp.start);
-     temp.end.AddMove(finalState);
+    startState.AddMove(temp.start);
+    temp.end.AddMove(temp.start);
+    temp.end.AddMove(finalState);
 
-     return retVal;
+    return retVal;
   }
 
-    public ROneOrMore() {}
+  public ROneOrMore() {}
 
     public ROneOrMore(Token t, RegularExpression re) {
-        this.setLine(t.beginLine);
-        this.setColumn(t.beginColumn);
-        this.regexpr = re;
-    }
+    setLine(t.beginLine);
+    setColumn(t.beginColumn);
+    this.regexpr = re;
+  }
 }

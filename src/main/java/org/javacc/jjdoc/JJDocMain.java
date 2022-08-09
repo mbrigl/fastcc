@@ -95,11 +95,10 @@ public final class JJDocMain extends JJDocGlobals {
   }
 
   /**
-   * The method to call to exercise the parser from other Java programs.
-   * It returns an error code.  See how the main program above uses
-   * this method.
+   * The method to call to exercise the parser from other Java programs. It returns an error code.
+   * See how the main program above uses this method.
    */
-  public static int mainProgram(String args[]) throws Exception {
+  private static int mainProgram(String args[]) throws Exception {
 
     Main.reInitAll();
     JJDocOptions.init();
@@ -119,7 +118,7 @@ public final class JJDocMain extends JJDocGlobals {
       error("Last argument \"" + args[args.length-1] + "\" is not a filename or \"-\".  ");
       return 1;
     }
-    for (int arg = 0; arg < args.length-1; arg++) {
+    for (int arg = 0; arg < (args.length - 1); arg++) {
       if (!JJDocOptions.isOption(args[arg])) {
         error("Argument \"" + args[arg] + "\" must be an option setting.  ");
         return 1;
@@ -135,14 +134,14 @@ public final class JJDocMain extends JJDocGlobals {
     } else {
       info("Reading from file " + args[args.length-1] + " . . .");
       try {
-        java.io.File fp = new java.io.File(args[args.length-1]);
+        java.io.File fp = new java.io.File(args[args.length - 1]);
         if (!fp.exists()) {
            error("File " + args[args.length-1] + " not found.");
-           return 1;
+          return 1;
         }
         if (fp.isDirectory()) {
            error(args[args.length-1] + " is a directory. Please use a valid file name.");
-           return 1;
+          return 1;
         }
         JJDocGlobals.input_file = fp.getName();
         parser = new JavaCCParser(new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(args[args.length-1]), JJDocOptions.getGrammarEncoding())));

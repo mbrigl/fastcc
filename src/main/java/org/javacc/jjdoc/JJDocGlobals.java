@@ -38,16 +38,16 @@ public class JJDocGlobals extends JavaCCGlobals {
   /**
    * The name of the input file.
    */
-  public static String input_file;
+  static String    input_file;
   /**
    * The name of the output file.
    */
-  public static String output_file;
+  static String    output_file;
 
   /**
    * The Generator to create output with.
    */
-  public static Generator generator;
+  static Generator generator;
 
   /**
    * @param generator
@@ -63,7 +63,7 @@ public class JJDocGlobals extends JavaCCGlobals {
    *
    * @return the generator configured in options or set by setter.
    */
-  public static Generator getGenerator() {
+  static Generator getGenerator() {
     if (generator == null) {
       if (JJDocOptions.getText()) {
         generator = new TextGenerator();
@@ -94,6 +94,7 @@ public class JJDocGlobals extends JavaCCGlobals {
 
   /**
    * Log informational messages.
+   *
    * @param message the message to log
    */
   public static void debug(String message) {
@@ -110,11 +111,10 @@ public class JJDocGlobals extends JavaCCGlobals {
 
   /**
    * Log error messages.
+   *
    * @param message the message to log
    */
-  public static void error(String message) {
-    getGenerator().error(message);
+  static void error(String message) {
+    JJDocGlobals.getGenerator().error(message);
   }
-
-
 }

@@ -34,15 +34,14 @@ public class ASTBNFAction extends JJTreeNode {
     super(id);
   }
 
-  protected Node getScopingParent(NodeScope ns)
-  {
-    for (Node n = this.jjtGetParent(); n != null; n = n.jjtGetParent()) {
+  public Node getScopingParent(NodeScope ns) {
+    for (Node n = jjtGetParent(); n != null; n = n.jjtGetParent()) {
       if (n instanceof ASTBNFNodeScope) {
-        if (((ASTBNFNodeScope)n).node_scope == ns) {
+        if (((ASTBNFNodeScope) n).node_scope == ns) {
           return n;
         }
       } else if (n instanceof ASTExpansionNodeScope) {
-        if (((ASTExpansionNodeScope)n).node_scope == ns) {
+        if (((ASTExpansionNodeScope) n).node_scope == ns) {
           return n;
         }
       }
@@ -51,12 +50,8 @@ public class ASTBNFAction extends JJTreeNode {
   }
 
 
-  /** Accept the visitor. **/
   @Override
-  public Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
+  public final Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
     return visitor.visit(this, data);
   }
-
 }
-
-/*end*/

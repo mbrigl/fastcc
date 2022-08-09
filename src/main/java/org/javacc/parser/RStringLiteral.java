@@ -1596,9 +1596,8 @@ public class RStringLiteral extends RegularExpression {
   }
 
   @Override
-  public StringBuffer dump(int indent, Set alreadyDumped) {
-    StringBuffer sb = super.dump(indent, alreadyDumped).append(' ').append(image);
-    return sb;
+  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
+    return super.dump(indent, alreadyDumped).append(' ').append(this.image);
   }
 
   @Override

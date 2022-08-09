@@ -45,11 +45,10 @@ public class Action extends Expansion {
   private final List<Token> action_tokens = new ArrayList<>();
 
   @Override
-  public StringBuffer dump(int indent, Set<? super Expansion> alreadyDumped) {
-    StringBuffer sb = super.dump(indent, alreadyDumped);
+  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
+    StringBuilder sb = super.dump(indent, alreadyDumped);
     alreadyDumped.add(this);
-    if (getActionTokens().size() > 0)
-    {
+    if (getActionTokens().size() > 0) {
       sb.append(' ').append(getActionTokens().get(0));
     }
     return sb;
@@ -59,6 +58,6 @@ public class Action extends Expansion {
    * @return the action_tokens
    */
   public List<Token> getActionTokens() {
-    return action_tokens;
+    return this.action_tokens;
   }
 }

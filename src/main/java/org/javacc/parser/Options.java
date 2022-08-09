@@ -50,11 +50,8 @@ import java.util.TreeSet;
  */
 public class Options {
 
-	/**
-	 * Limit subclassing to derived classes.
-	 */
-	protected Options() {
-	}
+  // Limit subclassing to derived classes.
+  protected Options() {}
 
 	/**
 	 * These are options that are not settable by the user themselves, and that
@@ -153,8 +150,8 @@ public class Options {
 	static final Set<OptionInfo> userOptions;
 
 
-	static {
-		TreeSet<OptionInfo> temp = new TreeSet<>();
+  static {
+    TreeSet<OptionInfo> temp = new TreeSet<>();
 
 		temp.add(new OptionInfo(USEROPTION__LOOKAHEAD, OptionType.INTEGER, Integer.valueOf(1)));
 
@@ -220,20 +217,20 @@ public class Options {
 		temp.add(new OptionInfo(USEROPTION__CPP_STACK_LIMIT, OptionType.STRING, ""));
 
 		userOptions = Collections.unmodifiableSet(temp);
-	}
+  }
 
-	/**
-	 * A mapping of option names (Strings) to values (Integer, Boolean, String).
-	 * This table is initialized by the main program. Its contents defines the
-	 * set of legal options. Its initial values define the default option
-	 * values, and the option types can be determined from these values too.
-	 */
-	protected static Map<String,Object> optionValues = null;
+  /**
+   * A mapping of option names (Strings) to values (Integer, Boolean, String). This table is
+   * initialized by the main program. Its contents defines the set of legal options. Its initial
+   * values define the default option values, and the option types can be determined from these
+   * values too.
+   */
+  protected static Map<String, Object> optionValues = null;
 
-	/**
-	 * Initialize for JavaCC
-	 */
-	public static void init() {
+  /**
+   * Initialize for JavaCC
+   */
+  public static void init() {
 		optionValues = new HashMap<>();
 		cmdLineSetting = new HashSet<>();
 		inputFileSetting = new HashSet<>();
@@ -248,28 +245,28 @@ public class Options {
 			optionValues.put(NONUSER_OPTION__LEGACY_EXCEPTION_HANDLING, isLegacy );
 		}
 
-	}
+  }
 
-	/**
-	 * Convenience method to retrieve integer options.
-	 */
+  /**
+   * Convenience method to retrieve integer options.
+   */
 	public static int intValue(final String option) {
 		return ((Integer) optionValues.get(option)).intValue();
-	}
+  }
 
-	/**
-	 * Convenience method to retrieve boolean options.
-	 */
-	public static boolean booleanValue(final String option) {
+  /**
+   * Convenience method to retrieve boolean options.
+   */
+  public static boolean booleanValue(final String option) {
 		return ((Boolean) optionValues.get(option)).booleanValue();
-	}
+  }
 
-	/**
-	 * Convenience method to retrieve string options.
-	 */
-	public static String stringValue(final String option) {
+  /**
+   * Convenience method to retrieve string options.
+   */
+  public static String stringValue(final String option) {
 		return (String) optionValues.get(option);
-	}
+  }
 
 
 	public static Object objectValue(final String option) {

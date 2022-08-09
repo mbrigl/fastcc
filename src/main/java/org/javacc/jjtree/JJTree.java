@@ -34,9 +34,6 @@ package org.javacc.jjtree;
 import org.javacc.parser.JavaCCGlobals;
 import org.javacc.parser.Options;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-
 public class JJTree {
 
   private IO io;
@@ -109,11 +106,6 @@ public class JJTree {
    * A main program that exercises the parser.
    */
   public int main(String args[]) {
-
-    // initialize static state for allowing repeat runs without exiting
-    ASTNodeDescriptor.nodeIds = new ArrayList<>();
-    ASTNodeDescriptor.nodeNames = new ArrayList<>();
-    ASTNodeDescriptor.nodeSeen = new Hashtable<>();
     org.javacc.parser.Main.reInitAll();
 
     JavaCCGlobals.bannerLine("Tree Builder", "");

@@ -41,22 +41,23 @@ public class ZeroOrMore extends Expansion {
    */
   public Expansion expansion;
 
-    public ZeroOrMore() {}
+  public ZeroOrMore() {}
 
     public ZeroOrMore(Token token, Expansion expansion) {
-        this.setLine(token.beginLine);
-        this.setColumn(token.beginColumn);
-        this.expansion = expansion;
-        this.expansion.parent = this;
-    }
+    setLine(token.beginLine);
+    setColumn(token.beginColumn);
+    this.expansion = expansion;
+    this.expansion.parent = this;
+  }
 
-    @Override
-    public StringBuffer dump(int indent, Set<? super Expansion> alreadyDumped) {
-      StringBuffer sb = super.dump(indent, alreadyDumped);
-      if (alreadyDumped.contains(this))
-        return sb;
-      alreadyDumped.add(this);
-      sb.append(eol).append(expansion.dump(indent + 1, alreadyDumped));
+  @Override
+  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
+    StringBuilder sb = super.dump(indent, alreadyDumped);
+    if (alreadyDumped.contains(this)) {
       return sb;
     }
+    alreadyDumped.add(this);
+    sb.append(Expansion.eol).append(this.expansion.dump(indent + 1, alreadyDumped));
+    return sb;
+  }
 }

@@ -33,26 +33,27 @@ package org.javacc.parser;
 public final class JavaCCErrors {
 
   private static int parse_error_count = 0, semantic_error_count = 0, warning_count = 0;
+
   private JavaCCErrors() {}
 
   private static void printLocationInfo(Object node) {
     if (node instanceof NormalProduction) {
-      NormalProduction n = (NormalProduction)node;
+      NormalProduction n = (NormalProduction) node;
       System.err.print("Line " + n.getLine() + ", Column " + n.getColumn() + ": ");
     } else if (node instanceof TokenProduction) {
-      TokenProduction n = (TokenProduction)node;
+      TokenProduction n = (TokenProduction) node;
       System.err.print("Line " + n.getLine() + ", Column " + n.getColumn() + ": ");
     } else if (node instanceof Expansion) {
-      Expansion n = (Expansion)node;
+      Expansion n = (Expansion) node;
       System.err.print("Line " + n.getLine() + ", Column " + n.getColumn() + ": ");
     } else if (node instanceof CharacterRange) {
-      CharacterRange n = (CharacterRange)node;
+      CharacterRange n = (CharacterRange) node;
       System.err.print("Line " + n.getLine() + ", Column " + n.getColumn() + ": ");
     } else if (node instanceof SingleCharacter) {
-      SingleCharacter n = (SingleCharacter)node;
+      SingleCharacter n = (SingleCharacter) node;
       System.err.print("Line " + n.getLine() + ", Column " + n.getColumn() + ": ");
     } else if (node instanceof Token) {
-      Token t = (Token)node;
+      Token t = (Token) node;
       System.err.print("Line " + t.beginLine + ", Column " + t.beginColumn + ": ");
     }
   }
@@ -93,9 +94,9 @@ public final class JavaCCErrors {
 
   public static void warning(Object node, String mess) {
     System.err.print("Warning: ");
-    printLocationInfo(node);
+    JavaCCErrors.printLocationInfo(node);
     System.err.println(mess);
-    warning_count++;
+    JavaCCErrors.warning_count++;
   }
 
   public static void warning(String mess) {
@@ -105,22 +106,21 @@ public final class JavaCCErrors {
   }
 
   public static int get_warning_count() {
-    return warning_count;
+    return JavaCCErrors.warning_count;
   }
 
   public static int get_error_count() {
-    return parse_error_count + semantic_error_count;
+    return JavaCCErrors.parse_error_count + JavaCCErrors.semantic_error_count;
   }
 
-   public static void reInit()
-   {
-      parse_error_count = 0;
-      semantic_error_count = 0;
-      warning_count = 0;
-   }
+  public static void reInit() {
+    JavaCCErrors.parse_error_count = 0;
+    JavaCCErrors.semantic_error_count = 0;
+    JavaCCErrors.warning_count = 0;
+  }
 
-   public static void fatal(String message) {
-      System.err.println("Fatal Error: " + message);
-      throw new RuntimeException("Fatal Error: " + message);
-   }
+  public static void fatal(String message) {
+    System.err.println("Fatal Error: " + message);
+    throw new RuntimeException("Fatal Error: " + message);
+  }
 }

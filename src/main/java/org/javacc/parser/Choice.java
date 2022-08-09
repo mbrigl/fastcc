@@ -29,7 +29,6 @@
 package org.javacc.parser;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -49,14 +48,14 @@ public class Choice extends Expansion {
   public Choice() {}
 
   public Choice(Token token) {
-    this.setLine(token.beginLine);
-    this.setColumn(token.beginColumn);
+    setLine(token.beginLine);
+    setColumn(token.beginColumn);
   }
 
   public Choice(Expansion expansion) {
-    this.setLine(expansion.getLine());
-    this.setColumn(expansion.getColumn());
-    this.getChoices().add(expansion);
+    setLine(expansion.getLine());
+    setColumn(expansion.getColumn());
+    getChoices().add(expansion);
   }
 
   /**
@@ -70,18 +69,19 @@ public class Choice extends Expansion {
    * @return the choices
    */
   public List<? super Object> getChoices() {
-    return choices;
+    return this.choices;
   }
 
   @Override
-  public StringBuffer dump(int indent, Set<? super Expansion> alreadyDumped) {
-    StringBuffer sb = super.dump(indent, alreadyDumped);
-    if (alreadyDumped.contains(this))
+  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
+    StringBuilder sb = super.dump(indent, alreadyDumped);
+    if (alreadyDumped.contains(this)) {
       return sb;
+    }
     alreadyDumped.add(this);
-    for (Iterator<? super Expansion> it = getChoices().iterator(); it.hasNext(); ) {
-      Expansion next = (Expansion)it.next();
-      sb.append(eol).append(next.dump(indent + 1, alreadyDumped));
+    for (Object expansion : getChoices()) {
+      Expansion next = (Expansion) expansion;
+      sb.append(Expansion.eol).append(next.dump(indent + 1, alreadyDumped));
     }
     return sb;
   }

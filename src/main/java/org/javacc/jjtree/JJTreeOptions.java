@@ -41,19 +41,18 @@ import java.io.File;
  *
  * @author Kees Jan Koster &lt;kjkoster@kjkoster.org&gt;
  */
-class JJTreeOptions extends Options {
+public class JJTreeOptions extends Options {
 
-    /**
-     * Limit subclassing to derived classes.
-     */
-    protected JJTreeOptions() {
-    }
+  /**
+   * Limit subclassing to derived classes.
+   */
+  protected JJTreeOptions() {}
 
-    /**
-     * Initialize the JJTree-specific options.
-     */
-    public static void init() {
-        Options.init();
+  /**
+   * Initialize the JJTree-specific options.
+   */
+  public static void init() {
+    Options.init();
 
 
 
@@ -83,17 +82,17 @@ class JJTreeOptions extends Options {
         // TODO :: 2013/07/23 -- This appears to be a duplicate from the parent class
         Options.optionValues.put(Options.USEROPTION__JDK_VERSION, "1.5");
 
-        // Also appears to be a duplicate
+    // Also appears to be a duplicate
         Options.optionValues.put(Options.USEROPTION__CPP_NAMESPACE, "");
 
         // Also appears to be a duplicate
         Options.optionValues.put(Options.USEROPTION__CPP_IGNORE_ACTIONS, Boolean.FALSE);
     }
 
-    /**
-     *  Check options for consistency
-     */
-    public static void validate() {
+  /**
+   * Check options for consistency
+   */
+  public static void validate() {
       if (!getVisitor()) {
         if (getVisitorDataType().length() > 0) {
           JavaCCErrors.warning("VISITOR_DATA_TYPE option will be ignored since VISITOR is false");
@@ -107,40 +106,31 @@ class JJTreeOptions extends Options {
       }
     }
 
-
-    /**
-     * Find the multi value.
-     *
-     * @return The requested multi value.
-     */
-    public static boolean getMulti() {
+  /**
+   * Find the multi value.
+   */
+  public static boolean getMulti() {
         return booleanValue("MULTI");
-    }
+  }
 
-    /**
-     * Find the node default void value.
-     *
-     * @return The requested node default void value.
-     */
-    public static boolean getNodeDefaultVoid() {
+  /**
+   * Find the node default void value.
+   */
+  static boolean getNodeDefaultVoid() {
         return booleanValue("NODE_DEFAULT_VOID");
-    }
+  }
 
-    /**
-     * Find the node scope hook value.
-     *
-     * @return The requested node scope hook value.
-     */
-    public static boolean getNodeScopeHook() {
+  /**
+   * Find the node scope hook value.
+   */
+  public static boolean getNodeScopeHook() {
         return booleanValue("NODE_SCOPE_HOOK");
-    }
+  }
 
-    /**
-     * Find the node factory value.
-     *
-     * @return The requested node factory value.
-     */
-    public static String getNodeFactory() {
+  /**
+   * Find the node factory value.
+   */
+  public static String getNodeFactory() {
         return stringValue("NODE_FACTORY");
     }
 
@@ -153,41 +143,33 @@ class JJTreeOptions extends Options {
         return booleanValue("NODE_USES_PARSER");
     }
 
-    /**
-     * Find the build node files value.
-     *
-     * @return The requested build node files value.
-     */
-    public static boolean getBuildNodeFiles() {
+  /**
+   * Find the build node files value.
+   */
+  public static boolean getBuildNodeFiles() {
         return booleanValue("BUILD_NODE_FILES");
-    }
+  }
 
-    /**
-     * Find the visitor value.
-     *
-     * @return The requested visitor value.
-     */
-    public static boolean getVisitor() {
+  /**
+   * Find the visitor value.
+   */
+  public static boolean getVisitor() {
         return booleanValue("VISITOR");
-    }
+  }
 
-    /**
-     * Find the trackTokens value.
-     *
-     * @return The requested trackTokens value.
-     */
-    public static boolean getTrackTokens() {
+  /**
+   * Find the trackTokens value.
+   */
+  public static boolean getTrackTokens() {
         return booleanValue("TRACK_TOKENS");
-    }
+  }
 
-    /**
-     * Find the node prefix value.
-     *
-     * @return The requested node prefix value.
-     */
-    public static String getNodePrefix() {
+  /**
+   * Find the node prefix value.
+   */
+  public static String getNodePrefix() {
         return stringValue("NODE_PREFIX");
-    }
+  }
 
     /**
      * Find the node super class name.
@@ -198,57 +180,45 @@ class JJTreeOptions extends Options {
         return stringValue("NODE_EXTENDS");
     }
 
-    /**
-     * Find the node class name.
-     *
-     * @return The requested node class
-     */
-    public static String getNodeClass() {
+  /**
+   * Find the node class name.
+   */
+  public static String getNodeClass() {
         return stringValue("NODE_CLASS");
-    }
+  }
 
-    /**
-     * Find the node package value.
-     *
-     * @return The requested node package value.
-     */
-    public static String getNodePackage() {
+  /**
+   * Find the node package value.
+   */
+  static String getNodePackage() {
         return stringValue("NODE_PACKAGE");
-    }
+  }
 
-    /**
-     * Find the output file value.
-     *
-     * @return The requested output file value.
-     */
-    public static String getOutputFile() {
+  /**
+   * Find the output file value.
+   */
+  public static String getOutputFile() {
         return stringValue("OUTPUT_FILE");
-    }
+  }
 
-    /**
-     * Find the visitor exception value
-     *
-     * @return The requested visitor exception value.
-     */
-    public static String getVisitorException() {
+  /**
+   * Find the visitor exception value
+   */
+  public static String getVisitorException() {
         return stringValue("VISITOR_EXCEPTION");
-    }
+  }
 
-    /**
-     * Find the visitor data type value
-     *
-     * @return The requested visitor data type value.
-     */
-    public static String getVisitorDataType() {
+  /**
+   * Find the visitor data type value
+   */
+  public static String getVisitorDataType() {
         return stringValue("VISITOR_DATA_TYPE");
-    }
+  }
 
-    /**
-     * Find the visitor return type value
-     *
-     * @return The requested visitor return type value.
-     */
-    public static String getVisitorReturnType() {
+  /**
+   * Find the visitor return type value
+   */
+  public static String getVisitorReturnType() {
         return stringValue("VISITOR_RETURN_TYPE");
     }
 

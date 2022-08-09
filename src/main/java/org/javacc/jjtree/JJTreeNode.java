@@ -31,11 +31,11 @@ public class JJTreeNode extends Node {
 
   private int myOrdinal;
 
-  public JJTreeNode(int id) {
+  JJTreeNode(int id) {
     super(id);
   }
 
-  public JJTreeNode(JJTreeParser p, int i) {
+  JJTreeNode(JJTreeParser p, int i) {
     this(i);
   }
 
@@ -46,48 +46,54 @@ public class JJTreeNode extends Node {
   @Override
   public void jjtAddChild(Node n, int i) {
     super.jjtAddChild(n, i);
-    ((JJTreeNode)n).setOrdinal(i);
+    ((JJTreeNode) n).setOrdinal(i);
   }
 
-  public int getOrdinal()
-  {
-    return myOrdinal;
+  public int getOrdinal() {
+    return this.myOrdinal;
   }
 
-  public void setOrdinal(int o)
-  {
-    myOrdinal = o;
+  public void setOrdinal(int o) {
+    this.myOrdinal = o;
   }
 
 
   /*****************************************************************
    *
-   * The following is added manually to enhance all tree nodes with
-   * attributes that store the first and last tokens corresponding to
-   * each node, as well as to print the tokens back to the specified
-   * output stream.
+   * The following is added manually to enhance all tree nodes with attributes that store the first
+   * and last tokens corresponding to each node, as well as to print the tokens back to the
+   * specified output stream.
    *
    *****************************************************************/
 
   private Token first, last;
 
-  public Token getFirstToken() { return first; }
-  public void setFirstToken(Token t) { first = t; }
-  public Token getLastToken() { return last;  }
-  public void setLastToken(Token t) { last = t; }
+  public Token getFirstToken() {
+    return this.first;
+  }
 
-  String translateImage(Token t)
-  {
+  public void setFirstToken(Token t) {
+    this.first = t;
+  }
+
+  public Token getLastToken() {
+    return this.last;
+  }
+
+  public void setLastToken(Token t) {
+    this.last = t;
+  }
+
+  public String translateImage(Token t) {
     return t.image;
   }
 
-  String whiteOut(Token t)
-  {
-    StringBuffer sb = new StringBuffer(t.image.length());
+  String whiteOut(Token t) {
+    StringBuilder sb = new StringBuilder(t.image.length());
 
     for (int i = 0; i < t.image.length(); ++i) {
       char ch = t.image.charAt(i);
-      if (ch != '\t' && ch != '\n' && ch != '\r' && ch != '\f') {
+      if ((ch != '\t') && (ch != '\n') && (ch != '\r') && (ch != '\f')) {
         sb.append(' ');
       } else {
         sb.append(ch);

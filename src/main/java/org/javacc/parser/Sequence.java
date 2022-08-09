@@ -29,7 +29,6 @@
 package org.javacc.parser;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -46,28 +45,27 @@ public class Sequence extends Expansion {
    */
   public List<? super Object> units = new ArrayList<>();
 
-    public Sequence() {}
+  public Sequence() {}
 
     public Sequence(Token token, Lookahead lookahead) {
-        this.setLine(token.beginLine);
-        this.setColumn(token.beginColumn);
-        this.units.add(lookahead);
+    setLine(token.beginLine);
+    setColumn(token.beginColumn);
+    this.units.add(lookahead);
+  }
+
+
+  @Override
+  public StringBuilder dump(int indent, Set<? super Expansion> alreadyDumped) {
+    if (alreadyDumped.contains(this)) {
+      return super.dump(0, alreadyDumped).insert(0, '[').append(']').insert(0, dumpPrefix(indent));
     }
 
-
-    @Override
-    public StringBuffer dump(int indent, Set<? super Expansion> alreadyDumped) {
-      if (alreadyDumped.contains(this))
-      {
-        return super.dump(0, alreadyDumped).insert(0, '[').append(']').insert(0, dumpPrefix(indent));
-      }
-
-      alreadyDumped.add(this);
-      final StringBuffer sb = super.dump(indent, alreadyDumped);
-      for (Iterator<? super Object> it = units.iterator(); it.hasNext(); ) {
-        Expansion next = (Expansion) it.next();
-        sb.append(eol).append(next.dump(indent + 1, alreadyDumped));
-      }
-      return sb;
+    alreadyDumped.add(this);
+    final StringBuilder sb = super.dump(indent, alreadyDumped);
+    for (Object object : this.units) {
+      Expansion next = (Expansion) object;
+      sb.append(Expansion.eol).append(next.dump(indent + 1, alreadyDumped));
     }
+    return sb;
+  }
 }

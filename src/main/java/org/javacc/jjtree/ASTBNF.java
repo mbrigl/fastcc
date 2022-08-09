@@ -29,28 +29,23 @@
 package org.javacc.jjtree;
 
 
-public class ASTBNF extends ASTProduction
-{
+class ASTBNF extends ASTProduction {
+
   ASTBNF(int id) {
     super(id);
-    throws_list.add("ParseException");
-    throws_list.add("RuntimeException");
+    this.throws_list.add("ParseException");
+    this.throws_list.add("RuntimeException");
   }
 
   Token declBeginLoc;
 
   @Override
-  public String toString()
-  {
-    return super.toString() + ": " + name;
-  }
-
-  /** Accept the visitor. **/
-  @Override
-  public Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
+  public final Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
     return visitor.visit(this, data);
   }
 
+  @Override
+  public final String toString() {
+    return super.toString() + ": " + this.name;
+  }
 }
-
-/*end*/

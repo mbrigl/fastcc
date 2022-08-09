@@ -30,8 +30,7 @@ package org.javacc.parser;
 /**
  * A Non-deterministic Finite Automaton.
  */
-public class Nfa
-{
+public class Nfa {
    NfaState start;
    NfaState end;
 
@@ -45,5 +44,5 @@ public class Nfa
    {
       start = startGiven;
       end = finalGiven;
-   }
+  }
 }

@@ -283,8 +283,6 @@ TOKEN_MGR_DECLS :
 
 TOKEN :
 {
-// "options" is no longer reserved (see issue 126).
-//  < _OPTIONS: "options" >
   < _LOOKAHEAD: "LOOKAHEAD" >
 | < _IGNORE_CASE: "IGNORE_CASE" >
 | < _PARSER_BEGIN: "PARSER_BEGIN" >
@@ -542,9 +540,6 @@ TOKEN :
 | < BIT_OR: "|" >
 | < XOR: "^" >
 | < REM: "%" >
-//	| < LSHIFT: "<<" >
-//	| < RSIGNEDSHIFT: ">>" >
-//	| < RUNSIGNEDSHIFT: ">>>" >
 | < PLUSASSIGN: "+=" >
 | < MINUSASSIGN: "-=" >
 | < STARASSIGN: "*=" >
@@ -553,9 +548,6 @@ TOKEN :
 | < ORASSIGN: "|=" >
 | < XORASSIGN: "^=" >
 | < REMASSIGN: "%=" >
-//	| < LSHIFTASSIGN: "<<=" >
-//	| < RSIGNEDSHIFTASSIGN: ">>=" >
-//	| < RUNSIGNEDSHIFTASSIGN: ">>>=" >
 }
 
 /* >'s need special attention due to generics syntax. */
@@ -1610,7 +1602,6 @@ Token JavaIdentifier() :
 | "TOKEN_MGR_DECLS"
 | "EOF"
 | "template"
-// c++ generation blocks
 | "DCL_PARSER_BEGIN"
 | "DCL_PARSER_END"
 | "INC_PARSER_BEGIN"

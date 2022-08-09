@@ -28,22 +28,19 @@
 package org.javacc.jjtree;
 
 
-public class ASTNodeDescriptorExpression extends JJTreeNode {
+class ASTNodeDescriptorExpression extends JJTreeNode {
+
   ASTNodeDescriptorExpression(int id) {
     super(id);
   }
 
   @Override
-  String translateImage(Token t)
-  {
+  public String translateImage(Token t) {
     return whiteOut(t);
   }
 
-  /** Accept the visitor. **/
   @Override
-  public Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
+  public final Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
     return visitor.visit(this, data);
   }
 }
-
-/*end*/
