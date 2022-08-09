@@ -33,6 +33,7 @@ import org.javacc.JavaCC;
 import org.javacc.JavaCCContext;
 import org.javacc.JavaCCVersion;
 import org.javacc.generator.JavaCCToken;
+import org.javacc.generator.JavaCCTokenInsertion;
 import org.javacc.generator.LexerData;
 import org.javacc.generator.java.JavaFiles.JavaResourceTemplateLocations;
 import org.javacc.parser.JavaCCErrors;
@@ -79,7 +80,7 @@ public class OtherFilesGenJava {
       tn.add(JavaCC.TOOLNAME);
 
       ostr.println("/* " + JavaCCToken.getIdString(tn) + " */");
-      JavaCCToken.printTokenSetup(ostr, data.request.toInsertionPoint1());
+      JavaCCTokenInsertion.printTokenSetup(ostr, data.request);
       ostr.println("");
       ostr.println("/**");
       ostr.println(" * Token literal values and constants.");

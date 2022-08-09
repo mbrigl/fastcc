@@ -57,7 +57,6 @@ public interface JavaCC {
 
   String JJPARSER_LEGACY                  = "LEGACY";
   String JJPARSER_NO_DFA                  = "NO_DFA";
-  String JJPARSER_STATIC                  = "STATIC";
   String JJPARSER_LOOKAHEAD               = "LOOKAHEAD";
   String JJPARSER_IGNORE_CASE             = "IGNORE_CASE";
   String JJPARSER_ERROR_REPORTING         = "ERROR_REPORTING";

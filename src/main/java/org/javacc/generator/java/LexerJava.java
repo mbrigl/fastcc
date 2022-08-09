@@ -74,9 +74,6 @@ public class LexerJava extends LexerGenerator {
 
     List<String> tn = context.getToolNames();
     tn.add(JavaCC.TOOLNAME);
-
-    // TODO :: CBA -- Require Unification of output language specific processing into a single Enum
-    // class
     genCodeLine("/* " + JavaCCToken.getIdString(tn) + " */");
 
     int l = 0, kind;
@@ -135,9 +132,9 @@ public class LexerJava extends LexerGenerator {
 
     genCodeLine("");
     genCodeLine("  /** Debug output. */");
-    genCodeLine("  public " + getStatic() + " java.io.PrintStream debugStream = System.out;");
+    genCodeLine("  public java.io.PrintStream debugStream = System.out;");
     genCodeLine("  /** Set debug output. */");
-    genCodeLine("  public " + getStatic() + " void setDebugStream(java.io.PrintStream ds) { debugStream = ds; }");
+    genCodeLine("  public void setDebugStream(java.io.PrintStream ds) { debugStream = ds; }");
   }
 
   @Override
@@ -154,9 +151,9 @@ public class LexerJava extends LexerGenerator {
     }
 
     if (this.hasLoop) {
-      genCodeLine(getStatic() + "int[] jjemptyLineNo = new int[" + this.maxLexStates + "];");
-      genCodeLine(getStatic() + "int[] jjemptyColNo = new int[" + this.maxLexStates + "];");
-      genCodeLine(getStatic() + "boolean[] jjbeenHere = new boolean[" + this.maxLexStates + "];");
+      genCodeLine("int[] jjemptyLineNo = new int[" + this.maxLexStates + "];");
+      genCodeLine("int[] jjemptyColNo = new int[" + this.maxLexStates + "];");
+      genCodeLine("boolean[] jjbeenHere = new boolean[" + this.maxLexStates + "];");
     }
 
     DumpSkipActions();
@@ -348,7 +345,7 @@ public class LexerJava extends LexerGenerator {
   }
 
   private void DumpFillToken() {
-    genCodeLine(getStatic() + "protected Token jjFillToken()");
+    genCodeLine("protected Token jjFillToken()");
     genCodeLine("{");
     genCodeLine("   final Token t;");
     genCodeLine("   final String curTokenImage;");
@@ -416,15 +413,15 @@ public class LexerJava extends LexerGenerator {
     int i;
 
     genCodeLine("");
-    genCodeLine(getStatic() + "int curLexState = " + this.defaultLexState + ";");
-    genCodeLine(getStatic() + "int defaultLexState = " + this.defaultLexState + ";");
-    genCodeLine(getStatic() + "int jjnewStateCnt;");
-    genCodeLine(getStatic() + "int jjround;");
-    genCodeLine(getStatic() + "int jjmatchedPos;");
-    genCodeLine(getStatic() + "int jjmatchedKind;");
+    genCodeLine("int curLexState = " + this.defaultLexState + ";");
+    genCodeLine("int defaultLexState = " + this.defaultLexState + ";");
+    genCodeLine("int jjnewStateCnt;");
+    genCodeLine("int jjround;");
+    genCodeLine("int jjmatchedPos;");
+    genCodeLine("int jjmatchedKind;");
     genCodeLine("");
     genCodeLine("/** Get the next Token. */");
-    genCodeLine("public " + getStatic() + "Token getNextToken()" + " ");
+    genCodeLine("public Token getNextToken()" + " ");
     genCodeLine("{");
     if (this.hasSpecial) {
       genCodeLine("  Token specialToken = null;");
@@ -748,7 +745,7 @@ public class LexerJava extends LexerGenerator {
   private void DumpSkipActions() {
     Action act;
 
-    genCodeLine(getStatic() + "void SkipLexicalActions(Token matchedToken)");
+    genCodeLine("void SkipLexicalActions(Token matchedToken)");
     genCodeLine("{");
     genCodeLine("   switch(jjmatchedKind)");
     genCodeLine("   {");
@@ -820,7 +817,7 @@ public class LexerJava extends LexerGenerator {
   private void DumpMoreActions() {
     Action act;
 
-    genCodeLine(getStatic() + "void MoreLexicalActions()");
+    genCodeLine("void MoreLexicalActions()");
     genCodeLine("{");
     genCodeLine("   jjimageLen += (lengthOfMatch = jjmatchedPos + 1);");
     genCodeLine("   switch(jjmatchedKind)");
@@ -896,7 +893,7 @@ public class LexerJava extends LexerGenerator {
     Action act;
     int i;
 
-    genCodeLine(getStatic() + "void TokenLexicalActions(Token matchedToken)");
+    genCodeLine("void TokenLexicalActions(Token matchedToken)");
     genCodeLine("{");
     genCodeLine("   switch(jjmatchedKind)");
     genCodeLine("   {");
@@ -973,7 +970,7 @@ public class LexerJava extends LexerGenerator {
 
   // private static boolean boilerPlateDumped = false;
   private void PrintBoilerPlate() {
-    genCodeLine(getJavaStatic() + "private void " + "jjCheckNAdd(int state)");
+    genCodeLine("private void " + "jjCheckNAdd(int state)");
     genCodeLine("{");
     genCodeLine("   if (jjrounds[state] != jjround)");
     genCodeLine("   {");
@@ -982,14 +979,14 @@ public class LexerJava extends LexerGenerator {
     genCodeLine("   }");
     genCodeLine("}");
 
-    genCodeLine(getJavaStatic() + "private void " + "jjAddStates(int start, int end)");
+    genCodeLine("private void " + "jjAddStates(int start, int end)");
     genCodeLine("{");
     genCodeLine("   do {");
     genCodeLine("      jjstateSet[jjnewStateCnt++] = jjnextStates[start];");
     genCodeLine("   } while (start++ != end);");
     genCodeLine("}");
 
-    genCodeLine(getJavaStatic() + "private void " + "jjCheckNAddTwoStates(int state1, int state2)");
+    genCodeLine("private void " + "jjCheckNAddTwoStates(int state1, int state2)");
     genCodeLine("{");
     genCodeLine("   jjCheckNAdd(state1);");
     genCodeLine("   jjCheckNAdd(state2);");
@@ -997,7 +994,7 @@ public class LexerJava extends LexerGenerator {
     genCodeLine("");
 
     if (getLexerData().jjCheckNAddStatesDualNeeded) {
-      genCodeLine(getJavaStatic() + "private void " + "jjCheckNAddStates(int start, int end)");
+      genCodeLine("private void " + "jjCheckNAddStates(int start, int end)");
       genCodeLine("{");
       genCodeLine("   do {");
       genCodeLine("      jjCheckNAdd(jjnextStates[start]);");
@@ -1007,7 +1004,7 @@ public class LexerJava extends LexerGenerator {
     }
 
     if (getLexerData().jjCheckNAddStatesUnaryNeeded) {
-      genCodeLine(getJavaStatic() + "private void " + "jjCheckNAddStates(int start)");
+      genCodeLine("private void " + "jjCheckNAddStates(int start)");
       genCodeLine("{");
       genCodeLine("   jjCheckNAdd(jjnextStates[start]);");
       genCodeLine("   jjCheckNAdd(jjnextStates[start + 1]);");

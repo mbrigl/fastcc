@@ -1,11 +1,6 @@
     /** Constructor. */
     public {{tokMgrClassName}}({{charStreamName}} stream){
 
-@if STATIC
-      if (input_stream != null)
-        throw new TokenMgrException("ERROR: Second call to constructor of static lexer. You must use ReInit() to initialize the static variables.", TokenMgrException.STATIC_LEXER_ERROR);
-@fi
-
     input_stream = stream;
   }
 
@@ -17,7 +12,7 @@
 
   /** Reinitialise parser. */
 
-  {{STATIC?static :}}public void ReInit({{charStreamName}} stream)
+  public void ReInit({{charStreamName}} stream)
   {
     jjmatchedPos = 0;
 @if !TABLE_DRIVEN
@@ -31,7 +26,7 @@
   }
 
 @if !TABLE_DRIVEN
-  {{STATIC?static :}}private void ReInitRounds()
+  private void ReInitRounds()
   {
     int i;
     jjround = 0x80000001;
@@ -41,14 +36,14 @@
 @fi
 
   /** Reinitialise parser. */
-  {{STATIC?static :}}public void ReInit({{charStreamName}} stream, int lexState)  
+  public void ReInit({{charStreamName}} stream, int lexState)  
   {
     ReInit(stream);
     SwitchTo(lexState);
   }
 
   /** Switch to specified lex state. */
-  public {{STATIC?static :}}void SwitchTo(int lexState)
+  public void SwitchTo(int lexState)
   {
     if (lexState >= {{lexStateNameLength}} || lexState < 0)
       throw new TokenMgrException("Error: Ignoring invalid lexical state : " + lexState + ". State unchanged.", TokenMgrException.INVALID_LEXICAL_STATE);
@@ -59,7 +54,7 @@
 @if TABLE_DRIVEN
 
 @if !NO_DFA
-private {{STATIC?static :}}final int jjRunStringLiteralMatch() {
+private final int jjRunStringLiteralMatch() {
   int curPos = 0;
   final int key = (int)curLexState << 16 | curChar;
   final int[] arr = startAndSize.get(key);
@@ -144,7 +139,7 @@ private static  int[] newStateSet = new int[{{generatedStates}}];
 private static  final long[] moved = new long[{{generatedStates}}];
 private static long moveIndex = 0L;
 
-private {{STATIC?static :}}final int jjMoveNfa(int startState, int curPos) {
+private final int jjMoveNfa(int startState, int curPos) {
 
   if (startState < 0) {
 @if DEBUG_TOKEN_MANAGER
@@ -267,13 +262,13 @@ private {{STATIC?static :}}final int jjMoveNfa(int startState, int curPos) {
   return curPos;
 }
 
-private {{STATIC?static :}} int defaultLexState = {{defaultLexState}};
-private {{STATIC?static :}} int curLexState = {{defaultLexState}};
-private {{STATIC?static :}} int jjmatchedPos = 0;
-private {{STATIC?static :}} int jjmatchedKind = 0;
-// private {{STATIC?static :}} int lengthOfMatch = 0;;
-// private {{STATIC?static :}} String image;
-// private {{STATIC?static :}} int jjimageLen = 0;
+private  int defaultLexState = {{defaultLexState}};
+private  int curLexState = {{defaultLexState}};
+private  int jjmatchedPos = 0;
+private  int jjmatchedKind = 0;
+// private  int lengthOfMatch = 0;;
+// private  String image;
+// private  int jjimageLen = 0;
 
 public static final boolean isToken(int kind) {
   return (jjtoToken[kind >> 6] & (1L << (kind & 077))) != 0L;
@@ -291,7 +286,7 @@ public static final boolean isMore(int kind) {
   return (jjtoMore[kind >> 6] & (1L << (kind & 077))) != 0L;
 }
 
-protected {{STATIC?static :}} Token jjFillToken() {
+protected  Token jjFillToken() {
   final Token t;
   final String curTokenImage;
 @if KEEP_LINE_COLUMN
@@ -336,7 +331,7 @@ protected {{STATIC?static :}} Token jjFillToken() {
 }
 
 /** Get the next Token. */
-public {{STATIC?static :}} Token getNextToken() {
+public  Token getNextToken() {
   Token specialToken = null;
   Token matchedToken;
   int lastReadPosition = 0;
@@ -464,7 +459,7 @@ public {{STATIC?static :}} Token getNextToken() {
   }
 }
 
-protected {{STATIC?static :}} void reportError(int lastReadPosition) {
+protected  void reportError(int lastReadPosition) {
   int error_line = input_stream.getEndLine();
   int error_column = input_stream.getEndColumn();
   String error_after = null;

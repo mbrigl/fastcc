@@ -159,10 +159,6 @@ public abstract class LexerGenerator extends CodeGenerator {
     return this.data;
   }
 
-  protected final String getStatic() {
-    return Options.getStatic() ? "static " : "";
-  }
-
   protected final String getTokenManager() {
     return getLexerData().request.getParserName() + "TokenManager";
   }
@@ -352,7 +348,6 @@ public abstract class LexerGenerator extends CodeGenerator {
     this.canReachOnMore = new boolean[this.maxLexStates];
   }
 
-  @Override
   public final void start() throws IOException {
     if (JavaCCErrors.hasError()) {
       return;
@@ -567,8 +562,7 @@ public abstract class LexerGenerator extends CodeGenerator {
     // TODO :: CBA -- Require Unification of output language specific processing into a single Enum
     // class
     if (isJavaLanguage()) {
-      genCode("private " + getJavaStatic() + "final int jjStopStringLiteralDfa" + this.lexStateSuffix + "(int pos, "
-          + params);
+      genCode("private final int jjStopStringLiteralDfa" + this.lexStateSuffix + "(int pos, " + params);
     } else if (isCppLanguage()) {
       generateMethodDefHeaderCpp(" int", "jjStopStringLiteralDfa" + this.lexStateSuffix + "(int pos, " + params);
     } else {
@@ -696,7 +690,7 @@ public abstract class LexerGenerator extends CodeGenerator {
     params.append(getLongType() + " active" + i + ")");
 
     if (isJavaLanguage()) {
-      genCode("private " + getJavaStatic() + "final int jjStartNfa" + this.lexStateSuffix + params);
+      genCode("private final int jjStartNfa" + this.lexStateSuffix + params);
     } else {
       generateMethodDefHeaderCpp("int ", "jjStartNfa" + this.lexStateSuffix + params);
     }
@@ -774,7 +768,7 @@ public abstract class LexerGenerator extends CodeGenerator {
       // TODO :: CBA -- Require Unification of output language specific processing into a single
       // Enum class
       if (isJavaLanguage()) {
-        genCodeLine(getJavaStatic() + "private int " + "jjMoveStringLiteralDfa0" + this.lexStateSuffix + "()");
+        genCodeLine("private int " + "jjMoveStringLiteralDfa0" + this.lexStateSuffix + "()");
       } else if (isCppLanguage()) {
         generateMethodDefHeaderCpp(" int ", "jjMoveStringLiteralDfa0" + this.lexStateSuffix + "()");
       } else {
@@ -842,7 +836,7 @@ public abstract class LexerGenerator extends CodeGenerator {
       // TODO :: CBA -- Require Unification of output language specific processing into a single
       // Enum class
       if (isJavaLanguage()) {
-        genCode(getJavaStatic() + "private int " + "jjMoveStringLiteralDfa" + i + this.lexStateSuffix + params);
+        genCode("private int " + "jjMoveStringLiteralDfa" + i + this.lexStateSuffix + params);
       } else if (isCppLanguage()) {
         generateMethodDefHeaderCpp(" int ", "jjMoveStringLiteralDfa" + i + this.lexStateSuffix + params);
       } else {
@@ -1339,16 +1333,11 @@ public abstract class LexerGenerator extends CodeGenerator {
     genCodeLine("}");
   }
 
-  protected final String getJavaStatic() {
-    return getLexerData().request.isStatic() ? "static " : "";
-  }
-
   private void DumpStartWithStates() {
     // TODO :: CBA -- Require Unification of output language specific processing into a single Enum
     // class
     if (isJavaLanguage()) {
-      genCodeLine(getJavaStatic() + "private int " + "jjStartNfaWithStates" + this.lexStateSuffix
-          + "(int pos, int kind, int state)");
+      genCodeLine("private int " + "jjStartNfaWithStates" + this.lexStateSuffix + "(int pos, int kind, int state)");
     } else if (isCppLanguage()) {
       generateMethodDefHeaderCpp("int",
           "jjStartNfaWithStates" + this.lexStateSuffix + "(int pos, int kind, int state)");
@@ -1405,7 +1394,7 @@ public abstract class LexerGenerator extends CodeGenerator {
     // TODO :: CBA -- Require Unification of output language specific processing into a single Enum
     // class
     if (isJavaLanguage()) {
-      genCodeLine(getJavaStatic() + "private int " + "jjStopAtPos(int pos, int kind)");
+      genCodeLine("private int " + "jjStopAtPos(int pos, int kind)");
     } else if (isCppLanguage()) {
       generateMethodDefHeaderCpp(" int ", "jjStopAtPos(int pos, int kind)");
     } else {
@@ -1655,8 +1644,7 @@ public abstract class LexerGenerator extends CodeGenerator {
     getLexerData().kinds[getLexerData().getStateIndex()] = kindsForStates;
 
     if (isJavaLanguage()) {
-      genCodeLine(
-          getJavaStatic() + "private int " + "jjMoveNfa" + this.lexStateSuffix + "(int startState, int curPos)");
+      genCodeLine("private int " + "jjMoveNfa" + this.lexStateSuffix + "(int startState, int curPos)");
     } else {
       generateMethodDefHeaderCpp("int", "jjMoveNfa" + this.lexStateSuffix + "(int startState, int curPos)");
     }

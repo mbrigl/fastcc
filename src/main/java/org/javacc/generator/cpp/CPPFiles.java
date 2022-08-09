@@ -22,7 +22,7 @@ import java.io.IOException;
  */
 public class CPPFiles {
 
-  private static void genFile(String name, Version version, String[] parameters) {
+  private static void genFile(String name, Version version) {
     File file = new File(Options.getOutputDirectory(), name);
     try (DigestWriter writer = DigestWriter.create(file, version, DigestOptions.get())) {
       Template.of("/templates/cpp/" + name + ".template", writer.options()).write(writer);
@@ -34,48 +34,41 @@ public class CPPFiles {
   }
 
   static void gen_CharStream() {
-    String[] parameters = { JavaCC.JJPARSER_STATIC };
-    CPPFiles.genFile("CharStream.h", JavaCCVersion.VERSION, parameters);
-    CPPFiles.genFile("DefaultCharStream.h", JavaCCVersion.VERSION, parameters);
-    CPPFiles.genFile("DefaultCharStream.cc", JavaCCVersion.VERSION, parameters);
+    CPPFiles.genFile("CharStream.h", JavaCCVersion.VERSION);
+    CPPFiles.genFile("DefaultCharStream.h", JavaCCVersion.VERSION);
+    CPPFiles.genFile("DefaultCharStream.cc", JavaCCVersion.VERSION);
   }
 
   static void gen_ParseException() {
-    String[] parameters = { JavaCC.JJPARSER_STATIC };
-    CPPFiles.genFile("ParseException.h", JavaCCVersion.VERSION, parameters);
-    CPPFiles.genFile("ParseException.cc", JavaCCVersion.VERSION, parameters);
-    CPPFiles.genFile("ParserErrorHandler.h", JavaCCVersion.VERSION, parameters);
-    CPPFiles.genFile("DefaultParserErrorHandler.h", JavaCCVersion.VERSION, parameters);
-    CPPFiles.genFile("DefaultParserErrorHandler.cc", JavaCCVersion.VERSION, parameters);
+    CPPFiles.genFile("ParseException.h", JavaCCVersion.VERSION);
+    CPPFiles.genFile("ParseException.cc", JavaCCVersion.VERSION);
+    CPPFiles.genFile("ParserErrorHandler.h", JavaCCVersion.VERSION);
+    CPPFiles.genFile("DefaultParserErrorHandler.h", JavaCCVersion.VERSION);
+    CPPFiles.genFile("DefaultParserErrorHandler.cc", JavaCCVersion.VERSION);
   }
 
   static void gen_TokenMgrError() {
-    String[] parameters = { JavaCC.JJPARSER_STATIC };
-    CPPFiles.genFile("TokenManagerError.h", JavaCCVersion.VERSION, parameters);
-    CPPFiles.genFile("TokenManagerError.cc", JavaCCVersion.VERSION, parameters);
-    CPPFiles.genFile("TokenManagerErrorHandler.h", JavaCCVersion.VERSION, parameters);
+    CPPFiles.genFile("TokenManagerError.h", JavaCCVersion.VERSION);
+    CPPFiles.genFile("TokenManagerError.cc", JavaCCVersion.VERSION);
+    CPPFiles.genFile("TokenManagerErrorHandler.h", JavaCCVersion.VERSION);
   }
 
   static void gen_Token() {
-    String[] parameters = { JavaCC.JJPARSER_STATIC };
-    CPPFiles.genFile("Token.h", JavaCCVersion.VERSION, parameters);
-    CPPFiles.genFile("Token.cc", JavaCCVersion.VERSION, parameters);
+    CPPFiles.genFile("Token.h", JavaCCVersion.VERSION);
+    CPPFiles.genFile("Token.cc", JavaCCVersion.VERSION);
   }
 
   static void gen_TokenManager() {
-    String[] parameters = { JavaCC.JJPARSER_STATIC };
-    CPPFiles.genFile("TokenManager.h", JavaCCVersion.VERSION, parameters);
+    CPPFiles.genFile("TokenManager.h", JavaCCVersion.VERSION);
   }
 
   static void gen_JavaCCDefs() {
-    String[] parameters = { JavaCC.JJPARSER_STATIC };
-    CPPFiles.genFile("JavaCC.h", JavaCCVersion.VERSION, parameters);
+    CPPFiles.genFile("JavaCC.h", JavaCCVersion.VERSION);
   }
 
   static void gen_ErrorHandler() {
-    String[] parameters = { JavaCC.JJPARSER_STATIC };
-    CPPFiles.genFile("DefaultTokenManagerErrorHandler.h", JavaCCVersion.VERSION, parameters);
-    CPPFiles.genFile("DefaultTokenManagerErrorHandler.cc", JavaCCVersion.VERSION, parameters);
+    CPPFiles.genFile("DefaultTokenManagerErrorHandler.h", JavaCCVersion.VERSION);
+    CPPFiles.genFile("DefaultTokenManagerErrorHandler.cc", JavaCCVersion.VERSION);
   }
 
 
