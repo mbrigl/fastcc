@@ -30,15 +30,15 @@ import it.smartio.fastcc.generator.LexerStateData;
  */
 public class Nfa {
 
-  public NfaState start;
-  public NfaState end;
-
-  Nfa(LexerStateData data) {
-    this(new NfaState(data), new NfaState(data));
-  }
+  public final NfaState start;
+  public final NfaState end;
 
   Nfa(NfaState startGiven, NfaState finalGiven) {
     this.start = startGiven;
     this.end = finalGiven;
+  }
+
+  Nfa(LexerStateData data) {
+    this(new NfaState(data), new NfaState(data));
   }
 }

@@ -20,8 +20,8 @@ package it.smartio.fastcc.jjtree;
  */
 abstract class AbstractJJTreeParser {
 
-  protected final void setParserName(String name) {
-    JJTreeGlobals.parserName = name;
+  protected final void setParserName() {
+    JJTreeGlobals.parserName = getToken(0).image;
   }
 
   protected final void addProduction(ASTProduction prod) {

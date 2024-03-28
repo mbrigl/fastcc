@@ -28,7 +28,9 @@ package it.smartio.fastcc.parser;
  */
 public final class JavaCCErrors {
 
-  private static int parse_error_count = 0, semantic_error_count = 0, warning_count = 0;
+  private static int parse_error_count    = 0;
+  private static int semantic_error_count = 0;
+  private static int warning_count        = 0;
 
   private JavaCCErrors() {}
 

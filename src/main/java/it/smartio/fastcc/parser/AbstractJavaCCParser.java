@@ -23,6 +23,7 @@
 
 package it.smartio.fastcc.parser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import it.smartio.fastcc.JJLanguage;
@@ -75,8 +76,8 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
     this.data = data;
   }
 
-  protected void setParserName(String id) {
-    this.data.setParser(id);
+  protected void setParserName() {
+    this.data.setParser(getToken(0).image);
   }
 
   protected void addproduction(NormalProduction p) {
@@ -341,4 +342,40 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
   protected abstract Token getNextToken();
 
   protected abstract Token getToken(int index);
+  
+  protected void Arguments() throws ParseException {
+    Arguments(new ArrayList<>());
+  }
+  
+  protected void Block() throws ParseException {
+    Block(new ArrayList<>());
+  }
+  
+    protected void Expression() throws ParseException {
+    Expression(new ArrayList<>());
+  }
+  
+  protected void FormalParameters() throws ParseException {
+    FormalParameters(new ArrayList<>());
+  }
+  
+  protected void Name() throws ParseException {
+    Name(new ArrayList<>());
+  }
+  
+  protected void ResultType() throws ParseException {
+    ResultType(new ArrayList<>());
+  }
+  
+  protected void TypeArguments() throws ParseException {
+    TypeArguments(new ArrayList<>());
+  }
+
+  protected abstract void Arguments(List<Token> tokens) throws ParseException;
+  protected abstract void Block(List<Token> tokens) throws ParseException;
+  protected abstract void Expression(List<Token> tokens) throws ParseException;
+  protected abstract void FormalParameters(List<Token> tokens) throws ParseException;
+  protected abstract void Name(List<Token> tokens) throws ParseException;
+  protected abstract void ResultType(List<Token> tokens) throws ParseException;
+  protected abstract void TypeArguments(List<Token> tokens) throws ParseException;
 }

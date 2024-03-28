@@ -117,12 +117,8 @@ TOKEN :
 {
   < BOOLEAN: "boolean" >
 | < BREAK: "break" >
-| < CASE: "case" >
 | < CATCH: "catch" >
 | < CHAR: "char" >
-| < CONTINUE: "continue" >
-| < _DEFAULT: "default" >
-| < DOUBLE: "double" >
 | < ELSE: "else" >
 | < FALSE: "false" >
 | < FINALLY: "finally" >
@@ -133,10 +129,8 @@ TOKEN :
 | < NEW: "new" >
 | < NULL: "null" >
 | < RETURN: "return" >
-| < SWITCH: "switch" >
 | < THIS: "this" >
 | < THROW: "throw" >
-| < THROWS: "throws" >
 | < TRUE: "true" >
 | < TRY: "try" >
 | < VOID: "void" >
@@ -223,7 +217,6 @@ TOKEN :
 | < TILDE: "~" >
 | < HOOK: "?" >
 | < COLON: ":" >
-| < DOUBLECOLON: "::" >
 | < EQ: "==" >
 | < NE: "!=" >
 | < SC_OR: "||" >
@@ -236,8 +229,6 @@ TOKEN :
 | < SLASH: "/" >
 | < BIT_AND: "&" >
 | < BIT_OR: "|" >
-| < XOR: "^" >
-| < REM: "%" >
 | < PLUSASSIGN: "+=" >
 | < MINUSASSIGN: "-=" >
 }
@@ -255,17 +246,16 @@ TOKEN :
  ************************************************/
 void javacc_input() #Grammar :
 {
-  Token t;
 }
 {
   javacc_options()
   {}
-  ( "PARSER_BEGIN" "(" t=identifier() ")"
+  ( "PARSER_BEGIN" "(" identifier()
   {
-    setParserName(t.image);
+    setParserName();
   }
-  "PARSER_END"
-  ) #CompilationUnit(true)
+  ")"
+  "PARSER_END" ) #CompilationUnit(true)
   ( ( production() )+ ) #Productions
   <EOF>
 }
@@ -335,17 +325,6 @@ void bnf_production() #BNF :
     prod = jjtThis;
   }
   ResultType() t1=identifier() FormalParameters()
-  [
-    "throws" n=Name()
-	{
-	  prod.throws_list.addElement(n);
-	}
-    ( "," n=Name()
-	{
-	  prod.throws_list.addElement(n);
-	}
-    )*
-  ]
   [ nd=node_descriptor() ]
   ":"
 
@@ -524,23 +503,16 @@ JJTreeNode expansion_unit(ASTProduction p) :
 |
   t="(" expansion_choices(p) ")"
   (
-    "+"
-      #BNFOneOrMore(1)
-  |
-    "*"
-      #BNFZeroOrMore(1)
-  |
-    "?"
-      #BNFZeroOrOne(1)
-  |
-    {}
-      #BNFParenthesized(1)
+    "+" #BNFOneOrMore(1)
+  | "*" #BNFZeroOrMore(1)
+  | "?" #BNFZeroOrOne(1)
+  | {} #BNFParenthesized(1)
   )
 	{
 	  ((JJTreeNode)jjtree.peekNode()).setFirstToken(t);
 	}
 )
-        {
+	{
 	  return (JJTreeNode)jjtree.peekNode();
 	}
 }
@@ -767,7 +739,7 @@ void MethodDeclaration():
   // Modifiers already matched in the caller!
   [ TypeParameters() ]
   ResultType()
-  MethodDeclarator() [ "throws" NameList() ]
+  MethodDeclarator()
   ( Block() | ";" )
 }
 
@@ -800,7 +772,7 @@ void ConstructorDeclaration():
 {
   [ TypeParameters() ]
   // Modifiers matched in the caller
-  JavaIdentifier() FormalParameters() [ "throws" NameList() ]
+  JavaIdentifier() FormalParameters()
   "{"
     [ LOOKAHEAD(ExplicitConstructorInvocation()) ExplicitConstructorInvocation() ]
     ( BlockStatement() )*
@@ -844,7 +816,7 @@ void ClassOrInterfaceType():
 {}
 {
   JavaIdentifier() [ LOOKAHEAD(2) TypeArguments() ]
-  ( LOOKAHEAD(2) ( "." | "::" ) JavaIdentifier() [ LOOKAHEAD(2) TypeArguments() ] )*
+  ( LOOKAHEAD(1) "." JavaIdentifier() [ LOOKAHEAD(2) TypeArguments() ] )*
 }
 
 void TypeArguments():
@@ -866,7 +838,6 @@ void PrimitiveType():
   "boolean"
 | "char"
 | "int"
-| "double"
 }
 
 
@@ -954,13 +925,7 @@ void ConditionalAndExpression():
 void InclusiveOrExpression():
 {}
 {
-  ExclusiveOrExpression() ( "|" ExclusiveOrExpression() )*
-}
-
-void ExclusiveOrExpression():
-{}
-{
-  AndExpression() ( "^" AndExpression() )*
+  AndExpression() ( "|" AndExpression() )*
 }
 
 void AndExpression():
@@ -996,7 +961,7 @@ void AdditiveExpression():
 void MultiplicativeExpression():
 {}
 {
-  UnaryExpression() ( ( "*" | "/" | "%" ) UnaryExpression() )*
+  UnaryExpression() ( ( "*" | "/") UnaryExpression() )*
 }
 
 void UnaryExpression():
@@ -1126,12 +1091,11 @@ Token BooleanLiteral() :
 
 Token StringLiteral() :
 {
-  Token t;
 }
 {
-  t=<STRING_LITERAL>
+  <STRING_LITERAL>
   {
-    return t;
+    return this.token;
   }
 }
 
@@ -1190,12 +1154,10 @@ void Statement():
   Block()
 | EmptyStatement()
 | StatementExpression() ";"
-| SwitchStatement()
 | IfStatement()
 | WhileStatement()
 | ForStatement()
 | BreakStatement()
-| ContinueStatement()
 | ReturnStatement()
 | ThrowStatement()
 | TryStatement()
@@ -1246,21 +1208,6 @@ void StatementExpression():
   | "--"
   | AssignmentOperator() Expression()
   ]
-}
-
-void SwitchStatement():
-{}
-{
-  "switch" "(" Expression() ")" "{"
-    ( SwitchLabel() ( BlockStatement() )* )*
-  "}"
-}
-
-void SwitchLabel():
-{}
-{
-  "case" Expression() ":"
-| "default" ":"
 }
 
 void IfStatement():
@@ -1317,12 +1264,6 @@ void BreakStatement():
   "break" [ JavaIdentifier() ] ";"
 }
 
-void ContinueStatement():
-{}
-{
-  "continue" [ JavaIdentifier() ] ";"
-}
-
 void ReturnStatement() :
 {}
 {
@@ -1366,12 +1307,6 @@ void  MemberValueArrayInitializer():
 {}
 {
   "{" MemberValue() ( LOOKAHEAD(2) "," MemberValue() )* [ "," ] "}"
-}
-
-void DefaultValue():
-{}
-{
-  "default" MemberValue()
 }
 
 /* IDENTIFIERS */

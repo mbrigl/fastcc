@@ -121,12 +121,8 @@ TOKEN :
 {
   < BOOLEAN: "boolean" >
 | < BREAK: "break" >
-| < CASE: "case" >
 | < CATCH: "catch" >
 | < CHAR: "char" >
-| < CONTINUE: "continue" >
-| < _DEFAULT: "default" >
-| < DOUBLE: "double" >
 | < ELSE: "else" >
 | < FALSE: "false" >
 | < FINALLY: "finally" >
@@ -137,10 +133,8 @@ TOKEN :
 | < NEW: "new" >
 | < NULL: "null" >
 | < RETURN: "return" >
-| < SWITCH: "switch" >
 | < THIS: "this" >
 | < THROW: "throw" >
-| < THROWS: "throws" >
 | < TRUE: "true" >
 | < TRY: "try" >
 | < VOID: "void" >
@@ -227,7 +221,6 @@ TOKEN :
 | < TILDE: "~" >
 | < HOOK: "?" >
 | < COLON: ":" >
-| < DOUBLECOLON: "::" >
 | < EQ: "==" >
 | < NE: "!=" >
 | < SC_OR: "||" >
@@ -240,8 +233,6 @@ TOKEN :
 | < SLASH: "/" >
 | < BIT_AND: "&" >
 | < BIT_OR: "|" >
-| < XOR: "^" >
-| < REM: "%" >
 | < PLUSASSIGN: "+=" >
 | < MINUSASSIGN: "-=" >
 }
@@ -259,14 +250,13 @@ TOKEN :
  ************************************************/
 void javacc_input() :
 {
-  String t;
 }
 {
   javacc_options()
-  "PARSER_BEGIN" "(" t=identifier()
+  "PARSER_BEGIN" "(" identifier()
   {
-    setParserName(t);
-  } 
+    setParserName();
+  }
   ")"
   "PARSER_END" ( production() )+
   <EOF>
@@ -371,25 +361,6 @@ void bnf_production() :
     p.setLhs(lhs);
   }
   FormalParameters(p.getParameterListTokens())
-  [
-    "throws"
-	{
-	  excName = new ArrayList<>();
-	}
-    Name(excName)
-	{
-	  p.getThrowsList().add(excName);
-	}
-    (
-	{
-	  excName = new ArrayList<>();
-	}
-      "," Name(excName)
-	  {
-	    p.getThrowsList().add(excName);
-	  }
-    )*
-  ]
   ":" Block(p.getDeclarationTokens()) "{" expansion_choices(c) t="}"
   {
     p.setLastToken(t);
@@ -459,22 +430,10 @@ void regular_expr_production() :
 void regexpr_kind(TokenProduction p) :
 {}
 {
-  "TOKEN"
-  {
-    p.setKind(TokenProduction.Kind.TOKEN);
-  }
-| "SPECIAL_TOKEN"
-  {
-    p.setKind(TokenProduction.Kind.SPECIAL);
-  }
-| "SKIP"
-	{
-	  p.setKind(TokenProduction.Kind.SKIP);
-	}
-| "MORE"
-	{
-	  p.setKind(TokenProduction.Kind.MORE);
-	}
+  "TOKEN" { p.setKind(TokenProduction.Kind.TOKEN); }
+| "SPECIAL_TOKEN" { p.setKind(TokenProduction.Kind.SPECIAL); }
+| "SKIP" { p.setKind(TokenProduction.Kind.SKIP); }
+| "MORE" { p.setKind(TokenProduction.Kind.MORE); }
 }
 
 void regexpr_spec(TokenProduction p) :
@@ -802,7 +761,7 @@ void expansion_unit(Container c) :
 	}
   ]
   (
-	LOOKAHEAD( identifier() [ TypeArguments(null) ] "(")
+	LOOKAHEAD( identifier() [ TypeArguments() ] "(")
 	{
 	  t = getToken(1);
 	  nt = new NonTerminal();
@@ -1151,7 +1110,7 @@ void VariableInitializer():
 {}
 {
   ArrayInitializer()
-| Expression(null)
+| Expression()
 }
 
 void ArrayInitializer():
@@ -1165,15 +1124,15 @@ void MethodDeclaration():
 {
   // Modifiers already matched in the caller!
   [ TypeParameters() ]
-  ResultType(null)
-  MethodDeclarator() [ "throws" NameList() ]
-  ( Block(null) | ";" )
+  ResultType()
+  MethodDeclarator()
+  ( Block() | ";" )
 }
 
 void MethodDeclarator():
 {}
 {
-  JavaIdentifier() FormalParameters(null) ( "[" "]" )*
+  JavaIdentifier() FormalParameters() ( "[" "]" )*
 }
 
 void FormalParameters(List<Token> tokens) :
@@ -1183,8 +1142,6 @@ void FormalParameters(List<Token> tokens) :
  */
 {
   Token first, last;
-  if (tokens == null)
-    tokens = new ArrayList<>();
 }
 {
   "("
@@ -1221,7 +1178,7 @@ void ConstructorDeclaration():
 {
   [ TypeParameters() ]
   // Modifiers matched in the caller
-  JavaIdentifier() FormalParameters(null) [ "throws" NameList() ]
+  JavaIdentifier() FormalParameters()
   "{"
     [ LOOKAHEAD(ExplicitConstructorInvocation()) ExplicitConstructorInvocation() ]
     ( BlockStatement() )*
@@ -1231,15 +1188,15 @@ void ConstructorDeclaration():
 void ExplicitConstructorInvocation():
 {}
 {
-  LOOKAHEAD("this" Arguments(null) ";")
-  "this" Arguments(null) ";"
-| [ LOOKAHEAD(2) PrimaryExpression() "." ] "super" Arguments(null) ";"
+  LOOKAHEAD("this" Arguments() ";")
+  "this" Arguments() ";"
+| [ LOOKAHEAD(2) PrimaryExpression() "." ] "super" Arguments() ";"
 }
 
 void Initializer():
 {}
 {
-  Block(null)
+  Block()
 }
 
 
@@ -1264,8 +1221,8 @@ void ReferenceType():
 void ClassOrInterfaceType():
 {}
 {
-  [ "::" ] <IDENTIFIER> [ LOOKAHEAD(2) TypeArguments(null) ]
-  ( LOOKAHEAD(2) ( "." | "::" ) <IDENTIFIER> [ LOOKAHEAD(2) TypeArguments(null) ] )*
+  <IDENTIFIER> [ LOOKAHEAD(2) TypeArguments() ]
+  ( LOOKAHEAD(1) "." <IDENTIFIER> [ LOOKAHEAD(2) TypeArguments() ] )*
 }
 
 void TypeArguments(List<Token> tokens):
@@ -1275,8 +1232,6 @@ void TypeArguments(List<Token> tokens):
  */
 {
   Token first, last;
-  if (tokens == null)
-	 tokens = new ArrayList<>();
 }
 {
    "<"   { first = getToken(0); }
@@ -1309,15 +1264,12 @@ void PrimitiveType():
   "boolean"
 | "char"
 | "int"
-| "double"
 }
 
 
 void ResultType(List<Token> tokens) :
 {
 	  Token first = getToken(1);
-	  if (tokens == null)
-	    tokens = new ArrayList<>();
 }
 {
 (
@@ -1341,8 +1293,6 @@ void Name(List<Token> tokens) :
  * by a ".*" when used in the context of an "ImportDeclaration".
  */
 {
-  if (tokens == null)
-    tokens = new ArrayList<>();
   Token first = getToken(1);
 }
 {
@@ -1363,7 +1313,7 @@ void Name(List<Token> tokens) :
 void NameList():
 {}
 {
-  Name(null) ( "," Name(null) )*
+  Name() ( "," Name() )*
 }
 
 
@@ -1383,14 +1333,12 @@ void Expression(List<Token> tokens) :
  */
 {
   Token first = getToken(1);
-  if (tokens == null)
-    tokens = new ArrayList<Token>();
 }
 {
   ConditionalExpression()
   [
 	LOOKAHEAD(2)
-    AssignmentOperator() Expression(null)
+    AssignmentOperator() Expression()
   ]
   {
 	Token last = getToken(0);
@@ -1413,7 +1361,7 @@ void AssignmentOperator():
 void ConditionalExpression():
 {}
 {
-  ConditionalOrExpression() [ "?" Expression(null) ":" Expression(null) ]
+  ConditionalOrExpression() [ "?" Expression() ":" Expression() ]
 }
 
 void ConditionalOrExpression():
@@ -1431,13 +1379,7 @@ void ConditionalAndExpression():
 void InclusiveOrExpression():
 {}
 {
-  ExclusiveOrExpression() ( "|" ExclusiveOrExpression() )*
-}
-
-void ExclusiveOrExpression():
-{}
-{
-  AndExpression() ( "^" AndExpression() )*
+  AndExpression() ( "|" AndExpression() )*
 }
 
 void AndExpression():
@@ -1473,7 +1415,7 @@ void AdditiveExpression():
 void MultiplicativeExpression():
 {}
 {
-  UnaryExpression() ( ( "*" | "/" | "%" ) UnaryExpression() )*
+  UnaryExpression() ( ( "*" | "/" ) UnaryExpression() )*
 }
 
 void UnaryExpression():
@@ -1538,7 +1480,7 @@ void PrimaryExpression():
 void MemberSelector():
 {}
 {
-  "." TypeArguments(null) JavaIdentifier()
+  "." TypeArguments() JavaIdentifier()
 }
 
 void PrimaryPrefix():
@@ -1547,10 +1489,10 @@ void PrimaryPrefix():
   Literal()
 | "this"
 | "super" "." JavaIdentifier()
-| "(" Expression(null) ")"
+| "(" Expression() ")"
 | AllocationExpression()
-| LOOKAHEAD( ResultType(null) "." "class" ) ResultType(null) "." "class"
-| Name(null)
+| LOOKAHEAD( ResultType() "." "class" ) ResultType() "." "class"
+| Name()
 }
 
 void PrimarySuffix():
@@ -1559,9 +1501,9 @@ void PrimarySuffix():
   LOOKAHEAD(2) "." "this"
 | LOOKAHEAD(2) "." AllocationExpression()
 | LOOKAHEAD(3) MemberSelector()
-| "[" Expression(null) "]"
+| "[" Expression() "]"
 | "." JavaIdentifier()
-| Arguments(null)
+| Arguments()
 }
 
 void Literal():
@@ -1603,12 +1545,11 @@ boolean BooleanLiteral() :
 
 String StringLiteral() :
 {
-  Token t;
 }
 {
-  t=<STRING_LITERAL>
+  <STRING_LITERAL>
   {
-    return remove_escapes_and_quotes(t, t.image);
+    return remove_escapes_and_quotes(this.token, this.token.image);
   }
 }
 
@@ -1625,8 +1566,6 @@ void Arguments(List<Token> tokens) :
  */
 {
   Token first, last;
-  if (tokens == null)
-    tokens = new ArrayList<>();
 }
 {
   "("
@@ -1656,7 +1595,7 @@ void Arguments(List<Token> tokens) :
 void ArgumentList():
 {}
 {
-  Expression(null) ( "," Expression(null) )*
+  Expression() ( "," Expression() )*
 }
 
 void AllocationExpression():
@@ -1664,10 +1603,10 @@ void AllocationExpression():
 {
   LOOKAHEAD(2)
   "new" PrimitiveType() ArrayDimsAndInits()
-| "new" ClassOrInterfaceType() [ TypeArguments(null) ]
+| "new" ClassOrInterfaceType() [ TypeArguments() ]
   (
     ArrayDimsAndInits()
-  | Arguments(null)
+  | Arguments()
   )
 }
 
@@ -1678,7 +1617,7 @@ void AllocationExpression():
 void ArrayDimsAndInits():
 {}
 {
-  LOOKAHEAD(2) ( LOOKAHEAD(2) "[" Expression(null) "]" )+ ( LOOKAHEAD(2) "[" "]" )*
+  LOOKAHEAD(2) ( LOOKAHEAD(2) "[" Expression() "]" )+ ( LOOKAHEAD(2) "[" "]" )*
 | ( "[" "]" )+ ArrayInitializer()
 }
 
@@ -1689,15 +1628,13 @@ void ArrayDimsAndInits():
 void Statement():
 {}
 {
-  Block(null)
+  Block()
 | EmptyStatement()
 | StatementExpression() ";"
-| SwitchStatement()
 | IfStatement()
 | WhileStatement()
 | ForStatement()
 | BreakStatement()
-| ContinueStatement()
 | ReturnStatement()
 | ThrowStatement()
 | TryStatement()
@@ -1710,9 +1647,7 @@ void Block(List<Token> tokens) :
  */
 {
   Token first, last;
-  if (tokens == null)
-    tokens = new ArrayList<>();
-  }
+}
 {
   "{"
   {
@@ -1771,23 +1706,8 @@ void StatementExpression():
   [
     "++"
   | "--"
-  | AssignmentOperator() Expression(null)
+  | AssignmentOperator() Expression()
   ]
-}
-
-void SwitchStatement():
-{}
-{
-  "switch" "(" Expression(null) ")" "{"
-    ( SwitchLabel() ( BlockStatement() )* )*
-  "}"
-}
-
-void SwitchLabel():
-{}
-{
-  "case" Expression(null) ":"
-| "default" ":"
 }
 
 void IfStatement():
@@ -1798,13 +1718,13 @@ void IfStatement():
  */
 {}
 {
-  "if" "(" Expression(null) ")" Statement() [ LOOKAHEAD(1) "else" Statement() ]
+  "if" "(" Expression() ")" Statement() [ LOOKAHEAD(1) "else" Statement() ]
 }
 
 void WhileStatement():
 {}
 {
-  "while" "(" Expression(null) ")" Statement()
+  "while" "(" Expression() ")" Statement()
 }
 
 void ForStatement():
@@ -1813,8 +1733,8 @@ void ForStatement():
   "for" "("
   (
       LOOKAHEAD(Type() JavaIdentifier() ":")
-      Type() JavaIdentifier() ":" Expression(null)
-    | [ ForInit() ] ";" [ Expression(null) ] ";" [ ForUpdate() ]
+      Type() JavaIdentifier() ":" Expression()
+    | [ ForInit() ] ";" [ Expression() ] ";" [ ForUpdate() ]
   )
   ")" Statement()
 }
@@ -1844,12 +1764,6 @@ void BreakStatement():
   "break" [ JavaIdentifier() ] ";"
 }
 
-void ContinueStatement():
-{}
-{
-  "continue" [ JavaIdentifier() ] ";"
-}
-
 void ReturnStatement() :
 {
   Token t;
@@ -1867,7 +1781,7 @@ void ReturnStatement() :
     }
   }
   [
-    Expression(null)
+    Expression()
   ]
   t=";"
 	{
@@ -1892,7 +1806,7 @@ void ThrowStatement() :
       jumpPatched = true;
     }
   }
-  Expression(null)
+  Expression()
   t=";"
   {
     // Add closing brace for above if statement.
@@ -1905,14 +1819,14 @@ void ThrowStatement() :
 void ResourceDeclaration():
 {}
 {
-  Type() VariableDeclaratorId() "=" Expression(null)
+  Type() VariableDeclaratorId() "=" Expression()
 }
 
 void CatchParameter():
-{ Token t; }
+{}
 {
   Type()
-  [ ( t = "&" | t = "*") | "..." ]
+  [ ( "&" | "*") | "..." ]
   //Multiple exception catching in Java 7+
   ("|" Type())*
   
@@ -1926,9 +1840,9 @@ void TryStatement():
 {
   "try" ["("  ResourceDeclaration()
          (LOOKAHEAD(2) ";" ResourceDeclaration())* (";")? ")" { empty = false; }
-         ] Block(null)
-  ( "catch" "(" CatchParameter() ")" Block(null) { empty = false; } )*
-  [ "finally" Block(null) { empty = false; } ]
+         ] Block()
+  ( "catch" "(" CatchParameter() ")" Block() { empty = false; } )*
+  [ "finally" Block() { empty = false; } ]
   {
   if (empty)
       throw new ParseException("At least one catch or finally block expected.");
@@ -1958,12 +1872,6 @@ void  MemberValueArrayInitializer():
 {}
 {
   "{" MemberValue() ( LOOKAHEAD(2) "," MemberValue() )* [ "," ] "}"
-}
-
-void DefaultValue():
-{}
-{
-  "default" MemberValue()
 }
 
 /* IDENTIFIERS */

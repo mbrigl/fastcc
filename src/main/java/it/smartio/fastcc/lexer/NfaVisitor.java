@@ -248,11 +248,11 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
   @Override
   public Nfa visit(RZeroOrMore expr, LexerStateData data) {
     Nfa retVal = new Nfa(data);
-    NfaState startState = retVal.start;
-    NfaState finalState = retVal.end;
-
     Nfa temp = expr.getRegexpr().accept(this, data);
 
+
+    NfaState startState = retVal.start;
+    NfaState finalState = retVal.end;
     startState.AddMove(temp.start);
     startState.AddMove(finalState);
     temp.end.AddMove(finalState);
@@ -264,11 +264,10 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
   @Override
   public Nfa visit(RZeroOrOne expr, LexerStateData data) {
     Nfa retVal = new Nfa(data);
-    NfaState startState = retVal.start;
-    NfaState finalState = retVal.end;
-
     Nfa temp = expr.getRegexpr().accept(this, data);
 
+    NfaState startState = retVal.start;
+    NfaState finalState = retVal.end;
     startState.AddMove(temp.start);
     startState.AddMove(finalState);
     temp.end.AddMove(finalState);
