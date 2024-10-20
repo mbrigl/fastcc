@@ -63,8 +63,9 @@ public class CppParserGenerator extends ParserGenerator {
   @Override
   protected void generate(ParserData data) throws IOException {
     TemplateOptions options = new TemplateOptions();
-    options.set("LOOKAHEAD_NEEDED", data.isLookAheadNeeded());
     options.set("IS_GENERATED", data.isGenerated());
+    options.set("LOOKAHEAD_NEEDED", data.isLookAheadNeeded());
+
     options.set("jj2Index", data.jj2Index());
     options.set("maskIndex", data.maskIndex());
     options.set("tokenCount", data.getTokenCount());

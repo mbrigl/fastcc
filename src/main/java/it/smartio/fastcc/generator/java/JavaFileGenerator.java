@@ -68,10 +68,7 @@ public class JavaFileGenerator extends AbstractFileGenerator implements FileGene
    * @param options
    */
   protected final DigestWriter createDigestWriter(File file, DigestOptions options) throws FileNotFoundException {
-    DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options);
-//    writer.println("package " + options.getOptions().getJavaPackage() + ";");
-//    writer.println();
-    return writer;
+    return DigestWriter.create(file, FastCC.VERSION, options);
   }
 
   @Override
@@ -85,8 +82,8 @@ public class JavaFileGenerator extends AbstractFileGenerator implements FileGene
 
     TemplateOptions options = new TemplateOptions();
     options.add("STATES", context.getStateCount()).set("name", i -> context.getStateName(i));
-    options.add("TOKENS", request.getOrderedsTokens()).set("label", r -> r.getLabel()).set("ordinal",
-        r -> r.getOrdinal());
+    options.add("TOKENS", request.getOrderedsTokens()).set("ordinal", r -> r.getOrdinal()).set("label",
+        r -> r.getLabel());
     options.add("PRODUCTIONS", expressions).set("label", re -> {
       StringBuffer buffer = new StringBuffer();
 

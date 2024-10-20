@@ -81,9 +81,9 @@ public class CppFileGenerator extends AbstractFileGenerator implements FileGener
     }
 
     TemplateOptions options = new TemplateOptions();
+    options.add("STATES", context.getStateCount()).set("name", i -> context.getStateName(i));
     options.add("TOKENS", request.getOrderedsTokens()).set("ordinal", r -> r.getOrdinal()).set("label",
         r -> r.getLabel());
-    options.add("STATES", context.getStateCount()).set("name", i -> context.getStateName(i));
     options.add("REGEXPS", expressions.size() + 1).set("label", (i, w) -> getRegExp(w, false, i, expressions))
         .set("image", (i, w) -> getRegExp(w, true, i, expressions));
 

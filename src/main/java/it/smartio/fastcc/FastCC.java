@@ -50,6 +50,7 @@ public interface FastCC {
   String JJTREE_TRACK_TOKENS        = "TRACK_TOKENS";
   String JJTREE_NODE_FACTORY        = "NODE_FACTORY";
   String JJTREE_BUILD_NODE_FILES    = "BUILD_NODE_FILES";
+
   String JJTREE_VISITOR             = "VISITOR";
   String JJTREE_VISITOR_EXCEPTION   = "VISITOR_EXCEPTION";
   String JJTREE_VISITOR_DATA_TYPE   = "VISITOR_DATA_TYPE";
@@ -92,17 +93,14 @@ public interface FastCC {
     String minor = "??";
     String patch = "??";
 
-    Properties props = new Properties();
-    InputStream is = FastCC.class.getResourceAsStream("/version.properties");
-    if (is != null) {
-      try {
-        props.load(is);
-      } catch (IOException e) {
-        System.err.println("Could not read version.properties: " + e);
-      }
-      major = props.getProperty("version.major", major);
-      minor = props.getProperty("version.minor", minor);
-      patch = props.getProperty("version.patch", patch);
+    try (InputStream is = FastCC.class.getResourceAsStream("/version.properties")) {
+      Properties properties = new Properties();
+      properties.load(is);
+      major = properties.getProperty("version.major", major);
+      minor = properties.getProperty("version.minor", minor);
+      patch = properties.getProperty("version.patch", patch);
+    } catch (IOException e) {
+      System.err.println("Could not read version.properties: " + e);
     }
     return Version.of(Integer.parseInt(major), Integer.parseInt(minor), patch.equals("") ? 0 : Integer.parseInt(patch));
   }

@@ -942,16 +942,6 @@ public class CppLexerGenerator extends LexerGenerator {
     writer.println("}");
   }
 
-  private final void dumpNfaAndDfa(LexerStateData stateData, PrintWriter writer) {
-    if (stateData.hasNFA && !stateData.isMixedState()) {
-      DumpNfaStartStatesCode(writer, stateData, stateData.statesForPos);
-    }
-    DumpDfaCode(writer, stateData);
-    if (stateData.hasNFA) {
-      DumpMoveNfa(writer, stateData);
-    }
-  }
-
   private final void dumpNfaAndDfaHeader(LexerStateData stateData, PrintWriter writer) {
     if (stateData.hasNFA && !stateData.isMixedState() && (stateData.maxStrKind > 0)) {
       int i, maxKindsReqd = (stateData.maxStrKind / 64) + 1;
@@ -984,6 +974,16 @@ public class CppLexerGenerator extends LexerGenerator {
     }
     if (stateData.hasNFA) {
       writer.println("int jjMoveNfa" + stateData.lexStateSuffix + "(int startState, int curPos);");
+    }
+  }
+
+  private final void dumpNfaAndDfa(LexerStateData stateData, PrintWriter writer) {
+    if (stateData.hasNFA && !stateData.isMixedState()) {
+      DumpNfaStartStatesCode(writer, stateData, stateData.statesForPos);
+    }
+    DumpDfaCode(writer, stateData);
+    if (stateData.hasNFA) {
+      DumpMoveNfa(writer, stateData);
     }
   }
 
@@ -1527,7 +1527,7 @@ public class CppLexerGenerator extends LexerGenerator {
       writer.println("      default :");
 
       if (data.global.options().getDebugTokenManager()) {
-        writer.println("      fprintf(debugStream, \"   No string literal matches possible.\\n\");");
+        writer.println("      fprintf(debugStream, \"   No string literal matches possible.\");");
       }
 
       if (data.generatedStates() != 0) {

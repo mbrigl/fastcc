@@ -54,14 +54,14 @@ public class JavaLexerGenerator extends LexerGenerator {
   @Override
   protected final void dumpAll(LexerData data) throws IOException {
     TemplateOptions options = new TemplateOptions();
-    options.set("LITERAL_IMAGES", () -> JavaLexerGenerator.getStrLiteralImages(data));
-    options.set("STATES_FOR_STATE", () -> getStatesForState(data));
-    options.set("KIND_FOR_STATE", () -> getKindForState(data));
-
     options.add("LOHI_BYTES", data.lohiByte.keySet()).set("bytes", i -> getLohiBytes(data, i));
     options.add("STATES", data.stateNames).set("NfaAndDfa", (n, w) -> dumpNfaAndDfa(data.getStateData(n), w));
     options.add("NON_ASCII_TABLE", data.nonAsciiTableForMethod).set("AsciiMove",
         (s, w) -> DumpNonAsciiMoveMethod(s, data, w));
+
+    options.set("LITERAL_IMAGES", () -> JavaLexerGenerator.getStrLiteralImages(data));
+    options.set("STATES_FOR_STATE", () -> getStatesForState(data));
+    options.set("KIND_FOR_STATE", () -> getKindForState(data));
 
     options.setWriter("DumpSkipActions", p -> DumpSkipActions(p, data));
     options.setWriter("DumpMoreActions", p -> DumpMoreActions(p, data));
@@ -73,10 +73,10 @@ public class JavaLexerGenerator extends LexerGenerator {
     options.set("defaultLexState", data.defaultLexState);
     options.set("maxOrdinal", data.maxOrdinal);
     options.set("maxLexStates", data.maxLexStates);
+    options.set("keepLineCol", data.keepLineCol);
     options.set("hasEmptyMatch", data.hasEmptyMatch);
     options.set("hasSkip", data.hasSkip);
     options.set("hasMore", data.hasMore);
-    options.set("keepLineCol", data.keepLineCol);
     options.set("hasSpecial", data.hasSpecial);
     options.set("hasLoop", data.hasLoop);
     options.set("hasMoreActions", data.hasMoreActions);
@@ -954,7 +954,6 @@ public class JavaLexerGenerator extends LexerGenerator {
     if (stateData.hasNFA && !stateData.isMixedState()) {
       DumpNfaStartStatesCode(writer, stateData, stateData.statesForPos);
     }
-
     DumpDfaCode(writer, stateData);
     if (stateData.hasNFA) {
       DumpMoveNfa(writer, stateData);
